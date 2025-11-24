@@ -1,0 +1,45 @@
+#app {
+    min-height: 100%;
+    display: flex;
+    flex-flow: column;
+}
+
+html,
+body {    
+    min-height: 100vh;   /* fallback voor oudere (normale) browsers */
+    min-height: 100dvh;  /* Fix voor ios */
+    display: flex;
+    font-family: var(--default-font);
+    accent-color: var(--accent-color);
+}
+
+html {
+    background-color: var(--primary-bg-color);
+    overflow-x: hidden;
+}
+
+body {
+    width: 100%;
+    background-image: linear-gradient(to bottom, transparent 0px, transparent calc(var(--bg-size) - 2px), var(--bg-color) calc(var(--bg-size) - 2px), var(--bg-color) var(--bg-size)),
+                    linear-gradient(to right, transparent 0px, transparent calc(var(--bg-size) - 2px), var(--bg-color) calc(var(--bg-size) - 2px), var(--bg-color) var(--bg-size));
+    background-size: var(--bg-size) var(--bg-size);
+    color: var(--contrast-color);
+    background-position: top left;
+    overflow: hidden;
+}
+
+* {
+    box-sizing: border-box;
+
+    /* Disable text selection */
+    -webkit-user-select: none; /* Safari */        
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+/Edge */
+    user-select: none; /* Standard */
+}
+
+.svg-icon {
+    display: block;
+    fill: currentColor;
+}
+
