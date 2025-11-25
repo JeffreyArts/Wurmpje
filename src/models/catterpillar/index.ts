@@ -1,11 +1,11 @@
-import _ from "lodash"
+import { find } from "lodash"
 import Matter from "matter-js"
 import gsap from "gsap"
 import Eye from "./eye"
 import Mouth from "./mouth"
 import BodyPart from "./bodypart"
 
-import { BodyPartOptions } from "./bodypart"
+import type { BodyPartOptions } from "./bodypart"
 
 export type CatterpillarOptions = {
     id?: string
@@ -28,7 +28,7 @@ export type CatterpillarOptions = {
     }
 } 
 
-interface Catterpillar {
+class Catterpillar  {
     world: Matter.World
     eye: {
         left: Eye,
@@ -64,9 +64,7 @@ interface Catterpillar {
     switchVelocity: number
     scared: number | NodeJS.Timeout
     scaredAction: number | NodeJS.Timeout
-}
 
-class Catterpillar  {
     #createBodyPart () {
         let section = "default"
         if (this.bodyParts.length == 0) {
@@ -96,9 +94,9 @@ class Catterpillar  {
         },
         head: Matter.Body,
         butt: Matter.Body
-        } {
+    } {
 
-        const bodyParts = Matter.Composites.stack(this.x, this.y, this.bodyLength, 1, this.bodyPart.size + 2, 0, (x:number, y:number) => {
+        const bodyParts = Matter.Composites.stack(this.x, this.y, this.bodyLength, 1, this.bodyPart.size + 2, 0, () => {
             const bodyPart = this.#createBodyPart()
             bodyPart.body.mass = 10
 
@@ -106,10 +104,10 @@ class Catterpillar  {
             return bodyPart.body
         })
 
-        _.each(bodyParts.bodies, (body,i) => {
+        bodyParts.bodies.forEach((body,i) => {
             const x =  this.x + (this.bodyPart.size * i) + this.bodyPart.size/2
             const y =  0.05 + (Math.abs(i - this.bodyLength/2) + (Math.abs(i - this.bodyLength/2)) / 2) *1
-            Matter.Body.set(body, "position", {x, y})
+            Matter.Body.set(body, "position", { x, y })
         })
         
         // Matter
@@ -119,14 +117,14 @@ class Catterpillar  {
         })
         
         let prev = null as null | Matter.Body
-        _.each(composite.bodies, bodyPart => {
+        composite.bodies.forEach(bodyPart => {
             if (prev) {
                 Matter.Composite.add(composite, [
                     Matter.Constraint.create({
                         bodyA: bodyPart,
                         bodyB: prev,
-                        pointA: {x: this.bodyPart.size/2, y:0},
-                        pointB: {x: 0, y:0},
+                        pointA: { x: this.bodyPart.size/2, y:0 },
+                        pointB: { x: 0, y:0 },
                         length: (this.bodyPart.size + 2) * this.floppiness,
                         stiffness: this.bodyPart.stiffness,
                         label: "bodyPartConnection",
@@ -171,7 +169,7 @@ class Catterpillar  {
             return
         }
 
-        _.each(this.composite.bodies, (body, i) => {
+        this.composite.bodies.forEach((body, i) => {
             this.bodyParts[i].x = body.position.x
             this.bodyParts[i].y = body.position.y      
         })
@@ -209,7 +207,7 @@ class Catterpillar  {
 
 
         const solidObjects = [] as Array<Matter.Body>
-        _.each (this.world.bodies, mBody => {
+        this.world.bodies.forEach(mBody => {
             if (mBody.label === "ground") {
                 solidObjects.push(mBody)
             }
@@ -226,28 +224,28 @@ class Catterpillar  {
         
         // Check if the catterpillar collides with the ground, and exit when it does not
         this.isMovable = undefined
-        _.map(this.composite.bodies, body => {
-            _.each(solidObjects, (solidObject) => {
-                const bodyFilter = body.collisionFilter;
-                const solidFilter = solidObject.collisionFilter;
+        this.composite.bodies.map(body => {
+            solidObjects.forEach((solidObject) => {
+                const bodyFilter = body.collisionFilter
+                const solidFilter = solidObject.collisionFilter
             
                 const canCollide = (bodyFilter.mask != undefined && solidFilter.category != undefined && bodyFilter.mask & solidFilter.category) !== 0 &&
-                                   (solidFilter.mask != undefined && bodyFilter.category != undefined && solidFilter.mask & bodyFilter.category) !== 0;
+                                   (solidFilter.mask != undefined && bodyFilter.category != undefined && solidFilter.mask & bodyFilter.category) !== 0
 
                 if (canCollide && Matter.Collision.collides(body, solidObject) !== null) {
-                    this.isMovable = solidObject;
+                    this.isMovable = solidObject
                 }
-            });
+            })
             
         })
 
         if (this.switchingPosition) {
             this.switchVelocity += 0.01
-            const bellyConstraint = _.find(this.world.constraints, (constraint) => {
+            const bellyConstraint = find(this.world.constraints, (constraint) => {
                 return constraint.label === "bellyConstraint"
             })
 
-            const buttConstraint = _.find(this.world.constraints, (constraint) => {
+            const buttConstraint = find(this.world.constraints, (constraint) => {
                 return constraint.label === "buttConstraint"
             })
 
@@ -331,7 +329,7 @@ class Catterpillar  {
     }
 
     #updateColor() {
-        _.each(this.bodyParts, bodyPart => {
+        this.bodyParts.forEach(bodyPart => {
             bodyPart.color = this.color
         })
     }
@@ -406,7 +404,7 @@ class Catterpillar  {
         const mouthOptions = {
             size: this.bodyPart.size * 1.25,
             scale: 1,
-            offset: {x: 0, y: 0},
+            offset: { x: 0, y: 0 },
         }
 
         if (window.innerWidth < 768) {
@@ -447,7 +445,7 @@ class Catterpillar  {
         this.#loop()
 
         return new Proxy(this, {
-            set: function (target:any, key, value) {
+            set: function (target, key, value) {
                 if (key === "color") {
                     target[key] = value
                     target.#updateColor()
@@ -621,7 +619,7 @@ class Catterpillar  {
                 const centerIndex = Math.floor(this.bodyParts.length/2)
                 const maxVelocity  = this.maxVelocity
             
-                _.each(this.bodyParts, (bodyPart,index) => {
+                this.bodyParts.forEach((bodyPart,index) => {
                     if (index != 0 && index != this.bodyParts.length-1) {
                         const velocity = centerIndex === index ? maxVelocity : maxVelocity - maxVelocity / index
                         Matter.Body.setVelocity( bodyPart.body, {
@@ -651,7 +649,7 @@ class Catterpillar  {
         this.eye.left.remove()
         this.eye.right.remove()
         this.mouth.remove()
-        _.each(this.bodyParts, bodyPart => {
+        this.bodyParts.forEach(bodyPart => {
             bodyPart.remove()
         })
         this.isMoving = false

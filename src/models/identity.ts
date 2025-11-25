@@ -1,10 +1,10 @@
 export type IdentityField = {
-  id: number;            // 29-bit: 23 bits seconds/4 + 6 bits random
-  name: string;          // max 16 chars, letters A-Z/a-z + space
-  textureId: number;     // 0-1023
-  colorSchemeId: number; // 0-1023
-  offset: number;   // 0-15
-};
+    id: number;            // 29-bit: 23 bits seconds/4 + 6 bits random
+    name: string;          // max 16 chars, letters A-Z/a-z + space
+    textureId: number;     // 0-1023
+    colorSchemeId: number; // 0-1023
+    offset: number;   // 0-15
+}
 
 // Generate and encode identity to QR-ready Base45 string of 29 + 96 + 10 + 10 + 4 = 149 bits
 export class Identity {

@@ -5,20 +5,31 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "deploy": "NODE_ENV=staging bash ./scripts/deploy.sh",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "gsap": "^3.13.0",
+    "lodash": "^4.17.21",
+    "matter-js": "^0.20.0",
     "normalize.css": "^8.0.1",
+    "paper": "0.12.17",
     "pinia": "^3.0.4",
     "vue": "^3.5.24",
     "vue-router": "^4.1.5"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.39.1",
+    "@stylistic/eslint-plugin": "^5.6.1",
+    "@types/lodash": "^4.17.21",
+    "@types/matter-js": "^0.20.2",
     "@types/node": "^24.10.1",
-    "@vitejs/plugin-vue": "^6.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.48.0",
+    "@vitejs/plugin-vue": "^6.0.2",
     "@vue/tsconfig": "^0.8.1",
+    "eslint-plugin-vue": "^10.6.0",
     "typescript": "~5.9.3",
     "vite": "^7.2.4",
     "vue-tsc": "^3.1.4"

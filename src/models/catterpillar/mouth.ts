@@ -1,4 +1,3 @@
-import _ from "lodash"
 import Paper from "paper"
 import gsap from "gsap"
 
@@ -44,7 +43,8 @@ export type MouthPoints = {
     }
 }
 
-interface Mouth {
+
+class Mouth  {
     x: number
     y: number
     offset: {
@@ -67,9 +67,7 @@ interface Mouth {
     scale: number
     size: number
     state: MouthState
-}
 
-class Mouth  {
     constructor (
         options: MouthOptions
     ) {
@@ -120,7 +118,7 @@ class Mouth  {
         this.paper.fillColor = new Paper.Color("#222")
 
         return new Proxy(this, {
-            set: function (target:any, key, value) {
+            set: function (target: Mouth, key, value) {
                 if (key === "x" || key === "y") {
                     target[key] = value
                     target.updatePosition()
@@ -161,14 +159,14 @@ class Mouth  {
 
     updateState(newState: {
         topLip: {
-            left: {x: number, y: number},
-            center: {x: number, y: number},
-            right: {x: number, y: number}
+            left: { x: number, y: number },
+            center: { x: number, y: number },
+            right: { x: number, y: number }
         },
         bottomLip: {
-            left: {x: number, y: number},
-            center: {x: number, y: number},
-            right: {x: number, y: number}
+            left: { x: number, y: number },
+            center: { x: number, y: number },
+            right: { x: number, y: number }
         }
     }) {
         
@@ -192,7 +190,7 @@ class Mouth  {
         this.bottomLip.right.x  = this.x + (newState.bottomLip.right.x * this.scale)
         this.bottomLip.right.y  = this.y + (newState.bottomLip.right.y * this.scale)
 
-        this.paper.smooth({ type: "continuous"})
+        this.paper.smooth({ type: "continuous" })
     }
 
     switchState(state: MouthState | MouthPoints, duration = .64 as number) {
@@ -207,7 +205,7 @@ class Mouth  {
             return
         }
         this.inTransition = true
-        const progress = { perc: 0 }
+        // const progress = { perc: 0 }
         let ease = "sine.inOut"
         if (state === "😮") {
             ease = "elastic.out(1,0.5)"
@@ -287,7 +285,7 @@ class Mouth  {
                             }
                         }
                     })
-                    this.paper.smooth({ type: "continuous"})
+                    this.paper.smooth({ type: "continuous" })
                 },
                 onComplete: () => {
                     if (typeof state === "string") {
@@ -329,7 +327,7 @@ class Mouth  {
         this.bottomLip.right.x = this.x + (finalState.bottomLip.right.x * perc)
         this.bottomLip.right.y = this.y + (finalState.bottomLip.right.y * perc)
                 
-        this.paper.smooth({ type: "continuous"})
+        this.paper.smooth({ type: "continuous" })
     }
 
     remove() {

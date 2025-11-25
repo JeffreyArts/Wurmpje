@@ -1,4 +1,3 @@
-import _ from "lodash"
 import Paper from "paper"
 import gsap from "gsap"
 
@@ -11,7 +10,7 @@ export type EyeOptions = {
     blinkInterval?: number 
 }
 
-interface Eye {
+export class Eye  {
     x: number
     y: number
     offset: {
@@ -23,14 +22,12 @@ interface Eye {
     sclera: paper.Path
     lid: paper.Path
     pupil: paper.Path
-    pupilOffset: {x: number, y:number}
+    pupilOffset: { x: number, y:number }
     isBlinking: boolean
     blinkInterval: number
     blinked: number
     autoBlink: undefined | number | boolean | NodeJS.Timeout
-}
 
-class Eye  {
     #updateBlinkInterval() {
         if (!this.autoBlink || this.autoBlink === undefined) {
             if (typeof this.autoBlink != "boolean") {
@@ -53,21 +50,21 @@ class Eye  {
         }, this.blinkInterval)
     }
 
-    #blinkUpdate(progress: {perc: number}) {
+    #blinkUpdate(progress: { perc: number }) {
 
         if (this.lid && this.sclera) {
             this.lid.segments[1].point.y = this.lid.position.y - (5 - progress.perc * 5)
             this.lid.segments[3].point.y = this.lid.position.y + (5 - progress.perc * 5)
-            this.lid.smooth({ type: "continuous"})
+            this.lid.smooth({ type: "continuous" })
             
             this.sclera.segments[1].point.y = this.lid.segments[1].point.y 
             this.sclera.segments[3].point.y = this.lid.segments[3].point.y 
-            this.sclera.smooth({ type: "continuous"})
+            this.sclera.smooth({ type: "continuous" })
         }
     }
 
     #setSize(){
-        if (!this.lid) {
+        if (!this.lid || !this.lid.segments || this.lid.segments.length < 4) {
             return
         }
         this.lid.segments[0].point.x = this.width * 0
@@ -83,7 +80,7 @@ class Eye  {
         this.lid.segments[3].point.y = this.height * 1
 
         this.lid.closePath()
-        this.lid.smooth({ type: "continuous"})
+        this.lid.smooth({ type: "continuous" })
 
         this.sclera.segments[0].point.x = this.width * 0
         this.sclera.segments[0].point.y = this.height * 0.5
@@ -98,7 +95,7 @@ class Eye  {
         this.sclera.segments[3].point.y = this.height * 1
 
         this.sclera.closePath()
-        this.sclera.smooth({ type: "continuous"})
+        this.sclera.smooth({ type: "continuous" })
     }
     
     constructor (
@@ -111,8 +108,8 @@ class Eye  {
         this.y = options.y ? options.y : 0
         this.width = options.width ? options.width : 8
         this.height = options.height ? options.height : 8
-        this.pupilOffset = {x: 0, y:0}
-        this.offset = {x: 0,y: 0}
+        this.pupilOffset = { x: 0, y:0 }
+        this.offset = { x: 0,y: 0 }
 
         this.lid = new Paper.Path([
             new Paper.Point(this.width * 0,   this.height * 0.5),
@@ -122,9 +119,9 @@ class Eye  {
         ])
 
         this.lid.closePath()
-        this.lid.smooth({ type: "continuous"})
+        this.lid.smooth({ type: "continuous" })
         this.sclera = this.lid.clone()
-        this.pupil = new Paper.Path.Ellipse({x: 0, y:0, width: Math.min(this.width,this.height)/2, height: Math.min(this.width,this.height)/2})
+        this.pupil = new Paper.Path.Ellipse({ x: 0, y:0, width: Math.min(this.width,this.height)/2, height: Math.min(this.width,this.height)/2 })
 
         //// Set colors
         this.pupil.fillColor    = new Paper.Color("#222")
@@ -224,12 +221,12 @@ class Eye  {
                             this.lid.segments[2].point.y = this.lid.position.y
                             this.lid.segments[3].point.y = this.lid.position.y + this.height / 2
                             
-                            _.each(this.lid.segments, (v,i) => {
+                            this.lid.segments.forEach((v,i) => {
                                 if (!this.sclera || !this.lid) {
                                     return
                                 }
                                 this.sclera.segments[i].point.y = this.lid.segments[i].point.y  
-                                this.sclera.smooth({ type: "continuous"})
+                                this.sclera.smooth({ type: "continuous" })
                             })
                         }
                         this.isBlinking = false
@@ -240,15 +237,15 @@ class Eye  {
     }
 
     // blinkClosing is a private function
-    blinkClosing(progress: {perc: number}) {
+    blinkClosing(progress: { perc: number }) {
         if (this.lid && this.sclera) {
             this.lid.segments[1].point.y = this.lid.position.y - (5 - progress.perc * 5)
             this.lid.segments[3].point.y = this.lid.position.y + (5 - progress.perc * 5)
-            this.lid.smooth({ type: "continuous"})
+            this.lid.smooth({ type: "continuous" })
             
             this.sclera.segments[1].point.y = this.lid.segments[1].point.y 
             this.sclera.segments[3].point.y = this.lid.segments[3].point.y 
-            this.sclera.smooth({ type: "continuous"})
+            this.sclera.smooth({ type: "continuous" })
         }
     }
 
@@ -257,7 +254,7 @@ class Eye  {
         if (this.lid && this.sclera) {
             this.lid.segments[1].point.y = this.lid.position.y - (perc * 5)
             this.lid.segments[3].point.y = this.lid.position.y + (perc * 5)
-            this.lid.smooth({ type: "continuous"})
+            this.lid.smooth({ type: "continuous" })
 
             this.sclera.segments[1].point.y = this.lid.segments[1].point.y 
             this.sclera.segments[3].point.y = this.lid.segments[3].point.y 
@@ -265,7 +262,7 @@ class Eye  {
         }
     }            
 
-    updatePosition(x?:number,y?:number) {
+    updatePosition() {
         if (!this.pupil) {
             return console.error("Missing pupil")
         }
@@ -286,7 +283,7 @@ class Eye  {
         this.sclera.position.x = this.x + this.offset.x
     }
 
-    movePupil(offset:{x: number, y: number}) {
+    movePupil(offset:{ x: number, y: number }) {
         if (!offset || !offset.x) {
             return console.error("Invalid value for movePupil")
         }

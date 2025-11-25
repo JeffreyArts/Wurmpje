@@ -9,8 +9,7 @@
 
 
 <script lang="ts">
-import { defineComponent } from "vue"
-import { useRoute } from "vue-router"
+import { defineComponent } from 'vue'
 import gsap from "gsap"
 // import { useHead }  from "@unhead/vue"
 
@@ -19,17 +18,6 @@ export default defineComponent ({
     components: { 
     },
     props: [],
-    setup() {
-        const route = useRoute()
-        const title = route.name as string
-
-       
-        return { 
-            // head:  useHead({
-            //     title: `${title} - Not found`,
-            // }) 
-        }
-    },
     data() {
         return {
             title: "404 not found",
@@ -71,11 +59,6 @@ export default defineComponent ({
                 content: "Lorem ipsum dolor samet...",
             },
         ]
-    },
-    beforeMount() {
-        this.glitchInputs = this.fillGlitchInputs(80)
-        this.layer2glitchInputs = this.fillGlitchInputs(80)
-        this.title = this.getRandomMessage()
     },
     mounted() {
 

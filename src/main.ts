@@ -11,8 +11,8 @@ import "./assets/css"
 
 const pinia = createPinia()
         
-pinia.use(({ store }) => {
-})
+// pinia.use(({ store }) => {
+// })
 
 const app = createApp(App)
 

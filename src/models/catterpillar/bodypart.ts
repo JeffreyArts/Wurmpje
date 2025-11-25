@@ -1,6 +1,6 @@
 import Paper from "paper"
 import Matter from "matter-js"
-import Color from "color"
+import Color from "./../color"
 
 export type BodyPartOptions = {
     size: number,
@@ -12,7 +12,7 @@ export type BodyPartOptions = {
 }
 
 
-interface BodyPart {
+export class BodyPart {
     x: number
     y: number
     radius: number
@@ -25,15 +25,11 @@ interface BodyPart {
     section: "bodyPart" | "head" | "butt"
     paper: paper.Path
 
-}
-
-class BodyPart {
-
     #generatePaperPath() {
         const newPath = new Paper.Path.Circle(new Paper.Point(this.x,this.y), this.radius) 
-        const color = Color(this.color)
-        newPath.fillColor = new Paper.Color(color.hex())
-        newPath.strokeColor = new Paper.Color(color.darken(.5).hex())
+        const color = new Color(this.color)
+        newPath.fillColor = new Paper.Color(color.toHex())
+        newPath.strokeColor = new Paper.Color(color.adjustHsl(0,0,-0.5).toHex())
         newPath.strokeColor.alpha = .4
         return newPath
     }
@@ -43,9 +39,9 @@ class BodyPart {
         this.paper.position.y = this.y
     }
     #updateColor() {
-        const color = Color(this.color)
-        this.paper.fillColor = new Paper.Color(color.hex())
-        this.paper.strokeColor = new Paper.Color(color.darken(.5).hex())
+        const color = new Color(this.color)
+        this.paper.fillColor = new Paper.Color(color.toHex())
+        this.paper.strokeColor = new Paper.Color(color.adjustHsl(0,0,-0.5).toHex())
         this.paper.strokeColor.alpha = .4
     }
 
