@@ -1,9 +1,6 @@
 <template>
     <div class="home">
-    <h1>Home</h1>
-        <section class="container">
-            <button>click here</button>
-        </section>
+        <matter-box class="matter-box"/>
     </div>
 </template>
 
@@ -11,10 +8,12 @@
 <script lang="ts">
 import { defineComponent } from "vue"
 import gsap from "gsap"
+import matterBox from "@/components/matter-box.vue";
 
 export default defineComponent ({ 
     name: "homePage",
     components: { 
+        matterBox
     },
     props: [],
     setup() {
@@ -89,4 +88,8 @@ this.createIcon()
 </script>
 
 <style>
+.matter-box {
+    width: 100%;
+    height: calc(100vh - 144px);
+}
 </style>
