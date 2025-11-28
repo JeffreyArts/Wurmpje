@@ -3,12 +3,15 @@ import { MatterSetup } from "./setup"
 
 import { Wall } from "./create/wall"
 import { Ball } from "./create/ball"
+import { Catterpillar } from "./create/catterpillar"
+import CatterpillarModel from "@/models/catterpillar"
 
 
 export class MatterController {
     ref: MatterSetup;
     clickEvents: Array<Function> = [];
     resizeEvents: Array<Function> = [];
+    catterpillar: CatterpillarModel
 
     constructor(target: HTMLElement) {
         this.ref = new MatterSetup(target, {
@@ -19,9 +22,18 @@ export class MatterController {
         this.#createWalls();
 
 
+
+        this.catterpillar = new Catterpillar({ x: 100, y: 100, identity: { id: 1, name: "Catterpillar1", textureId: 1, colorSchemeId: 1, offset: 0} }, this.ref.world).ref 
+
         // Test function for adding balls on click
         this.ref.addClickEvent(({x,y}) => {
-            new Ball(x, y, 20, this.ref.world)
+            const cp = this.catterpillar;
+
+            if (cp.x < x) {
+                cp.moveRight()
+            } else {
+                cp.moveLeft()
+            }
         }, "addBallOnClick")
 
         window.addEventListener("resize", this.#onResize.bind(this));

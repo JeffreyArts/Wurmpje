@@ -1,5 +1,6 @@
-import Paper from "paper"
+// import Paper from "paper"
 import gsap from "gsap"
+import { Point, Path } from "@/models/path"
 
 export type MouthOptions = {
     offset?: {
@@ -51,16 +52,16 @@ class Mouth  {
         x: number
         y: number
     }
-    paper: paper.Path
+    coordinates: Path
     topLip: {
-        left: paper.Point,
-        center: paper.Point,
-        right: paper.Point,
+        left: Point,
+        center: Point,
+        right: Point,
     }
     bottomLip: {
-        left: paper.Point,
-        center: paper.Point,
-        right: paper.Point,
+        left: Point,
+        center: Point,
+        right: Point,
     }
     animation: null | gsap.TweenTarget
     inTransition: boolean
@@ -92,30 +93,32 @@ class Mouth  {
 
         this.state = "🙂"
 
-        this.paper = new Paper.Path([
-            new Paper.Point(this.size / 2,  0),
-            new Paper.Point(0 ,  0),
-            new Paper.Point(-this.size / 2,  0),
-            new Paper.Point(-this.size / 2,  0),
-            new Paper.Point(0,  0),
-            new Paper.Point(this.size / 2,  0),
-            new Paper.Point(this.size / 2,  0),// This is going to be removed by calling the closePath method
+        this.coordinates = new Path([
+            new Point(this.size / 2,  0),
+            new Point(0 ,  0),
+            new Point(-this.size / 2,  0),
+            new Point(-this.size / 2,  0),
+            new Point(0,  0),
+            new Point(this.size / 2,  0),
+            // new Coord(this.size / 2,  0),// This is going to be removed by calling the closePath method
         ])
-        this.paper.closePath()
+        // this.paper.closePath()
+
         this.animation = null
 
         this.bottomLip = {
-            left:  this.paper.segments[0].point,
-            center:  this.paper.segments[1].point,
-            right:  this.paper.segments[2].point,
+            left:  this.coordinates.points[0],
+            center:  this.coordinates.points[1],
+            right:  this.coordinates.points[2],
         }
         this.topLip = {
-            left:  this.paper.segments[5].point,
-            center:  this.paper.segments[4].point,
-            right:  this.paper.segments[3].point,
+            left:  this.coordinates.points[5],
+            center:  this.coordinates.points[4],
+            right:  this.coordinates.points[3],
         }
 
-        this.paper.fillColor = new Paper.Color("#222")
+        console.log("Mouth created", this.topLip)
+        // this.paper.fillColor = new Paper.Color("#222")
 
         return new Proxy(this, {
             set: function (target: Mouth, key, value) {
@@ -190,7 +193,7 @@ class Mouth  {
         this.bottomLip.right.x  = this.x + (newState.bottomLip.right.x * this.scale)
         this.bottomLip.right.y  = this.y + (newState.bottomLip.right.y * this.scale)
 
-        this.paper.smooth({ type: "continuous" })
+        // this.paper.smooth({ type: "continuous" })
     }
 
     switchState(state: MouthState | MouthPoints, duration = .64 as number) {
@@ -285,7 +288,7 @@ class Mouth  {
                             }
                         }
                     })
-                    this.paper.smooth({ type: "continuous" })
+                    // this.paper.smooth({ type: "continuous" })
                 },
                 onComplete: () => {
                     if (typeof state === "string") {
@@ -327,11 +330,11 @@ class Mouth  {
         this.bottomLip.right.x = this.x + (finalState.bottomLip.right.x * perc)
         this.bottomLip.right.y = this.y + (finalState.bottomLip.right.y * perc)
                 
-        this.paper.smooth({ type: "continuous" })
+        // this.paper.smooth({ type: "continuous" })
     }
 
     remove() {
-        this.paper.remove()
+        // this.paper.remove()
     }
     
     getPosition(state?: MouthState) : MouthPoints{

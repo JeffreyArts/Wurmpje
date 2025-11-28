@@ -1,6 +1,6 @@
-import Paper from "paper"
+// import Paper from "paper"
 import Matter from "matter-js"
-import Color from "./../color"
+import Color from "@/models/color"
 
 export type BodyPartOptions = {
     size: number,
@@ -17,33 +17,36 @@ export class BodyPart {
     y: number
     radius: number
     body: Matter.Body
-    color:string
+    primaryColor:string
+    secondaryColor:string
+    svgTexture?: string
+    hasStroke?: boolean
     options: {
         restitution: number
         slop: number,
     }
     section: "bodyPart" | "head" | "butt"
-    paper: paper.Path
+    // paper: paper.Path
 
-    #generatePaperPath() {
-        const newPath = new Paper.Path.Circle(new Paper.Point(this.x,this.y), this.radius) 
-        const color = new Color(this.color)
-        newPath.fillColor = new Paper.Color(color.toHex())
-        newPath.strokeColor = new Paper.Color(color.adjustHsl(0,0,-0.5).toHex())
-        newPath.strokeColor.alpha = .4
-        return newPath
-    }
+    // #generatePaperPath() {
+    //     const newPath = new Paper.Path.Circle(new Paper.Point(this.x,this.y), this.radius) 
+    //     const primaryColor = new Color(this.primaryColor)
+    //     newPath.fillColor = new Paper.Color(primaryColor.toHex())
+    //     newPath.strokeColor = new Paper.Color(primaryColor.adjustHsl(0,0,-0.5).toHex())
+    //     newPath.strokeColor.alpha = .4
+    //     return newPath
+    // }
 
-    #updatePosition() {
-        this.paper.position.x = this.x
-        this.paper.position.y = this.y
-    }
-    #updateColor() {
-        const color = new Color(this.color)
-        this.paper.fillColor = new Paper.Color(color.toHex())
-        this.paper.strokeColor = new Paper.Color(color.adjustHsl(0,0,-0.5).toHex())
-        this.paper.strokeColor.alpha = .4
-    }
+    // #updatePosition() {
+    //     this.paper.position.x = this.x
+    //     this.paper.position.y = this.y
+    // }
+    // #updateColor() {
+    //     const primaryColor = new Color(this.primaryColor)
+    //     this.paper.fillColor = new Paper.Color(primaryColor.toHex())
+    //     this.paper.strokeColor = new Paper.Color(primaryColor.adjustHsl(0,0,-0.5).toHex())
+    //     this.paper.strokeColor.alpha = .4
+    // }
 
     constructor (
         options: {
@@ -52,7 +55,7 @@ export class BodyPart {
             y?: number,
             restitution?: number,
             slop?: number,
-            color?: string,
+            primaryColor?: string,
             section?: string
         }
     ) {
@@ -64,7 +67,7 @@ export class BodyPart {
         this.section = "bodyPart"
         this.x = options?.x ? options.x : 0
         this.y = options?.y ? options.y : 0
-        this.color = options?.color ? options.color : "#58f208"
+        this.primaryColor = options?.primaryColor ? options.primaryColor : "#58f208"
         this.radius = options?.radius ? options.radius : 8
 
         if (options?.restitution) {
@@ -87,18 +90,18 @@ export class BodyPart {
             label: this.section
         })
 
-        this.paper = this.#generatePaperPath()
+        // this.paper = this.#generatePaperPath()
 
         return new Proxy(this, {
             set: function (target, key, value) {
                 // console.log(`${String(key)} set to ${value}`)
                 if (key === "x" || key === "y") {
                     target[key] = value
-                    target.#updatePosition()
+                    // target.#updatePosition()
                 }
-                if (key === "color") {
+                if (key === "primaryColor") {
                     target[key] = value
-                    target.#updateColor()
+                    // target.#updateColor()
                 }
                 return true
             }
@@ -106,7 +109,7 @@ export class BodyPart {
     }
 
     remove() {
-        this.paper.remove()
+        // this.paper.remove()
     }
 }
 
