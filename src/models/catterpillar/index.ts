@@ -184,10 +184,11 @@ export class Catterpillar {
                     pointA: { x: 0, y:0 },
                     pointB: { x: 0, y:0 },
                     length,
-                    stiffness: 0.5,
-                    damping: 0.1,
+                    // stiffness: 0.5,
+                    // damping: 0.1,
                     label: "bodyPartConnection",
                     render: {
+                        visible: this.dev,
                         strokeStyle: "#444",
                         type:"line",
                     }
@@ -283,6 +284,8 @@ export class Catterpillar {
                     // Move buttConstraint.pintB.x to simulate pushing off
                     if (this.butt.body.position.x > this.head.body.position.x) {
                         buttConstraint.pointB.x = this.head.body.position.x + obj.length
+                    } else {
+                        buttConstraint.pointB.x = this.head.body.position.x - obj.length
                     }
 
 
@@ -384,7 +387,7 @@ export class Catterpillar {
     }
     
     
-    async move(direction: "left" | "right") {
+    async move() {
 
         await this.contractSpine(0.5)
         this.releaseSpine(0.5)

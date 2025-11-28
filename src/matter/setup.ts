@@ -1,5 +1,7 @@
 import Matter from "matter-js"
 export type clickEventFunction = (mousePos: { x: number, y: number }) => void
+export type resizeEventFunction = () => void
+
 
 export class MatterSetup {
     engine: Matter.Engine
@@ -9,6 +11,7 @@ export class MatterSetup {
     el: HTMLElement
     devMode: boolean = false
     clickEvents: Array<{ fn: clickEventFunction, name: string }> = []
+    resizeEvents: Array<{ fn: resizeEventFunction, name: string }> = []
 
     constructor(target: HTMLElement, options?: {
         devMode: boolean
@@ -61,16 +64,15 @@ export class MatterSetup {
             }
         })
 
-        console.log(target)
         window.addEventListener("click", this.#onClick.bind(this))
         window.addEventListener("touchstart", this.#onTap.bind(this))
         window.addEventListener("resize", this.#onResize.bind(this))
     }
 
     #onResize() {
-        this.renderer.options.width = this.renderer.element.parentElement.clientWidth
-        this.renderer.options.height = this.renderer.element.parentElement.clientHeight
-        Matter.Render.setPixelRatio(this.renderer, window.devicePixelRatio)
+        this.resizeEvents.forEach(resizeEvent => {
+            resizeEvent.fn()
+        })
     }
 
     #onClick(event: MouseEvent) {
@@ -93,7 +95,17 @@ export class MatterSetup {
         })
     }
 
-    addClickEvent(fn: clickEventFunction, name) {
+    addResizeEvent(fn: resizeEventFunction, name: string) {
+        this.resizeEvents.push({ fn, name })
+    }
+
+    removeResizeEvent(name: string) {
+        this.resizeEvents = this.resizeEvents.filter(fn => {
+            return fn.name !== name
+        })
+    }
+
+    addClickEvent(fn: clickEventFunction, name: string) {
         this.clickEvents.push({ fn, name })
     }
 

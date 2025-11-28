@@ -66,7 +66,7 @@ export class BodyPart {
         this.dev = true
         this.options = {
             restitution: .5,
-            slop: .5,
+            slop: .01,
         }
 
         this.x = options?.x ? options.x : 0
@@ -99,7 +99,7 @@ export class BodyPart {
             density: .2,
             friction: 20,
             restitution: this.options.restitution,
-            slop: this.radius/5,
+            slop: 1,
             label,
             render: {
                 visible: this.dev,

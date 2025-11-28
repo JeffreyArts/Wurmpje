@@ -50,8 +50,9 @@ export class MatterController {
         // }, "createCatterpillar");
 
         window.addEventListener("resize", this.#onResize.bind(this))
-        this.addResizeEvent(this.#resizeCanvas.bind(this))
-        this.addResizeEvent(this.#updateWalls.bind(this))
+
+        this.ref.addResizeEvent(this.#resizeCanvas.bind(this), "resizeCanvas")
+        this.ref.addResizeEvent(this.#updateWalls.bind(this), "updateWalls")
     }
 
     #onResize() {
@@ -109,12 +110,8 @@ export class MatterController {
     }
     
     #updateWalls() {
-        const width = this.ref.renderer.options.width
-        const height = this.ref.renderer.options.height
-        const wallThickness = 100
-
         // Get Walls
-        const walls = Matter.Composite.allBodies(this.ref.world).forEach(body => {
+        Matter.Composite.allBodies(this.ref.world).forEach(body => {
             const labels = body.label.split(",")
             if (labels.includes("wall")) {
                 Matter.Composite.remove(this.ref.world, body)
@@ -122,29 +119,10 @@ export class MatterController {
         })
 
         this.#createWalls()
-
-        // walls.forEach(body => {
-        //     const labels = body.label.split(",");
-        //     if (labels.includes("top")) {
-        //         Matter.Body.setPosition(body, { x: width / 2, y: 0 - wallThickness / 2 });
-        //     } else if (labels.includes("bottom")) {
-        //         Matter.Body.setPosition(body, { x: width / 2, y: height });
-        //     } else if (labels.includes("right")) {
-        //         Matter.Body.setPosition(body, { x: width + wallThickness / 2, y: height / 2 });
-        //     } else if (labels.includes("left")) {
-        //         Matter.Body.setPosition(body, { x: -wallThickness / 2, y: height / 2 });
-        //     }
-        // });
-        
-
-        // // Update positions of walls
-        // Matter.Body.setPosition(this.walls.top.body, { x: width / 2, y: 0 - wallThickness / 2 });
-        // Matter.Body.setPosition(this.walls.bottom.body, { x: width / 2, y: height + wallThickness / 2 });
-        // Matter.Body.setPosition(this.walls.right.body, { x: width + wallThickness / 2, y: height / 2 });
-        // Matter.Body.setPosition(this.walls.left.body, { x: -wallThickness / 2, y: height / 2 });
     }
 
-    addResizeEvent(fn: Function) {
-        this.resizeEvents.push(fn)
-    }
+
+    // document.body.addEventListener("mousedown", PhysicsService.mouseDownEvent);
+    // document.body.addEventListener("touchstart", PhysicsService.mouseDownEvent);
+   
 }
