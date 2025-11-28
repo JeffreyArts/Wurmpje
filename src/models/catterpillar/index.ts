@@ -55,8 +55,9 @@ export class Catterpillar {
     butt: BodyPart
     spine: Matter.Constraint
     contraction?: {
-        headConstraint: Matter.Constraint,
-        buttConstraint: Matter.Constraint
+        headConstraint?: Matter.Constraint,
+        buttConstraint?: Matter.Constraint
+        bellyConstraint?: Matter.Constraint
         tickerFn?: () => void,
         contractionTween?: gsap.core.Tween
     }
@@ -65,7 +66,8 @@ export class Catterpillar {
     primaryColor: string
     secondaryColor: string
     baseTextureDir: typeof availableBodyPartTextures[number]
-    
+    isStanding: boolean
+    isMoving: boolean
 
     constructor(options: {
         id: string,
@@ -80,6 +82,8 @@ export class Catterpillar {
     }, world: Matter.World) {
         this.world = world
         this.dev = true
+        this.isStanding = false
+        this.isMoving = false
 
         this.x = options.x
         this.y = options.y
@@ -208,6 +212,35 @@ export class Catterpillar {
             prev = part
 
         }
+    }
+
+    #removeContraction() {
+        if (!this.contraction) {
+            return
+        }
+
+
+        if (this.contraction.buttConstraint) {
+            Matter.Composite.remove(this.composite, this.contraction.buttConstraint)
+        }
+
+        if (this.contraction.headConstraint) {
+            Matter.Composite.remove(this.composite, this.contraction.headConstraint)
+        }
+
+        if (this.contraction.bellyConstraint) {
+            Matter.Composite.remove(this.composite, this.contraction.bellyConstraint)
+        }
+
+        if (this.contraction.tickerFn) {
+            gsap.ticker.remove(this.contraction.tickerFn)
+        }
+
+        if (this.contraction.contractionTween) {
+            this.contraction.contractionTween.kill()
+        }
+
+        this.contraction = undefined
     }
 
     // perc: number between 0 and 1 to determin the contraction width
@@ -344,65 +377,192 @@ export class Catterpillar {
             //     })
             // })
 
-            if (this.contraction?.tickerFn) {
+            if (this.contraction.tickerFn) {
                 gsap.ticker.remove(this.contraction.tickerFn)
             }
 
-            Matter.Composite.remove(this.composite, this.contraction.headConstraint)
+            if (this.contraction.headConstraint) {
+                Matter.Composite.remove(this.composite, this.contraction.headConstraint)
+            }
 
-            const newLength = this.#calculateLength()
             if (this.contraction.buttConstraint) {
                 this.contraction.buttConstraint.stiffness = 1
             }
-                
+            
+            const newLength = this.#calculateLength()
             this.contraction.contractionTween =  gsap.to(this.spine, {
                 length: newLength,
                 duration: duration,
                 ease:  "linear",
                 onComplete: () => {
                     // remove constraints
-                    if (this.contraction) {
-                        if (this.contraction.buttConstraint) {
-                            Matter.Composite.remove(this.composite, this.contraction.buttConstraint)
-                        }
+                    this.#removeContraction()
 
-                        if (this.contraction.headConstraint) {
-                            Matter.Composite.remove(this.composite, this.contraction.headConstraint)
-                        }
-
-                        if (this.contraction.tickerFn) {
-                            gsap.ticker.remove(this.contraction.tickerFn)
-                        }
-
-                        if (this.contraction.contractionTween) {
-                            this.contraction.contractionTween.kill()
-                        }
-                    }
-
-                    this.contraction = undefined
                     resolve(true)
                 }
             })
         })
     }
 
-    standUp() {
-        if (this.contraction) {
-            console.warn("Catterpillar is already in a contracting state")
-            return 
-        }
-        
+
+    // angle: degrees between -45 & 45 where 0 is upright
+    // speed: amount of seconds to reach the standing angle
+    standUp = (angle = 0, speed = 2) => {
+        return new Promise(async (resolve, reject) => {
+
+            if (this.isMoving) {
+                console.warn("Catterpillar is moving, cannot stand up now")
+                return reject()
+            }
+
+            const buttConstraint = Matter.Constraint.create({
+                bodyA: this.butt.body,
+                pointB: { x: this.butt.body.position.x, y: this.butt.body.position.y },
+                length: 0,
+                stiffness: 1,
+                label: "buttConstraint",
+                render: {
+                    visible: this.dev,
+                    strokeStyle: "brown",
+                    type: "line",
+                }
+            })
+            const bellyBody = this.bodyParts[Math.ceil(this.bodyParts.length / 2)].body
+            
+            const bellyConstraint = Matter.Constraint.create({
+                bodyA: bellyBody,
+                pointB: { x: bellyBody.position.x, y: bellyBody.position.y },
+                length: 0,
+                stiffness: 0.5,
+                label: "bellyConstraint",
+                render: {
+                    visible: this.dev,
+                    strokeStyle: "orange",
+                    type: "line",
+                }
+            })
+
+            if (!this.contraction) {
+                this.contraction = {
+                }
+            } else {
+                if (this.contraction.tickerFn) {
+                    gsap.ticker.remove(this.contraction.tickerFn)
+                }
+                if (this.contraction.headConstraint) {
+                    Matter.Composite.remove(this.composite, this.contraction.headConstraint)
+                }
+                if (this.contraction.contractionTween) {
+                    this.contraction.contractionTween.kill()
+                }
+
+            }
+            
+            if (!this.contraction.buttConstraint) {
+                this.contraction.buttConstraint = buttConstraint
+                Matter.Composite.add(this.composite, buttConstraint)
+            }
+
+            if (!this.contraction.bellyConstraint) {
+                this.contraction.bellyConstraint = bellyConstraint
+                Matter.Composite.add(this.composite, bellyConstraint)
+            }
             
 
-        // Pin butt to ground
-        // Pin belly to ground (with some flex, so the constraint stretches a bit)
-        // Move head up 
+            
+            const obj = { perc: 0, angle: 0, spineLength: this.spine.length, bellyX: bellyBody.position.x }
+            let angleX = 0
+            let angleY = 0
+
+            const factor = 2 - (1 + angle / 180)
+
+            this.contraction.contractionTween = gsap.to(obj, {
+                perc: 1,
+                angle: angle,
+                duration: speed,
+                spineLength: this.#calculateLength() * .75 * factor,
+                ease: "power1.out",
+                onUpdate: () => {
+                    const angleRad = (obj.angle - 90) * (Math.PI / 180)
+                    const radius = this.thickness / 2
+
+
+                    angleX = radius * Math.cos(angleRad) * obj.perc
+                    angleY = radius * Math.sin(angleRad) * obj.perc
+                
+                    this.spine.length = obj.spineLength 
+
+                    Matter.Body.setVelocity( this.head.body, {
+                        x: angleX,
+                        y: angleY,
+                    })
+                },
+                onComplete: () => {
+                    
+                    if (this.contraction) {
+                        this.isStanding = true
+                        this.contraction.tickerFn = () => {
+                            Matter.Body.setVelocity( this.head.body, {
+                                x: angleX,
+                                y: angleY,
+                            })
+                        }
+                        gsap.ticker.add(this.contraction.tickerFn)
+                    }
+                    resolve(true)
+                }
+            })
+        })
     }
-    
-    
+
+    releaseStance = () => {
+        return new Promise((resolve, reject) => {
+            this.isStanding = false
+            if (!this.contraction) {
+                return reject()
+            }
+
+            if (this.contraction.tickerFn) {
+                gsap.ticker.remove(this.contraction.tickerFn)
+            }
+
+            if (this.contraction.buttConstraint) {
+                Matter.Composite.remove(this.composite, this.contraction.buttConstraint)
+            }
+        
+            if (this.contraction.bellyConstraint) {
+                Matter.Composite.remove(this.composite, this.contraction.bellyConstraint)
+            }
+            gsap.to(this.spine, {
+                length: this.#calculateLength(),
+                duration:  .4,
+                ease:  "linear",
+                onComplete: () => {
+                    this.#removeContraction()
+                    resolve(true)
+                }
+            })
+            this.contraction = undefined
+        })
+    }
+
+
     async move() {
+        this.isMoving = true
         await this.contractSpine(0.5)
-        this.releaseSpine(0.5)
+        await this.releaseSpine(0.5)
+        this.isMoving = false
+    }
+
+    async turnAround() {
+        
+        if (this.head.body.position.x < this.butt.body.position.x) {
+            await this.standUp(90, .6)
+        } else {
+            await this.standUp(-90, .6)
+        }
+
+        await this.releaseStance()
     }
 
 }

@@ -11,6 +11,12 @@
         <button class="button" @click="toggleClickTo('moveCatterpillar')" :class="[{'__isSelected': clickType === 'moveCatterpillar'}]">
             Move Catterpillar
         </button>
+        <button class="button" @click="toggleClickTo('standUpCatterpillar')" :class="[{'__isSelected': clickType === 'standUpCatterpillar'}]">
+            Stand-up Catterpillar
+        </button>
+        <button class="button" @click="toggleClickTo('turnAround')" :class="[{'__isSelected': clickType === 'turnAround'}]">
+            Turn around
+        </button>
 
 
         <button class="button" id="devmode" @click="toggleDevMode()" :class="[{'__isSelected': dev, '__isDisabled': !dev}]">

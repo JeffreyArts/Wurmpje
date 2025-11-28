@@ -113,18 +113,44 @@ export class MatterController {
 
     switchClickEvent(name: string) {
         this.ref.clickEvents = []
+        let fn
 
         if (name == "moveCatterpillar") {
-            this.ref.addClickEvent(({ x,y }) => {
-                console.log("moveCatterpillar", this.catterpillar.move)
+            fn = () => {
                 this.catterpillar.move()
-            }, name)
+            }
         } else if (name == "createCatterpillar") {
-            this.ref.addClickEvent(({ x,y }) => {
+            fn = () => {
                 const id = this.ref.world.composites.filter(c => c.label.startsWith("catterpillar")).length + 1
                 new Catterpillar({ x: x, y: y, identity: { id, name: `Catterpillar${id}`, textureId: 1, colorSchemeId: 1, offset: 0 }}, this.ref.world) 
-            }, name)
+            }
+        } else if (name == "standUpCatterpillar") {
+            fn = () => {
+                this.catterpillar.standUp(0, .5)
+                let a = 0
+                const interval = setInterval(async () => {
+                    if (a >= 5) {
+                        clearInterval(interval)
+                        this.catterpillar.releaseStance()
+                        return
+                    }
+
+                    if (a % 2 === 0) {
+                        this.catterpillar.standUp(90, .5)
+                    } else {
+                        this.catterpillar.standUp(-90, .5)
+                    }
+
+                    a++
+                }, 800)
+            }
+        } else if (name == "turnAround") {
+            fn = () => {
+                this.catterpillar.turnAround()
+            }
         }
+
+        this.ref.addClickEvent(fn, name)
     }
 
     // document.body.addEventListener("mousedown", PhysicsService.mouseDownEvent);

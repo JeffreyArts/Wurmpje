@@ -28,6 +28,7 @@ export class MatterSetup {
                 height: target.clientHeight,
                 wireframes: false,
                 showCollisions: true,
+                showVelocity: true,
             }
         })
 
