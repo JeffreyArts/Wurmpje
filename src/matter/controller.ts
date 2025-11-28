@@ -24,30 +24,20 @@ export class MatterController {
 
 
         this.catterpillar = new Catterpillar({ x: window.innerWidth / 2, y: window.innerHeight - 200, identity: { id: 1, name: "Catterpillar1", textureId: 1, colorSchemeId: 1, offset: 0 }}, this.ref.world).ref 
+        
+        
+        // Custom colors for the main catterpillar
+        this.catterpillar.bodyParts.forEach((part, index) => {
+            if (index === 0) {
+                part.body.render.fillStyle = "tomato"
+            } else if (index === this.catterpillar.bodyParts.length - 1) {
+                part.body.render.fillStyle = "brown"
+            } else {
+                part.body.render.fillStyle = `hsl(128, ${Math.random() * 10 + 90}%,  ${Math.random() * 10 + 45}%)`
+            }
+        })
+        
 
-        // // Test function for making catterpillar walk
-        // this.ref.addClickEvent(({x,y}) => {
-        //     const cp = this.catterpillar;
-
-        //     if (cp.x < x) {
-        //         cp.moveRight()
-        //     } else {
-        //         cp.moveLeft()
-        //     }
-        // }, "moveCatterpillar");
-
-        // Test function for contracting spine on click
-        this.catterpillar.head.body.render.fillStyle = "#00ff00" 
-        this.catterpillar.butt.body.render.fillStyle = "brown"
-        this.ref.addClickEvent(({ x,y }) => {
-            this.catterpillar.move("left")
-        }, "moveCatterpillar")
-
-
-        // this.ref.addClickEvent(({x,y}) => {
-        //     console.log("createCatterpillar")
-        //     new Catterpillar({ x: x, y: y, identity: { id: 1, name: "Catterpillar1", textureId: 1, colorSchemeId: 1, offset: 0} }, this.ref.world).ref 
-        // }, "createCatterpillar");
 
         window.addEventListener("resize", this.#onResize.bind(this))
 
@@ -85,7 +75,7 @@ export class MatterController {
         new Wall({
             x: width / 2,
             y: height + wallThickness / 2 - 100,
-            width: width,
+            width: width * 1.28,
             height: wallThickness,
             id: "bottom"
         }, this.ref.world)
@@ -121,6 +111,21 @@ export class MatterController {
         this.#createWalls()
     }
 
+    switchClickEvent(name: string) {
+        this.ref.clickEvents = []
+
+        if (name == "moveCatterpillar") {
+            this.ref.addClickEvent(({ x,y }) => {
+                console.log("moveCatterpillar", this.catterpillar.move)
+                this.catterpillar.move()
+            }, name)
+        } else if (name == "createCatterpillar") {
+            this.ref.addClickEvent(({ x,y }) => {
+                const id = this.ref.world.composites.filter(c => c.label.startsWith("catterpillar")).length + 1
+                new Catterpillar({ x: x, y: y, identity: { id, name: `Catterpillar${id}`, textureId: 1, colorSchemeId: 1, offset: 0 }}, this.ref.world) 
+            }, name)
+        }
+    }
 
     // document.body.addEventListener("mousedown", PhysicsService.mouseDownEvent);
     // document.body.addEventListener("touchstart", PhysicsService.mouseDownEvent);

@@ -212,7 +212,7 @@ export class Catterpillar {
 
     // perc: number between 0 and 1 to determin the contraction width
     // duration: duration in seconds
-    contractSpine(perc = .5, duration = .5) {
+    contractSpine = (perc = .5, duration = .5) => {
 
         return new Promise((resolve, reject) => {
             
@@ -326,7 +326,7 @@ export class Catterpillar {
 
 
     // duration: duration in seconds
-    releaseSpine(duration =  .4) {
+    releaseSpine = (duration =  .4) => {
         return new Promise((resolve, reject) => {
             if (!this.contraction) {
                 console.warn("Catterpillar is not in a contracting state")
@@ -385,13 +385,24 @@ export class Catterpillar {
             })
         })
     }
+
+    standUp() {
+        if (this.contraction) {
+            console.warn("Catterpillar is already in a contracting state")
+            return 
+        }
+        
+            
+
+        // Pin butt to ground
+        // Pin belly to ground (with some flex, so the constraint stretches a bit)
+        // Move head up 
+    }
     
     
     async move() {
-
         await this.contractSpine(0.5)
         this.releaseSpine(0.5)
-        
     }
 
 }
