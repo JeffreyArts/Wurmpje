@@ -474,8 +474,13 @@ export class Catterpillar {
             let angleX = 0
             let angleY = 0
 
-            const factor = 2 - (1 + angle / 180)
-
+            let factor = 2 - (1 + angle / 180)
+            
+            // This works for turn around, but not for left/right stand up
+            if (bellyBody.position.x > this.butt.body.position.x) {
+                factor = 2 - (1 + -angle / 180)
+            }
+                
             this.contraction.contractionTween = gsap.to(obj, {
                 perc: 1,
                 angle: angle,

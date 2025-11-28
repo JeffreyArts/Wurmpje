@@ -120,7 +120,7 @@ export class MatterController {
                 this.catterpillar.move()
             }
         } else if (name == "createCatterpillar") {
-            fn = () => {
+            fn = ({ x,y }) => {
                 const id = this.ref.world.composites.filter(c => c.label.startsWith("catterpillar")).length + 1
                 new Catterpillar({ x: x, y: y, identity: { id, name: `Catterpillar${id}`, textureId: 1, colorSchemeId: 1, offset: 0 }}, this.ref.world) 
             }
