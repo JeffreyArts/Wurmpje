@@ -16,32 +16,20 @@ export class Catterpillar {
         this.identity = identity
 
 
-    
         const catterPillarOptions =  {
             id: identity.id.toString(),
             x: x,
             y: y,
             primaryColor: "",
             secondaryColor: "",
-            svgTexture: "",
+            svgTextureDir: "",
             hasStroke: false,
             length: 9,
             thickness: 24,
-            autoBlink: true,
-            stiffness: 0.1,
-            bodyPart: {
-                size: 32,
-                restitution: 0.5,
-            }
         }
+        console.log(this.world)
 
         // Set composite
         this.ref = new CatterpillarModel(catterPillarOptions, world)
-
-        // this.ref.butt.render.fillStyle = "#ff0099"
-        // this.ref.composite.collisionFilter.group = 1
-
-        // Add to world
-        // Matter.World.add(this.world, this.ref.composite);
     }
 }

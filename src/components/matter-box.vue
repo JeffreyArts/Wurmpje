@@ -11,6 +11,11 @@
         <button class="button" @click="toggleClickTo('moveCatterpillar')" :class="[{'__isSelected': clickType === 'moveCatterpillar'}]">
             Move Catterpillar
         </button>
+
+
+        <button class="button" id="devmode" @click="toggleDevMode()" :class="[{'__isSelected': dev, '__isDisabled': !dev}]">
+            Dev Mode
+        </button>
         
     </footer>
   </div>
@@ -21,18 +26,15 @@
 <script lang="ts">
 import {defineComponent} from "vue"
 import { MatterController } from "@/matter/controller"
-import { Ball } from "@/matter/create/ball"
-import Matter from "matter-js"
 import _ from "lodash"
-import { Wall } from "@/matter/create/wall"
     
 export default defineComponent ({ 
     props: [],
     data() {
         return {
             controller: null as MatterController | null,
-            rightWall: null as Wall | null,
             clickType: null as string | null,
+            dev: false
         }
     },
     watch: {
@@ -42,28 +44,31 @@ export default defineComponent ({
         this.controller = new MatterController(
             this.$refs["matterContainer"] as HTMLElement
         )
-        
-        window.addEventListener("resize", this.updateView)
-    },
-    unmounted() {
-        window.removeEventListener("resize", this.updateView)
+        this.toggleDevMode()
+        this.toggleDevMode()
+
+        this.toggleClickTo("moveCatterpillar")
     },
     methods: {
-        updateView() {
-            const matterContainer = this.$refs["matterContainer"] as HTMLElement
-            const paperContainer = this.$refs["paperContainer"] as HTMLElement
-            if (!paperContainer) {
-                throw new Error("paperContainer ref can not be found")
-            }
-            if (!matterContainer) {
-                throw new Error("matterContainer ref can not be found")
-            }
-        },
-        render() {
-        },
         toggleClickTo(type: string) {
             this.clickType = type
             this.controller.switchClickEvent(type)
+        },
+        toggleDevMode() {
+            this.dev = !this.dev
+            if (this.controller) {
+                this.controller.ref.renderer.options.showCollisions = this.dev
+                this.controller.catterpillar.composite.constraints.forEach(constraint => {
+                    constraint.render.visible = this.dev
+                })
+                this.controller.ref.world.composites.forEach(composite => {
+                    if (composite.label.startsWith("catterpillar")) {
+                        composite.constraints.forEach(constraint => {
+                            constraint.render.visible = this.dev
+                        })   
+                    }
+                })
+            }
         }
     }
 })
@@ -117,20 +122,28 @@ export default defineComponent ({
     }
 
     &.__isDisabled {
-        background-color: #ccc;
+        background-color: var(--red);
         cursor: not-allowed;
+        color: var(--primary-bg-color);
     }
 
     &.__isSelected {
         background-color: var(--green);
-        cursor: not-allowed;
         color: var(--primary-bg-color);
     }
 }
 
 .buttons-container {
+    display: flex;
+    gap: 8px;
     position: fixed;
     bottom: 16px;
     left: 16px;
+}
+
+#devmode {
+    position: fixed;
+    top: 16px;
+    right: 16px;
 }
 </style>

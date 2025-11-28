@@ -60,7 +60,7 @@ export class MatterController {
     #createWalls() {
         const width = this.ref.renderer.options.width
         const height = this.ref.renderer.options.height
-        const wallThickness = 100
+        const wallThickness = 1000
 
         // Top wall
         new Wall({
