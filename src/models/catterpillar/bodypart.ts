@@ -25,7 +25,8 @@ export class BodyPart {
         restitution: number
         slop: number,
     }
-    section: "bodyPart" | "head" | "butt"
+    dev: boolean
+    type: "bodyPart" | "head" | "butt"
     // paper: paper.Path
 
     // #generatePaperPath() {
@@ -56,20 +57,30 @@ export class BodyPart {
             restitution?: number,
             slop?: number,
             primaryColor?: string,
-            section?: string
+            secondaryColor?: string,
+            svgTexture?: string,
+            type?: "head" | "butt",
+            collisionGroup?: number  // negative for non-colliding
         }
     ) {
+        this.dev = true
         this.options = {
-            restitution: 1,
-            slop: 1,
+            restitution: .5,
+            slop: .5,
         }
 
-        this.section = "bodyPart"
         this.x = options?.x ? options.x : 0
         this.y = options?.y ? options.y : 0
         this.primaryColor = options?.primaryColor ? options.primaryColor : "#58f208"
         this.radius = options?.radius ? options.radius : 8
-
+        
+        // Set label
+        this.type = "bodyPart"
+        if (options?.type) {
+            this.type = options.type
+        }
+        
+        
         if (options?.restitution) {
             this.options.restitution = options.restitution
         }
@@ -78,16 +89,24 @@ export class BodyPart {
             this.options.slop = options.slop
         }
         
+        const label = this.type == "bodyPart" ? "bodyPart" : `bodyPart,${this.type}`
+
+        const group = options?.collisionGroup ? options.collisionGroup : 0
+
         this.body = Matter.Bodies.circle(this.x, this.y, this.radius/2, { 
-            collisionFilter: { 
-                category: 0x0002,
-            }, 
+            collisionFilter: { group },
             mass: 1,
             density: .2,
-            friction: .1,
+            friction: 20,
             restitution: this.options.restitution,
-            slop: this.options.slop ? this.options.slop : this.radius/5,
-            label: this.section
+            slop: this.radius/5,
+            label,
+            render: {
+                visible: this.dev,
+                fillStyle: this.primaryColor,
+                strokeStyle: this.secondaryColor,
+                lineWidth: this.hasStroke ? 2 : 0,
+            }
         })
 
         // this.paper = this.#generatePaperPath()

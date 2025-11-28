@@ -45,7 +45,7 @@ export type MouthPoints = {
 }
 
 
-class Mouth  {
+export class Mouth  {
     x: number
     y: number
     offset: {

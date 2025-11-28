@@ -8,9 +8,9 @@ import CatterpillarModel from "@/models/catterpillar"
 
 
 export class MatterController {
-    ref: MatterSetup;
-    clickEvents: Array<Function> = [];
-    resizeEvents: Array<Function> = [];
+    ref: MatterSetup
+    clickEvents: Array<Function> = []
+    resizeEvents: Array<Function> = []
     catterpillar: CatterpillarModel
 
     constructor(target: HTMLElement) {
@@ -19,43 +19,56 @@ export class MatterController {
         })
         
 
-        this.#createWalls();
+        this.#createWalls()
 
 
 
-        this.catterpillar = new Catterpillar({ x: 100, y: 100, identity: { id: 1, name: "Catterpillar1", textureId: 1, colorSchemeId: 1, offset: 0} }, this.ref.world).ref 
+        this.catterpillar = new Catterpillar({ x: window.innerWidth / 2, y: window.innerHeight - 200, identity: { id: 1, name: "Catterpillar1", textureId: 1, colorSchemeId: 1, offset: 0 }}, this.ref.world).ref 
 
-        // Test function for adding balls on click
-        this.ref.addClickEvent(({x,y}) => {
-            const cp = this.catterpillar;
+        // // Test function for making catterpillar walk
+        // this.ref.addClickEvent(({x,y}) => {
+        //     const cp = this.catterpillar;
 
-            if (cp.x < x) {
-                cp.moveRight()
-            } else {
-                cp.moveLeft()
-            }
-        }, "addBallOnClick")
+        //     if (cp.x < x) {
+        //         cp.moveRight()
+        //     } else {
+        //         cp.moveLeft()
+        //     }
+        // }, "moveCatterpillar");
 
-        window.addEventListener("resize", this.#onResize.bind(this));
-        this.addResizeEvent(this.#resizeCanvas.bind(this));
-        this.addResizeEvent(this.#updateWalls.bind(this));
+        // Test function for contracting spine on click
+        this.catterpillar.head.body.render.fillStyle = "#00ff00" 
+        this.catterpillar.butt.body.render.fillStyle = "brown"
+        this.ref.addClickEvent(({ x,y }) => {
+            this.catterpillar.move("left")
+        }, "moveCatterpillar")
+
+
+        // this.ref.addClickEvent(({x,y}) => {
+        //     console.log("createCatterpillar")
+        //     new Catterpillar({ x: x, y: y, identity: { id: 1, name: "Catterpillar1", textureId: 1, colorSchemeId: 1, offset: 0} }, this.ref.world).ref 
+        // }, "createCatterpillar");
+
+        window.addEventListener("resize", this.#onResize.bind(this))
+        this.addResizeEvent(this.#resizeCanvas.bind(this))
+        this.addResizeEvent(this.#updateWalls.bind(this))
     }
 
     #onResize() {
         this.resizeEvents.forEach(fn => {
-            fn();
-        });
+            fn()
+        })
     }
 
     #resizeCanvas() {
-        this.ref.renderer.options.width = this.ref.renderer.element.parentElement.clientWidth;
-        this.ref.renderer.options.height = this.ref.renderer.element.parentElement.clientHeight;
-        Matter.Render.setPixelRatio(this.ref.renderer, window.devicePixelRatio);
+        this.ref.renderer.options.width = this.ref.renderer.element.parentElement.clientWidth
+        this.ref.renderer.options.height = this.ref.renderer.element.parentElement.clientHeight
+        Matter.Render.setPixelRatio(this.ref.renderer, window.devicePixelRatio)
     }
 
     #createWalls() {
-        const width = this.ref.renderer.options.width;
-        const height = this.ref.renderer.options.height;
+        const width = this.ref.renderer.options.width
+        const height = this.ref.renderer.options.height
         const wallThickness = 100
 
         // Top wall
@@ -70,7 +83,7 @@ export class MatterController {
         // Bottom
         new Wall({
             x: width / 2,
-            y: height + wallThickness / 2,
+            y: height + wallThickness / 2 - 100,
             width: width,
             height: wallThickness,
             id: "bottom"
@@ -96,19 +109,19 @@ export class MatterController {
     }
     
     #updateWalls() {
-        const width = this.ref.renderer.options.width;
-        const height = this.ref.renderer.options.height;
+        const width = this.ref.renderer.options.width
+        const height = this.ref.renderer.options.height
         const wallThickness = 100
 
         // Get Walls
         const walls = Matter.Composite.allBodies(this.ref.world).forEach(body => {
-            const labels = body.label.split(",");
+            const labels = body.label.split(",")
             if (labels.includes("wall")) {
-                Matter.Composite.remove(this.ref.world, body);
+                Matter.Composite.remove(this.ref.world, body)
             }
-        });
+        })
 
-        this.#createWalls();
+        this.#createWalls()
 
         // walls.forEach(body => {
         //     const labels = body.label.split(",");
@@ -132,6 +145,6 @@ export class MatterController {
     }
 
     addResizeEvent(fn: Function) {
-        this.resizeEvents.push(fn);
+        this.resizeEvents.push(fn)
     }
 }

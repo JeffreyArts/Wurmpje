@@ -1,694 +1,394 @@
-import { find } from "lodash"
 import Matter from "matter-js"
 import gsap from "gsap"
-import Eye from "./eye"
-import Mouth from "./mouth"
-import BodyPart from "./bodypart"
+import { Mouth } from "./mouth"
+import { Eye } from "./eye"
+import { BodyPart } from "./bodypart"
 
-import type { BodyPartOptions } from "./bodypart"
+// eslint-disable-next-line 
+const availableBodyPartTextures = [
+    "/bodyparts/360/camo",
+    "/bodyparts/360/cow",
+    "/bodyparts/360/dots",
+    "/bodyparts/360/giraffe",
+    "/bodyparts/360/leafs",
+    "/bodyparts/360/panter",
+    "/bodyparts/360/paths",
+    "/bodyparts/360/polkadots",
+    "/bodyparts/360/worms",
+    "/bodyparts/bottom/b1",
+    "/bodyparts/bottom/b2",
+    "/bodyparts/bottom/b3",
+    "/bodyparts/bottom/b4",
+    "/bodyparts/bottom/b5",
+    "/bodyparts/bottom/b6",
+    "/bodyparts/bottom/b7",
+    "/bodyparts/bottom/b8",
+    "/bodyparts/top/t1",
+    "/bodyparts/top/t2",
+    "/bodyparts/top/t3",
+    "/bodyparts/top/t4",
+    "/bodyparts/top/t5",
+    "/bodyparts/top/t6",
+    "/bodyparts/top/t7",
+    "/bodyparts/top/t8",
+    "/bodyparts/top/t9",
+    "/bodyparts/top/t10",
+    "/bodyparts/vert/v1",
+    "/bodyparts/vert/v2",
+    "/bodyparts/vert/v3",
+    "/bodyparts/vert/v4",
+    "/bodyparts/vert/v5",
+    "/bodyparts/vert/v6",
+]
 
-const BODYPARTOFFSET = 1.5
 
-export type CatterpillarOptions = {
-    id?: string
-    x?: number
-    y?: number
-    primaryColor?: string
-    length?: number
-    stiffness?: number 
-    damping?: number
-    maxVelocity?: number
-    floppiness?: number 
-    restitution?: number 
-    autoBlink?: boolean
-    bodyPart?: {
-        slop?: number
-        size?: number
-        stiffness?: number 
-        damping?: number 
-        restitution?: number 
-    }
-} 
-
-class Catterpillar  {
+export class Catterpillar {
+    dev: boolean
+    bodyParts: BodyPart[]
+    composite: Matter.Composite
     world: Matter.World
-    eye: {
-        left: Eye,
-        right: Eye,
-    }
-    id: string
     mouth: Mouth
-    primaryColor: string
-    blinkInterval?: number
-    autoBlink: boolean
+    eyes: Eye[]
     x: number
     y: number
-    head: Matter.Body
-    belly: Matter.Body
-    butt: Matter.Body
-    body: Array<Matter.Body>
-    bodyPart: BodyPartOptions
-    bodyParts: Array<BodyPart>
-    direction: "left" | "right" | ""
-    stiffness: number
-    bodyLength: number
-    damping: number
-    maxVelocity: number
-    restitution: number
-    floppiness: number
-    composite: Matter.Composite
+    head: BodyPart
+    butt: BodyPart
     spine: Matter.Constraint
-    switchingPosition: boolean | ((value: boolean | PromiseLike<boolean>) => void)
-    switchTimer: number 
-    isMoving: boolean
-    isMovable: undefined | Matter.Body
-    mouthRecovering: boolean
-    switchVelocity: number
-    scared: number | NodeJS.Timeout
-    scaredAction: number | NodeJS.Timeout
+    contraction?: {
+        headConstraint: Matter.Constraint,
+        buttConstraint: Matter.Constraint
+        tickerFn?: () => void,
+        contractionTween?: gsap.core.Tween
+    }
+    length: number
+    thickness: number
+    primaryColor: string
+    secondaryColor: string
+    baseTextureDir: typeof availableBodyPartTextures[number]
+    
 
-    constructor (
-        options = {
-            x: 0,
-            y: 0,
-            primaryColor: "#58f208",
-            length: 8,
-            stiffness: .8, 
-            damping: .8, 
-            maxVelocity: 3,
-            floppiness: .5,
-            restitution: .8,
-            autoBlink: true,
-            id: undefined,
-            bodyPart: {
-                slop: 2,
-                size: 8,
-                stiffness: .16,
-                damping: .2,
-                restitution: .8
-            }
-        } as CatterpillarOptions,
-        world: Matter.World
-    ) {
-        this.bodyPart = {
-            size: 8,
-            stiffness: .16,
-            damping: .2,
-            restitution: .8
-        }
-        
+    constructor(options: {
+        id: string,
+        x: number,
+        y: number,
+        primaryColor: string,
+        secondaryColor: string,
+        svgTextureDir: string,
+        hasStroke: boolean,
+        length: number,
+        thickness?: number,
+    }, world: Matter.World) {
         this.world = world
+        this.dev = true
+
+        this.x = options.x
+        this.y = options.y
+        this.length = options.length
+        this.thickness = options.thickness ? options.thickness : 16
         this.bodyParts = []
-        this.isMovable = null
-        this.isMoving = false
-        this.switchingPosition = false
-        this.switchTimer = 0
-        this.direction      = ""
-        this.switchVelocity = 0
-        this.x              = options.x             ? options.x : 0
-        this.y              = options.y             ? options.y : 0
-        this.id             = options.id            ? options.id : Math.random().toString(36).substring(7)
-        this.primaryColor   = options.primaryColor  ? options.primaryColor : "#58f208"
-        this.bodyLength     = options.length        ? options.length : 8
-        this.stiffness      = options.stiffness     ? options.stiffness : .8
-        this.maxVelocity    = options.maxVelocity   ? options.maxVelocity : 3
-        this.floppiness     = options.floppiness    ? options.floppiness : .5
-        this.damping        = options.damping       ? options.damping : .8
-        this.restitution    = options.restitution   ? options.restitution : .8
-        
-        this.bodyPart.size          = options.bodyPart?.size ? options.bodyPart?.size : 8
-        this.bodyPart.slop          = options.bodyPart?.slop
-        this.bodyPart.stiffness     = options.bodyPart?.stiffness
-        this.bodyPart.damping       = options.bodyPart?.damping
-        this.bodyPart.restitution   = options.bodyPart?.restitution
-        if (typeof options.autoBlink === "boolean") {
-            this.autoBlink = options.autoBlink
-        } else {
-            this.autoBlink = true
-        }
 
-        const eyeOptions = {
-            x: this.x,
-            y: this.y,
-            width: 8,
-            height: 8,
-            autoBlink: this.autoBlink
-        }
+        this.primaryColor = options.primaryColor
+        this.secondaryColor = options.secondaryColor
+        this.baseTextureDir = options.svgTextureDir
 
-        const mouthOptions = {
-            size: this.bodyPart.size * 1.25,
-            scale: 1,
-            offset: { x: 0, y: 0 },
-        }
+        // Create composite
+        this.composite = Matter.Composite.create({ label: `catterpillar,${options.id}` })
 
-        if (window.innerWidth < 768) {
-            this.bodyPart.size = this.bodyPart.size*.75
-            eyeOptions.width = eyeOptions.width/2
-            eyeOptions.height = eyeOptions.height/2
-            mouthOptions.scale = .5
-            mouthOptions.offset.y = 1
-        }
-        
-        // All options set, now call the helper functions to create the catterpillar
-        const t = this.#createBodyParts()
-        this.composite = t.composite
-        this.head = t.head
-        this.belly = t.composite.bodies[Math.floor((this.bodyParts.length-1)/2)]
-        this.butt = t.butt
-        this.body = []
-        
-        for (let index = 1; index < this.composite.bodies.length-1; index++) {
-            this.body.push(this.composite.bodies[index])
-        }
-        
-        this.spine = this.#createBodyConstraint()
-        Matter.Composite.add(this.composite, this.spine)
-        
-        this.eye = {
-            left: new Eye(eyeOptions),
-            right: new Eye(eyeOptions)
-        }
+        // Create body parts
+        this.#createBodyParts()
+        this.#createSpine()
 
-        this.mouth = new Mouth(mouthOptions)
         
-        this.#draw.bind(this)
-        this.#draw()
-
-        this.#loop.bind(this)
-        this.#loop()
-
-        return new Proxy(this, {
-            set: function (target, key, value) {
-                if (key === "primaryColor") {
-                    target[key] = value
-                    target.#updateColor()
-                }
-                
-                if (typeof target[key] !== "undefined") {
-                    target[key] = value
-                }
-                return true
-            }
-        })
-    }
+        // // Add body parts to composite
+        // for (const part of this.bodyParts) {
+        //     Matter.Composite.add(this.composite, part.body);
+        //     console.log(part.type)
+        // }
     
 
-    #createBodyPart () {
-        let section = "default"
-        if (this.bodyParts.length == 0) {
-            section = "head"
-        }
-
-        if (this.bodyParts.length === this.bodyLength) {
-            section = "butt"
-        }
-
-        return new BodyPart({
-            x: -128,
-            y: -128,
-            primaryColor: this.primaryColor,
-            radius: this.bodyPart.size,
-            restitution: this.bodyPart.restitution,
-            slop: this.bodyPart.slop ? this.bodyPart.slop : this.bodyPart.size/5,
-            section: section
-        })
+        Matter.World.add(this.world, this.composite)
+        
     }
 
-    #createBodyParts () : {
-        composite: Matter.Composite,
-        eye: {
-            left: Eye,
-            right: Eye
-        },
-        head: Matter.Body,
-        butt: Matter.Body
-    } {
-
-        const bodyParts = Matter.Composites.stack(this.x, this.y, this.bodyLength, 1, this.bodyPart.size + 2, 0, () => {
-            const bodyPart = this.#createBodyPart()
-            bodyPart.body.mass = 1
-
-            this.bodyParts.unshift(bodyPart)
-            return bodyPart.body
-        })
-
-        bodyParts.bodies.forEach((body,i) => {
-            const x =  this.x + (this.bodyPart.size * i) + this.bodyPart.size/2
-            const y =  0.05 + (Math.abs(i - this.bodyLength/2) + (Math.abs(i - this.bodyLength/2)) / 2) *1
-            Matter.Body.set(body, "position", { x, y })
-        })
-        
-        // Matter
-        const composite = Matter.Composite.create({
-            bodies: bodyParts.bodies,
-            label: "catterpillar",
-        })
-        
-        let prev = null as null | Matter.Body
-        composite.bodies.forEach(bodyPart => {
-            if (prev) {
-                Matter.Composite.add(composite, [
-                    Matter.Constraint.create({
-                        bodyA: bodyPart,
-                        bodyB: prev,
-                        pointA: { x: this.bodyPart.size/2, y:0 },
-                        pointB: { x: 0, y:0 },
-                        length: (this.bodyPart.size) * .75,
-                        stiffness: this.bodyPart.stiffness,
-                        label: "bodyPartConnection",
-                        render: {
-                            strokeStyle: "#444",
-                            type:"line",
-                        }
-                    }),
-                ])
-            }
-            prev = bodyPart
-        })
-
-        composite.label = "catterpillar"
-
-        return {
-            composite,
-            eye: this.eye,
-            head: composite.bodies[0], 
-            butt: composite.bodies[composite.bodies.length-1]
-        }
+    #calculateLength() {
+        return this.length * this.thickness - this.thickness
     }
-    
-    #createBodyConstraint() : Matter.Constraint {
-        return Matter.Constraint.create({
-            bodyA: this.head,
-            bodyB: this.butt,
-            length: (this.bodyPart.size) * this.bodyLength,
-            stiffness: this.stiffness,
-            damping: this.damping,
-            label: "catterpillarSpine",
+
+    #createSpine() {
+        this.spine = Matter.Constraint.create({
+            bodyA: this.head.body,
+            bodyB: this.butt.body,
+            length: this.#calculateLength(),
+            stiffness: .8,
+            damping: .1,
+            label: "spine",
             render: {
-                visible: true,
+                visible: this.dev,
                 strokeStyle: "#4f0944",
                 type: "spring",
             }
         })
+        Matter.Composite.add(this.composite, this.spine)
     }
 
-    #draw() {
-        if (this.bodyLength < 0) {
-            return
-        }
-
-        this.composite.bodies.forEach((body, i) => {
-            this.bodyParts[i].x = body.position.x
-            this.bodyParts[i].y = body.position.y      
-        })
-
-        // Offset eyes
-        const maxOffset = this.bodyPart.size
-        const offsetPerc = (this.head.position.x - this.butt.position.x + this.bodyLength * this.bodyPart.size) / (this.bodyLength * this.bodyPart.size * 2)
-
-        this.eye.left.x = this.head.position.x - this.eye["left"].width/2
-        this.eye.left.y = this.head.position.y - this.eye["left"].height/2
+    #createBodyParts() {
         
-        this.eye.right.x = this.head.position.x + this.eye["right"].width/2
-        this.eye.right.y = this.head.position.y - this.eye["right"].height/2
-           
-        this.mouth.x = this.head.position.x + maxOffset/2 + maxOffset * offsetPerc - maxOffset
-        this.mouth.y = this.head.position.y + this.bodyPart.size * .25 + this.mouth.offset.y
-        
-        requestAnimationFrame(() => this.#draw())
-    }
+        // Empty bodyparts
+        this.bodyParts = []
+        let prev: BodyPart | undefined
 
-    #loop(){
-        if (this.bodyLength <= 0) {
-            return
-        }
+        for (let i = 0; i < this.length; i++) {
 
-        // update x & y position of the catterpillar
-        
-        this.x = (this.head.position.x + this.butt.position.x) / 2
-        this.y = (this.head.position.y + this.butt.position.y) / 2
-        
-        const velocity = Math.abs(this.head.velocity.x) + Math.abs(this.head.velocity.y) 
-
-
-        const solidObjects = [] as Array<Matter.Body>
-        this.world.bodies.forEach(mBody => {
-            if (mBody.isStatic) {
-                solidObjects.push(mBody)
-            }
-        })
-        
-        // _.each (this.world.composites, mComposite => {
-        //     if (mComposite.label === "block") {
-        //         const blockBody = mComposite.bodies.find(body => body.label === "block")
-        //         if (blockBody) {
-        //             solidObjects.push(blockBody)
-        //         }
-        //     }
-        // })
-        
-        // Check if the catterpillar collides with the ground, and exit when it does not
-        this.isMovable = undefined
-        this.composite.bodies.map(body => {
-            solidObjects.forEach((solidObject) => {
-                const bodyFilter = body.collisionFilter
-                const solidFilter = solidObject.collisionFilter
+            const svgTexture = `${this.baseTextureDir}/${i%8 + 1}.svg`
             
-                const canCollide = (bodyFilter.mask != undefined && solidFilter.category != undefined && bodyFilter.mask & solidFilter.category) !== 0 &&
-                                   (solidFilter.mask != undefined && bodyFilter.category != undefined && solidFilter.mask & bodyFilter.category) !== 0
+            let type: "head" | "butt" | undefined
+            if (i == 0) {
+                type = "head"
+            } else if (i == this.length -1) {
+                type = "butt"
+            }
 
-                if (canCollide && Matter.Collision.collides(body, solidObject) !== null) {
-                    this.isMovable = solidObject
-                }
+            const offsetX = this.length * this.thickness / 2
+            const x = this.x - offsetX + i * this.thickness
+
+            // Select amount of catterPillars in the world
+            const catterpillars = this.world.composites.filter(comp => {
+                return comp.label.startsWith("catterpillar")
             })
             
-        })
-
-
-
-        if (this.switchingPosition) {
-            this.switchVelocity += 0.01
-            const bellyConstraint = find(this.world.constraints, (constraint) => {
-                return constraint.label === "bellyConstraint"
-            })
-
-            const buttConstraint = find(this.world.constraints, (constraint) => {
-                return constraint.label === "buttConstraint"
-            })
-            console.log("SWITCHINGGGG")
-
-            // Cancel switching position after 3 seconds
-            if (new Date().getTime() - this.switchTimer > 3000 && this.switchTimer > 0 && this.world && bellyConstraint && buttConstraint) {
-                Matter.Composite.remove(this.world,[bellyConstraint, buttConstraint])
-                this.isMoving = false
-                if (typeof this.switchingPosition === "function") {
-                    this.switchingPosition(false)
-                }
-                this.switchingPosition = false
-                this.switchTimer = 0
+            const compositeParts = []
+            const bodyPartOptions = {
+                radius: this.thickness,
+                x,
+                y: this.y,
+                primaryColor: this.primaryColor,
+                secondaryColor: this.secondaryColor,
+                collisionGroup: -1 * catterpillars.length - 1,
+                svgTexture,
             }
-            
-            // const xVelocity = 8 + this.switchVelocity
-            // const centerPointY = (this.bodyLength * this.bodyPart.size)
-            const centerPointX = (this.bodyLength * this.bodyPart.size)
-            const angle = this.switchVelocity + 100
-            const xVelocity = centerPointX + ( centerPointX * Math.cos(angle * Math.PI/180)) * this.bodyPart.size * .2
-            const yVelocity = 4 + this.bodyPart.size * .5
 
-
-            
-            // const xVelocity = center.y + (radius * Math.sin(angle*i*Math.PI/180)) * this.options.size/100
-            Matter.Body.setVelocity( this.head, {
-                // x: (this.head.position.x - this.butt.position.x),
-                x: this.direction === "right" ? -xVelocity : xVelocity ,
-                y: -yVelocity,
-            })
-            
-            if ((this.direction === "right" && this.head.position.x > this.belly.position.x - this.bodyPart.size * 2) ||
-                this.direction === "left" && this.head.position.x < this.belly.position.x + this.bodyPart.size * 2) {
-                
-                gsap.to(this.spine, {
-                    length: (this.bodyLength * this.bodyPart.size) * .33,    
-                    ease: "back.out",
-                    duration: .3,
-                    onComplete: () => {
-                        Matter.Composite.remove(this.world, bellyConstraint)
-                        Matter.Body.setVelocity( this.head, {
-                            x: this.direction === "right" ? - xVelocity * 1 : xVelocity * 1,
-                            y: yVelocity * 2,
-                        })
-                        this.switchVelocity = 0
-                        Matter.Composite.remove(this.world,[bellyConstraint])
-
-                        gsap.to(this.spine, {
-                            length: (this.bodyLength * this.bodyPart.size),
-                            ease: "back.in",
-                            duration: .3,
-                            onComplete: () => {
-                                this.isMoving = false
-                                if (typeof this.switchingPosition === "function") {
-                                    this.switchingPosition(true)
-                                }
-                                this.switchingPosition = false
-                            }
-                        })
-                    }
-                })
-                // if (this.world && bellyConstraint && buttConstraint) {
-                //     Matter.Composite.remove(this.world, bellyConstraint)
-                //     Matter.Body.setVelocity( this.head, {
-                //         x: this.direction === "right" ? - xVelocity * 1 : xVelocity * 1,
-                //         y: yVelocity * 2,
-                //     })
-                //     this.switchVelocity = 0
-
-                //     setTimeout(() => {
-                //         Matter.Composite.remove(this.world,[bellyConstraint, buttConstraint])
-                //         this.isMoving = false
-                //         if (typeof this.switchingPosition === "function") {
-                //             this.switchingPosition(true)
-                //         }
-                //         this.switchingPosition = false
-                //     },300)
-                // }
+            if (type) {
+                bodyPartOptions["type"] = type
             }
-        }        
 
 
-        if (velocity > 20 && !this.isMoving && (Math.abs(this.head.position.y - this.butt.position.y) > this.bodyPart.size)) {
-            if (this.scared) {
-                clearTimeout(this.scared)
-                clearTimeout(this.scaredAction)
-            } else {
-                // this.eye.left.stopBlinking()
-                // this.eye.right.stopBlinking()
-                this.mouth.switchState("😮", 1.28)
-            }
-            
-            this.scared = setTimeout(() => {
-                this.scared = 0
-                this.scaredAction = setTimeout(() => {
-                    // this.eye.left.blink()
-                    // this.eye.right.blink()
-                    this.mouth.switchState("🙂", 4)
-                    this.mouthRecovering = false
-                    // this.eye.left.autoBlink = true
-                    // this.eye.right.autoBlink = true
-                }, 2400)
+            const part = new BodyPart(bodyPartOptions)
+            this.bodyParts.push(part)
+            compositeParts.push(part.body)
 
-            }, 200)
-        }
-
-        requestAnimationFrame(() => this.#loop())
-    }
-
-    #updateColor() {
-        this.bodyParts.forEach(bodyPart => {
-            bodyPart.primaryColor = this.primaryColor
-        })
-    }
-
-    relax(constraint: Matter.Constraint | Array<Matter.Constraint>) {
-        return new Promise((resolve) => {
-            const duration = 1
-            gsap.to(this.spine, {
-                length: (this.bodyLength * this.bodyPart.size * BODYPARTOFFSET) * .5,
-                onComplete: () => {
-                    gsap.to(this.spine, {
-                        length: (this.bodyLength * this.bodyPart.size * BODYPARTOFFSET),
-                        onComplete: () => {
-                            setTimeout(() => {
-                                if (this.world) {
-                                    Matter.Composite.remove(this.world, constraint)
-                                    this.isMoving = false
-                                    resolve(true)
-                                }
-                            }, 320)
-                        },
-                        ease: "back.out",
-                        duration: duration/2
-                    })
-                },
-                ease: "back.out",
-                duration: duration
-            })
-        })
-    }
-
-    move(direction: "left" | "right") : Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            this.direction = direction
-            this.switchTimer = new Date().getTime()
-            if (!this.world) {
-                return reject(new Error("Missing required variables mWorld | ground | catterPillar.composite"))
-            }
-            
-            if (!this.isMovable) {
-                this.isMoving = false
-                return resolve(false)
-            }
-            
-            const head = this.head
-            const butt = this.butt
-            const collision = this.isMovable as Matter.Body
-
-            const duration = .8
-            const newLength = (this.bodyLength * this.bodyPart.size)*.8
-            const yOffset = (collision.bounds.max.y - collision.bounds.min.y) / 2
-            let headConstaint = null as null | Matter.Constraint
-            this.isMoving = true
-
-            // Fix butt to ground
-            const buttConstraint = Matter.Constraint.create({
-                bodyA: butt,
-                pointA: { x: 0, y: this.bodyPart.size/2 },
-                pointB: { x: butt.position.x - collision.bounds.max.x/2, y: -yOffset },
-                bodyB: collision,
-                length: 1,
-                stiffness: .8,
-                label: "buttConstraint",
-                render: {
-                    strokeStyle: "#9f0",
-                    type:"line",
-                }
-            })
-            Matter.Composite.add(this.world, buttConstraint)
-        
-        
-            if ((direction == "left" && head.position.x > butt.position.x) ||
-                (direction == "right" && head.position.x < butt.position.x)) {
-                this.head.render.fillStyle = "#f00"
-                // Kick head to opposite side
-                this.switchingPosition = resolve
-                // Fix belly to ground
-                if (this.belly) {
-                    const bellyConstaint = Matter.Constraint.create({
-                        bodyA: this.belly,
-                        pointA: { x: 0, y: this.bodyPart.size/2 },
-                        pointB: { x: this.belly.position.x - collision.bounds.max.x/2, y: -yOffset },
-                        bodyB: collision,
-                        length: 1,
-                        stiffness: .8,
-                        label: "bellyConstraint",
-                        render: {
-                            strokeStyle: "#9f0",
-                            type:"line",
-                        }
-                    })
-                    Matter.Composite.add(this.world, bellyConstaint)
-                }
-            } else {
-            // Fix head to ground
-                headConstaint = Matter.Constraint.create({
-                    bodyA: head,
-                    pointA: { x: 0, y: this.bodyPart.size/2 },
-                    pointB: { x: head.position.x - collision.bounds.max.x/2, y: -yOffset },
-                    bodyB: collision,
-                    length: 0.5,
-                    stiffness: .8,
+            if (prev) {
+                const length = (part.radius/2 + prev.radius/2) + .1
+                const constraint = Matter.Constraint.create({
+                    bodyA: part.body,
+                    bodyB: prev.body,
+                    pointA: { x: 0, y:0 },
+                    pointB: { x: 0, y:0 },
+                    length,
+                    stiffness: 0.5,
+                    damping: 0.1,
                     label: "bodyPartConnection",
                     render: {
-                        strokeStyle: "#9f0",
+                        strokeStyle: "#444",
                         type:"line",
                     }
                 })
-                Matter.Composite.add(this.world, headConstaint)
-
-                // Actually move, when head is pointing in the right direction
-                if (this.spine) {
-                    // Slide butt forward ( to the left )
-                    let newPosX = 0
-                    if (direction === "left") {
-                        newPosX = (butt.position.x - collision.bounds.max.x/2) - newLength/2
-                    } else if (direction === "right") {
-                        newPosX = (butt.position.x - collision.bounds.max.x/2) + newLength/2
-                    }
-            
-                    gsap.to(buttConstraint.pointB, {
-                        x: newPosX,
-                        onComplete:() => {
-                            if (!this.world) {
-                                return
-                            }
-                            if (headConstaint) {
-                                Matter.Composite.remove(this.world, headConstaint)
-                            }
-                        },
-                        // ease: "power2.out",
-                        ease: "back.out",
-                        duration: duration*.777,
-                    })
-
-                    // Animate body
-                    gsap.to(this.spine, {
-                        length: newLength,
-                        ease: "back.out",
-                        duration: duration/2,
-                        onComplete:() => {
-                            gsap.to(this.spine, {
-                                length: (this.bodyPart.size) * this.bodyLength ,
-                                onComplete: () => {
-                                    setTimeout(() => {
-                                        if (this.world) {
-                                            Matter.Composite.remove(this.world,buttConstraint)
-                                            this.isMoving = false
-                                            resolve(true)
-                                        }
-                                    }, 320)
-                                },
-                                ease: "power2.in",
-                                duration: duration/2
-                            })
-                        }
-                    })
-                }
-
-                // Make body curl
-                const centerIndex = Math.floor(this.bodyParts.length/2)
-                const maxVelocity  = this.maxVelocity
-            
-                this.bodyParts.forEach((bodyPart,index) => {
-                    if (index != 0 && index != this.bodyParts.length-1) {
-                        const velocity = centerIndex === index ? maxVelocity : maxVelocity - maxVelocity / index
-                        Matter.Body.setVelocity( bodyPart.body, {
-                            x: 0,
-                            y: -velocity * (centerIndex - Math.abs(index - centerIndex))/2,
-                        })
-                    } else {
-                        bodyPart.body.friction = 1
-                        Matter.Body.setVelocity( bodyPart.body, {
-                            x: 0,
-                            y: 10
-                        })
-                    }
-                })
-
+                
+                compositeParts.push(constraint)
             }
+
+            
+            Matter.Composite.add(
+                this.composite, compositeParts
+            )
+            
+            this.head = this.bodyParts[0]
+            this.butt = this.bodyParts[this.bodyParts.length -1]
+
+            prev = part
+
+        }
+    }
+
+    // perc: number between 0 and 1 to determin the contraction width
+    // duration: duration in seconds
+    contractSpine(perc = .5, duration = .5) {
+
+        return new Promise((resolve, reject) => {
+            
+            if (this.contraction) {
+                console.warn("Catterpillar is already in a contracting state")
+                return reject()
+            }
+
+            // Calculate new length
+            const newLength = this.#calculateLength() * perc
+            
+            // Stick head to ground via a constraint
+            const headConstraint = Matter.Constraint.create({
+                bodyA: this.head.body,
+                pointB: { x: this.head.body.position.x, y: this.head.body.position.y },
+                length: 0,
+                stiffness: 1,
+                label: "headConstraint",
+                render: {
+                    visible: this.dev,
+                    strokeStyle: "#9f0",
+                    type: "line",
+                }
+            })
+
+            // Stick butt to ground via a constraint
+            const buttConstraint = Matter.Constraint.create({
+                bodyA: this.butt.body,
+                pointB: { x: this.butt.body.position.x, y: this.butt.body.position.y },
+                length: 0,
+                stiffness: .3,
+                label: "buttConstraint",
+                render: {
+                    visible: this.dev,
+                    strokeStyle: "brown",
+                    type: "line",
+                }
+            })
+
+            Matter.Composite.add(this.composite, headConstraint)
+            Matter.Composite.add(this.composite, buttConstraint)
+            
+            // Save contraction state
+            this.contraction = {
+                headConstraint,
+                buttConstraint,
+            }
+
+
+
+            // Start contraction via GSAP tween
+            const obj = { ...this.spine, perc, buttX: Math.abs(this.butt.body.position.x - this.head.body.position.x) }
+
+            this.contraction.contractionTween = gsap.to(obj, {
+                length: newLength,
+                duration: duration,
+                perc: 1,
+                ease:  "linear",
+                buttX: obj.buttX - newLength/2,
+                onUpdate: () => {
+                    if (!this.contraction) {
+                        this.contraction.contractionTween.kill()
+                        return
+                    }
+
+                    this.spine.length = obj.length
+                    const maxVelocity = .0005
+
+                    // Move buttConstraint.pintB.x to simulate pushing off
+                    if (this.butt.body.position.x > this.head.body.position.x) {
+                        buttConstraint.pointB.x = this.head.body.position.x + obj.length
+                    }
+
+
+                    this.bodyParts.forEach((bp, index) => {
+                        const centerIndex = this.#calculateLength() / 2
+                        const distanceFromCenter = centerIndex - Math.abs(index - centerIndex)
+                        
+                        // change Y velocity to simulate bounce
+                        Matter.Body.applyForce( bp.body,bp.body.position, {
+                            // x: (this.head.position.x - this.butt.position.x),
+                            x: 0,
+                            y: distanceFromCenter * -maxVelocity,
+                        })
+                    })
+                },
+                onComplete: () => {
+                    this.contraction.tickerFn = () => {
+                        const centerIndex = this.bodyParts.length / 2
+                        const maxVelocity = .4
+
+                        // Keep arch by setting Y velocity based on distance from center
+                        this.bodyParts.forEach((bp, index) => {
+                            const distanceFromCenter = centerIndex - Math.abs(index - centerIndex)
+
+                            Matter.Body.setVelocity(bp.body, {
+                                x: 0,
+                                y: distanceFromCenter * -maxVelocity,
+                            })
+                        })
+                    }
+                    gsap.ticker.add(this.contraction.tickerFn)
+                    
+                    resolve(true)
+                }
+            })
         })
     }
 
-    blink() {
-        this.eye.left.blink()
-        this.eye.right.blink()
-    }
 
-    remove() {
-        this.bodyLength = -1
-        this.eye.left.remove()
-        this.eye.right.remove()
-        this.mouth.remove()
-        this.bodyParts.forEach(bodyPart => {
-            bodyPart.remove()
+    // duration: duration in seconds
+    releaseSpine(duration =  .4) {
+        return new Promise((resolve, reject) => {
+            if (!this.contraction) {
+                console.warn("Catterpillar is not in a contracting state")
+                return reject()
+            }
+            // Kill contraction tween when it is still running
+            if (this.contraction.contractionTween) {
+                this.contraction.contractionTween.kill()
+            }
+
+            // this.bodyParts.forEach((bp, index) => {
+            //     Matter.Body.setVelocity(bp.body, {
+            //         x: 0,
+            //         y: 0,
+            //     })
+            // })
+
+            if (this.contraction?.tickerFn) {
+                gsap.ticker.remove(this.contraction.tickerFn)
+            }
+
+            Matter.Composite.remove(this.composite, this.contraction.headConstraint)
+
+            const newLength = this.#calculateLength()
+            if (this.contraction.buttConstraint) {
+                this.contraction.buttConstraint.stiffness = 1
+            }
+                
+            this.contraction.contractionTween =  gsap.to(this.spine, {
+                length: newLength,
+                duration: duration,
+                ease:  "linear",
+                onComplete: () => {
+                    // remove constraints
+                    if (this.contraction) {
+                        if (this.contraction.buttConstraint) {
+                            Matter.Composite.remove(this.composite, this.contraction.buttConstraint)
+                        }
+
+                        if (this.contraction.headConstraint) {
+                            Matter.Composite.remove(this.composite, this.contraction.headConstraint)
+                        }
+
+                        if (this.contraction.tickerFn) {
+                            gsap.ticker.remove(this.contraction.tickerFn)
+                        }
+
+                        if (this.contraction.contractionTween) {
+                            this.contraction.contractionTween.kill()
+                        }
+                    }
+
+                    this.contraction = undefined
+                    resolve(true)
+                }
+            })
         })
-        this.isMoving = false
     }
     
-    moveLeft() {
-        return this.move("left")
-    }
+    
+    async move(direction: "left" | "right") {
 
-    moveRight() {
-        return this.move("right")
+        await this.contractSpine(0.5)
+        this.releaseSpine(0.5)
+        
     }
 
 }
