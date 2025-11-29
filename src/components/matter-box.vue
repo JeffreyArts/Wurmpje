@@ -143,6 +143,7 @@ export default defineComponent ({
     display: flex;
     gap: 8px;
     position: fixed;
+    flex-flow: wrap row;
     bottom: 16px;
     left: 16px;
 }

@@ -72,11 +72,18 @@ export class MatterSetup {
         })
 
         // window.addEventListener("click", this.#onClick.bind(this))
-        // window.addEventListener("touchstart", this.#onTap.bind(this))
+        window.addEventListener("touchstart", this.#disableScrollToRefresh, { passive: false })
         window.addEventListener("pointerdown", this.#onPointerDown.bind(this))
         window.addEventListener("pointerup", this.#onPointerUp.bind(this))
         window.addEventListener("pointermove", this.#onPointerMove.bind(this))
         window.addEventListener("resize", this.#onResize.bind(this))
+    }
+    
+    #disableScrollToRefresh(event: TouchEvent) {
+        const target = event.target as HTMLElement
+        if (target.id == "paper-js") {
+            event.preventDefault()
+        }
     }
 
     // Resize events
