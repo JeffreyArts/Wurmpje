@@ -28,6 +28,10 @@ export class Catterpillar {
     }
     length: number
     thickness: number
+    stroke: number = 0
+    primaryColor: string = "#00ff00"
+    secondaryColor: string = "#007700"
+    texture: { top?: string, "360"?: string, bottom?: string, vert?: string, stroke?: boolean } = {}
     isStanding: boolean
     isMoving: boolean
 
@@ -35,7 +39,9 @@ export class Catterpillar {
         id: string,
         x: number,
         y: number,
-        hasStroke: boolean,
+        primaryColor: string,
+        secondaryColor: string,
+        texture: { top?: string, "360"?: string, bottom?: string, vert?: string, stroke?: boolean },
         length: number,
         thickness?: number,
     }, world: Matter.World) {
@@ -50,6 +56,22 @@ export class Catterpillar {
         this.length = options.length
         this.thickness = options.thickness ? options.thickness : 16
         this.bodyParts = []
+        
+        if (options.primaryColor) {
+            this.primaryColor = options.primaryColor
+        }
+
+        if (options.secondaryColor) {
+            this.secondaryColor = options.secondaryColor
+        }
+
+        if (options.texture) {
+            this.texture = options.texture
+        }
+
+        if (this.texture.stroke) {
+            this.stroke = this.thickness * 0.05
+        }
         
         // Create composite
         this.composite = Matter.Composite.create({ label: `catterpillar,${options.id}` })
@@ -406,7 +428,7 @@ export class Catterpillar {
                     type: "line",
                 }
             })
-            const bellyBody = this.bodyParts[Math.floor((this.bodyParts.length-1) / 2)-1].body
+            const bellyBody = this.bodyParts[Math.floor((this.bodyParts.length-1) / 2) + 1].body
             bellyBody.render.fillStyle = "purple"
             const bellyConstraint = Matter.Constraint.create({
                 bodyA: bellyBody,

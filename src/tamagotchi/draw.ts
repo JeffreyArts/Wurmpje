@@ -1,7 +1,7 @@
 import CatterpillarModel from "@/models/catterpillar"
 import Color from "@/models/color"
 import paper from "paper"
-
+import gsap from "gsap"
  
 export const availableBodyPartTextures = [
     "/bodyparts/360/camo",
@@ -87,7 +87,7 @@ export class Draw {
     
 
     addCircle(pos: { x: number, y: number }, 
-        options: { radius: number, color: string, name?: string },
+        options: { radius: number, color: string, name?: string, strokeWidth?: number, strokeColor?: string },
         layer?: paper.Layer
     ): paper.Path.Circle {
         const { radius, color } = options
@@ -96,13 +96,19 @@ export class Draw {
             name = `circle-${Date.now()}`
         }
 
-        
-        const circle = new this.ref.Path.Circle({
+        const circleOptions = {
             center: new this.ref.Point(pos.x, pos.y),
             radius: radius,
             fillColor: color,
             name: name
-        })
+        }
+
+        if (options.strokeWidth && options.strokeColor) {
+            circleOptions["strokeColor"] = options.strokeColor
+            circleOptions["strokeWidth"] = options.strokeWidth
+        }
+
+        const circle = new this.ref.Path.Circle(circleOptions)
         this.objects.push({ shape: circle, pos: pos })
         
         if (layer) {
@@ -125,42 +131,103 @@ export class Draw {
             layer.addChild(svgItem)
             svgItem.bringToFront()
         }
-
+        
         return svgItem
     }
+    
 
-    addCatterpillar(catterpillar: CatterpillarModel, options: { primaryColor: string, secondaryColor: string, svgTextureDir: typeof availableBodyPartTextures[number] }) {
-
-
-        catterpillar.bodyParts.reverse().forEach(async (part, index) => {
+    async addCatterpillar(catterpillar: CatterpillarModel) {
+        const texturePromises = [] 
+        const bodyParts = catterpillar.bodyParts
+        for (let index = 0; index < bodyParts.length; index++) {
+            const part = bodyParts[index]
             const diameter = catterpillar.thickness*1.25
-            const primaryColor = new Color(options.primaryColor)
-            const secondaryColor = new Color(options.secondaryColor)
-
+            const primaryColor = new Color(catterpillar.primaryColor)
+            const secondaryColor = new Color(catterpillar.secondaryColor)
 
             // Load texture
+            const textures = []
             const svgOptions = { width: diameter, height: diameter } as { width: number, height: number, rotate?: number }
-            if (options.svgTextureDir.indexOf("360") !== -1) {
-                svgOptions.rotate = index * (360 / catterpillar.bodyParts.length)
+            let svgUrl = ""
+            for (const textureType in catterpillar.texture) {
+                svgOptions.rotate = undefined
+                svgUrl = "./bodyparts/"
+                if ( textureType == "360") {
+                    svgOptions.rotate = index * (360 / catterpillar.bodyParts.length)
+                    svgUrl += `360/${catterpillar.texture[textureType]}`
+                } else if (textureType == "top") {
+                    svgUrl += `top/${catterpillar.texture[textureType]}`
+                } else if (textureType == "bottom") {
+                    svgUrl += `bottom/${catterpillar.texture[textureType]}`
+                } else if (textureType == "vert") {
+                    svgUrl += `vert/${catterpillar.texture[textureType]}`
+                } else {
+                    continue
+                }
+                svgUrl += `/${index % 8 + 1 }.svg`
+
+                if (index !== 0) {
+                    const svgItem = await this.#importSVGAsync(svgUrl, svgOptions)
+                    texturePromises.push(svgItem)
+                    svgItem.name = `${catterpillar.composite.label}-texture-${index}-${textureType}`
+                    svgItem.opacity = 0
+                    svgItem.fillColor = new paper.Color(secondaryColor.toHex())
+                    textures.push(svgItem)
+                }
             }
-            const svgUrl = `${options.svgTextureDir}/${index % 8 + 1 }.svg`
-            const svgItem = await this.#importSVGAsync(svgUrl, svgOptions)
-            svgItem.fillColor = new paper.Color(secondaryColor.toHex())
 
             // Create layers if not exist
-            const layer = new this.ref.Layer()
-
+            const layer = new this.ref.Layer({ name: `layer-${index}` })
+            const offset = Math.random() * 0.025
             // Define bodyPart color
             if (index %2 === 0 ) { 
-                primaryColor.adjustHsl(0, 0, Math.random() * 0.025)
+                primaryColor.adjustHsl(0, 0, offset)
+                secondaryColor.adjustHsl(0, 0, offset)
             } else {
-                primaryColor.adjustHsl(0, 0, -Math.random() * 0.025)
+                primaryColor.adjustHsl(0, 0, -offset)
+                secondaryColor.adjustHsl(0, 0, -offset)
             }
 
             // Add to canvas
-            this.addCircle(part.body.position, { radius: diameter/2, color: primaryColor.toHex(), name: `${catterpillar.composite.label}-bodypart-${index}` }, layer)
-            this.addSVG(part.body.position, svgItem, layer)
+            const circleOptions = {
+                radius: diameter/2,
+                strokeWidth: catterpillar.stroke,
+                strokeColor: secondaryColor.toHex(),
+                color: primaryColor.toHex(),
+                name: `${catterpillar.composite.label}-bodypart-${index}` 
+            }
+
+            const circle = this.addCircle(part.body.position, circleOptions, layer)
+            circle.opacity = 0
+            if (index !== 0) {
+                textures.forEach(svgItem => {
+                    this.addSVG(part.body.position, svgItem, layer)
+                })
+            }
             this.layers.push(layer) 
+        }
+
+        // Sorteer de lagen op index zodat de juiste volgorde wordt weergegeven
+        this.ref.project.layers.sort((a, b) => {
+            const indexA = parseInt(a.name.split("-")[2])
+            const indexB = parseInt(b.name.split("-")[2])
+            return indexB - indexA
+        })
+        this.ref.project.layers.reverse()
+        
+        const layers = [...this.ref.project.layers] // kopieer de array
+        for (let i = 0; i < layers.length; i++) {
+            if (i === 0) {
+                layers[i].sendToBack()
+            } else {
+                layers[i].insertAbove(layers[i - 1])
+            }
+        }
+
+        this.ref.project.layers.forEach(layer => {
+            layer.children.forEach(child => {
+                gsap.to(child, { delay: .08, opacity: 1, duration: .16 })
+            })
         })
     }
 }

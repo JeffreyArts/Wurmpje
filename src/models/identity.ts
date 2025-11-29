@@ -1,8 +1,8 @@
 export type IdentityField = {
     id: number;            // 29-bit: 23 bits seconds/4 + 6 bits random
     name: string;          // max 16 chars, letters A-Z/a-z + space
-    textureId: number;     // 0-1023
-    colorSchemeId: number; // 0-1023
+    textureIndex: number;     // 0-1023
+    colorSchemeIndex: number; // 0-1023
     offset: number;   // 0-15
 }
 
@@ -42,7 +42,7 @@ export class Identity {
         if (typeof json !== "object" || json === null)
             throw new Error("Input must be a non-null object")
 
-        const { id, name, textureId, colorSchemeId, offset } = json
+        const { id, name, textureIndex, colorSchemeIndex, offset } = json
 
         if (typeof id !== "number" || id < 0 || id > 0x1FFFFFFF)
             throw new Error("Invalid id: must be 0-536870911 (29-bit)")
@@ -53,14 +53,14 @@ export class Identity {
         if (!/^[A-Za-z ]*$/.test(name))
             throw new Error("Invalid name: must contain only letters A-Z/a-z or space")
 
-        if (typeof textureId !== "number" || textureId < 0 || textureId > 1023)
-            throw new Error("Invalid textureId: must be 0-1023")
-        if (typeof colorSchemeId !== "number" || colorSchemeId < 0 || colorSchemeId > 1023)
-            throw new Error("Invalid colorSchemeId: must be 0-1023")
+        if (typeof textureIndex !== "number" || textureIndex < 0 || textureIndex > 1023)
+            throw new Error("Invalid textureIndex: must be 0-1023")
+        if (typeof colorSchemeIndex !== "number" || colorSchemeIndex < 0 || colorSchemeIndex > 1023)
+            throw new Error("Invalid colorSchemeIndex: must be 0-1023")
         if (typeof offset !== "number" || offset < 0 || offset > 15)
             throw new Error("Invalid offset: must be 0-15")
 
-        return { id, name, textureId, colorSchemeId, offset }
+        return { id, name, textureIndex, colorSchemeIndex, offset }
     }
 
     // Decoding
@@ -130,11 +130,11 @@ export class Identity {
             this.push(bits, this.encodeChar(c), 6)
         }
 
-        // textureId: 10 bits
-        this.push(bits, identity.textureId, 10)
+        // textureIndex: 10 bits
+        this.push(bits, identity.textureIndex, 10)
         
-        // colorSchemeId: 10 bits
-        this.push(bits, identity.colorSchemeId, 10)
+        // colorSchemeIndex: 10 bits
+        this.push(bits, identity.colorSchemeIndex, 10)
 
         // offset: 4 bits
         this.push(bits, identity.offset, 4)
@@ -176,14 +176,14 @@ export class Identity {
         }
         name = name.trimEnd()
 
-        // textureId: 10 bits
+        // textureIndex: 10 bits
         result = this.unPush(bits, cursor, 10)
-        const textureId = result.value
+        const textureIndex = result.value
         cursor = result.cursor
 
-        // colorSchemeId: 10 bits
+        // colorSchemeIndex: 10 bits
         result = this.unPush(bits, cursor, 10)
-        const colorSchemeId = result.value
+        const colorSchemeIndex = result.value
         cursor = result.cursor
 
         // offset: 4 bits
@@ -191,7 +191,7 @@ export class Identity {
         const offset = result.value
         cursor = result.cursor
 
-        return { id, name, textureId, colorSchemeId, offset }
+        return { id, name, textureIndex, colorSchemeIndex, offset }
     }
 
     private base45Encode(bytes: Uint8Array): string {

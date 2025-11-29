@@ -51,6 +51,7 @@ export default defineComponent ({
             this.$refs["catterpillar"] as HTMLElement
         )
         this.toggleDevMode()
+        this.toggleDevMode()
 
         this.toggleClickTo("moveCatterpillar")
     },

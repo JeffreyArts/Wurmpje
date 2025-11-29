@@ -7,6 +7,10 @@ import { Wall } from "./create/wall"
 import { Ball } from "./create/ball"
 import { Catterpillar } from "./create/catterpillar"
 import CatterpillarModel from "@/models/catterpillar"
+import type { IdentityField } from "@/models/identity"
+
+import ColorSchemes from "@/assets/default-color-schemes"
+import Textures from "@/assets/default-textures"
 
 
 export class MatterController {
@@ -16,21 +20,29 @@ export class MatterController {
     catterpillar: CatterpillarModel
     mousePin: Matter.Constraint = null
     draw: Draw
+    identity: IdentityField = {
+        id: 1,
+        name: "Catterpillar",
+        textureIndex: 1,
+        colorSchemeIndex: 1,
+        offset: 0
+    }
 
-    constructor(target: HTMLElement) {
+    constructor(target: HTMLElement, identity?: IdentityField ) {
         this.ref = new MatterSetup(target, {
             devMode: true
         })
     
         this.draw = new Draw(this.ref.paper)
+        this.identity = identity
 
         
         this.#createWalls()
         
         
-        this.createCatterpillar({ x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 })
+        this.createCatterpillar({ x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }, this.identity )
         
-        this.draw.addCatterpillar(this.catterpillar, { primaryColor: "green", secondaryColor: "darkgreen", svgTextureDir: "./bodyparts/vert/polkadots" })
+        this.draw.addCatterpillar(this.catterpillar)
 
         window.addEventListener("resize", this.#onResize.bind(this))
 
@@ -175,7 +187,7 @@ export class MatterController {
         } else if (name == "createCatterpillar") {
             fn = ({ x,y }) => {
                 const id = this.ref.world.composites.filter(c => c.label.startsWith("catterpillar")).length + 1
-                new Catterpillar({ x: x, y: y, identity: { id, name: `Catterpillar${id}`, textureId: 1, colorSchemeId: 1, offset: 0 }}, this.ref.world) 
+                new Catterpillar({ x: x, y: y, identity: { id, name: `Catterpillar${id}`, textureIndex: 1, colorSchemeIndex: 1, offset: 0 }}, this.ref.world) 
             }
         } else if (name == "standUpCatterpillar") {
             fn = () => {
@@ -206,16 +218,28 @@ export class MatterController {
         this.ref.addClickEvent(fn, name)
     }
 
-    createCatterpillar(position: { x: number, y: number }) {
+    createCatterpillar(position: { x: number, y: number }, identity?: IdentityField) {
+        
+
+        if (!identity) {
+            const id = this.ref.world.composites.filter(c => c.label.startsWith("catterpillar")).length + 1
+
+            const colorSchemeIndex = Math.floor(ColorSchemes.length * Math.random())
+            const textureIndex = Math.floor(Textures.length * Math.random())
+
+            identity = {
+                id,
+                name: "catterpillar",
+                textureIndex: textureIndex,
+                colorSchemeIndex: colorSchemeIndex,
+                offset: Math.floor(Math.random() * 16)
+            }
+        }
+
         this.catterpillar = new Catterpillar({
             x: position.x,
             y: position.y,
-            identity: {
-                id: 1,
-                name: "Catterpillar1",
-                textureId: 1,
-                colorSchemeId: 1,
-                offset: 0 }
+            identity: identity as IdentityField
         }, this.ref.world).ref
 
         // Custom colors for the main catterpillar
