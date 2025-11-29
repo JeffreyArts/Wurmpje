@@ -90,6 +90,6 @@ this.createIcon()
 <style>
 .matter-box {
     width: 100%;
-    height: calc(100vh - 144px);
+    height: calc(100vh - 80px);
 }
 </style>

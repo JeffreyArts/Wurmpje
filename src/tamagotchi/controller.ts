@@ -30,7 +30,7 @@ export class MatterController {
         
         this.createCatterpillar({ x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 })
         
-        this.draw.addCatterpillar(this.catterpillar, { primaryColor: "green", secondaryColor: "darkgreen", svgTextureDir: "./bodyparts/vert/v1" })
+        this.draw.addCatterpillar(this.catterpillar, { primaryColor: "green", secondaryColor: "darkgreen", svgTextureDir: "./bodyparts/vert/polkadots" })
 
         window.addEventListener("resize", this.#onResize.bind(this))
 
@@ -64,6 +64,9 @@ export class MatterController {
     #resizeCanvas() {
         this.ref.renderer.options.width = this.ref.renderer.element.parentElement.clientWidth
         this.ref.renderer.options.height = this.ref.renderer.element.parentElement.clientHeight
+
+        this.ref.paper.view.viewSize.width = this.ref.renderer.options.width
+        this.ref.paper.view.viewSize.height = this.ref.renderer.options.height
         Matter.Render.setPixelRatio(this.ref.renderer, window.devicePixelRatio)
     }
 
@@ -84,7 +87,7 @@ export class MatterController {
         // Bottom
         new Wall({
             x: width / 2,
-            y: height + wallThickness / 2 - 100,
+            y: height + wallThickness / 2 - 50,
             width: width * 2,
             height: wallThickness,
             id: "bottom"

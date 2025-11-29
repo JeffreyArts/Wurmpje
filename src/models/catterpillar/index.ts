@@ -282,7 +282,7 @@ export class Catterpillar {
                     }
 
                     this.spine.length = obj.length
-                    const maxVelocity = .0005
+                    const maxVelocity = this.thickness * 0.00006
 
                     // Move buttConstraint.pintB.x to simulate pushing off
                     if (this.butt.body.position.x > this.head.body.position.x) {
@@ -350,6 +350,15 @@ export class Catterpillar {
             if (this.contraction.tickerFn) {
                 gsap.ticker.remove(this.contraction.tickerFn)
             }
+
+            this.contraction.tickerFn = () => {
+                const directionX =  this.#isPointingLeft() ? -1 : 1
+                Matter.Body.setVelocity(this.head.body, {
+                    x: directionX,
+                    y: 0
+                })
+            }
+            gsap.ticker.add(this.contraction.tickerFn)
 
             if (this.contraction.headConstraint) {
                 Matter.Composite.remove(this.composite, this.contraction.headConstraint)
@@ -550,8 +559,8 @@ export class Catterpillar {
         // }
         
         try {
-            await this.contractSpine(0.5)
-            await this.releaseSpine(0.5)
+            await this.contractSpine(0.5, 0.8 * this.length / 10)
+            await this.releaseSpine(0.8 * this.length / 10)
         } catch {
             
         }
@@ -561,9 +570,9 @@ export class Catterpillar {
     turnAround = async () => {
         
         if (this.#isPointingLeft()) {
-            await this.standUp(90, .6)
+            await this.standUp(90, 1 * this.length / 10)
         } else {
-            await this.standUp(-90, .6)
+            await this.standUp(-90, 1 * this.length / 10)
         }
 
         await this.releaseStance()

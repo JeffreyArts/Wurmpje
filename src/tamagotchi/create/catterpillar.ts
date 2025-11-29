@@ -21,8 +21,8 @@ export class Catterpillar {
             x: x,
             y: y,
             hasStroke: false,
-            length: 6,
-            thickness: 24,
+            length: 5,
+            thickness: 64,
         }
 
         // Set composite

@@ -62,8 +62,9 @@ export default defineComponent ({
         toggleDevMode() {
             this.dev = !this.dev
             const paperEl = this.$el.querySelector("[id^='paper-view']") as HTMLCanvasElement
-            console.log(paperEl)
+            const rendererEl = document.getElementById("matter") as HTMLCanvasElement
             gsap.to(paperEl, {duration: 0.3, opacity: this.dev ? 0 : 1})
+            gsap.to(rendererEl, {duration: 0.3, opacity: this.dev ? 1 : 0})
             // if (this.controller) {
             //     this.controller.ref.renderer.options.showCollisions = this.dev
             //     this.controller.catterpillar.composite.constraints.forEach(constraint => {

@@ -52,6 +52,9 @@ export class MatterSetup {
                 showVelocity: true,
             }
         })
+        this.renderer.canvas.id = "matter"
+
+        
 
         this.devMode = options?.devMode || false
         
