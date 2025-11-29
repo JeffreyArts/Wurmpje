@@ -229,12 +229,12 @@ export class MatterController {
 
             const colorSchemeIndex = Math.floor(ColorSchemes.length * Math.random())
             const textureIndex = Math.floor(Textures.length * Math.random())
-
+            console.log("textureIndex", textureIndex)
             identity = {
                 id,
                 name: "catterpillar",
-                textureIndex: textureIndex,
-                colorSchemeIndex: colorSchemeIndex,
+                textureIndex: 21,//textureIndex,
+                colorSchemeIndex: 11, //colorSchemeIndex,
                 offset: Math.floor(Math.random() * 16)
             }
         }

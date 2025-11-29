@@ -3,6 +3,7 @@ import gsap from "gsap"
 import { Mouth } from "./mouth"
 import { Eye } from "./eye"
 import { BodyPart } from "./bodypart"
+import Color from "@/models/color"
 
 
 
@@ -42,6 +43,7 @@ export class Catterpillar {
         primaryColor: string,
         secondaryColor: string,
         texture: { top?: string, "360"?: string, bottom?: string, vert?: string, stroke?: boolean },
+        offset: number,
         length: number,
         thickness?: number,
     }, world: Matter.World) {
@@ -57,12 +59,8 @@ export class Catterpillar {
         this.thickness = options.thickness ? options.thickness : 16
         this.bodyParts = []
         
-        if (options.primaryColor) {
-            this.primaryColor = options.primaryColor
-        }
-
-        if (options.secondaryColor) {
-            this.secondaryColor = options.secondaryColor
+        if (options.primaryColor && options.secondaryColor ) {
+            this.#setColors(options.primaryColor, options.secondaryColor, options.offset)
         }
 
         if (options.texture) {
@@ -104,6 +102,66 @@ export class Catterpillar {
 
     #calculateLength() {
         return this.length * this.thickness - this.thickness
+    }
+
+    #setColors(primaryColor: string, secondaryColor: string, offset: number) {
+        const c1 = new Color(primaryColor)
+        const c2 = new Color(secondaryColor)
+        
+        if (offset == 0) {
+            // no change
+        } else if (offset == 1) {
+            c1.adjustHsl(0,0,.1)
+            c2.adjustHsl(0,0,.1)       
+        } else if (offset == 2) {
+            c1.adjustHsl(0,.08,0)
+            c2.adjustHsl(0,0.1,0.1)       
+        } else if (offset == 3) {
+            c1.adjustHsl(.08,0,0)
+            c2.adjustHsl(0,0,.08)       
+        } else if (offset == 4) {
+            c1.adjustHsl(.02,0,0)
+            c2.adjustHsl(-.02,0,0)       
+        } else if (offset == 5) {
+            c1.adjustHsl(-.04,0,0)
+            c2.adjustHsl(.08,-.04,0)       
+        } else if (offset == 6) {
+            c1.adjustHsl(.1,0,0.02)
+            c2.adjustHsl(-.1,-.08,0)       
+        } else if (offset == 7) {
+            c1.adjustHsl(1,0,-0.04)
+            c2.adjustHsl(6,0,0.06)       
+        } else if (offset == 8) {
+            c1.adjustHsl(0,0,0)
+            c2.adjustHsl(4,0,0)       
+        } else if (offset == 9) {
+            c1.adjustHsl(10,0,0.08)
+            c2.adjustHsl(10,0,.02)       
+        } else if (offset == 9) {
+            c1.adjustHsl(0,0,0)
+            c2.adjustHsl(0,0,0)       
+        } else if (offset == 10) {
+            c1.adjustHsl(-8,0,0.1)
+            c2.adjustHsl(-5,0,0.1)       
+        } else if (offset == 11) {
+            c1.adjustHsl(-4,0.1,0.1)
+            c2.adjustHsl(-8,0.1,0.1)       
+        } else if (offset == 12) {
+            c1.adjustHsl(1,-0.1,0.1)
+            c2.adjustHsl(-2,0.1,0)       
+        } else if (offset == 13) {
+            c1.adjustHsl(0,0.1,0)
+            c2.adjustHsl(0,0.1,0)       
+        } else if (offset == 14) {
+            c1.adjustHsl(0,0.2,0.04)
+            c2.adjustHsl(0,0.2,0.04)       
+        } else if (offset == 15) {
+            c1.adjustHsl(3,0.1,.05)
+            c2.adjustHsl(-2,0.05,0)       
+        }
+
+        this.primaryColor = c1.toHex()
+        this.secondaryColor = c2.toHex()
     }
 
     #createSpine() {

@@ -32,6 +32,7 @@ export class Catterpillar {
             thickness: 16,
             primaryColor: this.colorScheme.colors[0],
             secondaryColor: this.colorScheme.colors[1],
+            offset: identity.offset,
             texture: this.texture,
         }
 
