@@ -23,21 +23,7 @@ export class MatterController {
         this.#createWalls()
 
 
-
-        this.catterpillar = new Catterpillar({ x: window.innerWidth / 2, y: window.innerHeight - 200, identity: { id: 1, name: "Catterpillar1", textureId: 1, colorSchemeId: 1, offset: 0 }}, this.ref.world).ref 
-        
-        
-        // Custom colors for the main catterpillar
-        this.catterpillar.bodyParts.forEach((part, index) => {
-            if (index === 0) {
-                part.body.render.fillStyle = "tomato"
-            } else if (index === this.catterpillar.bodyParts.length - 1) {
-                part.body.render.fillStyle = "brown"
-            } else {
-                part.body.render.fillStyle = `hsl(128, ${Math.random() * 10 + 90}%,  ${Math.random() * 10 + 45}%)`
-            }
-        })
-        
+        this.createCatterpillar({ x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 })
 
 
         window.addEventListener("resize", this.#onResize.bind(this))
@@ -48,6 +34,22 @@ export class MatterController {
         this.ref.addpointerMoveEvent(this.#dragCatterpillar.bind(this), "dragCatterpillar")
         this.ref.addResizeEvent(this.#resizeCanvas.bind(this), "resizeCanvas")
         this.ref.addResizeEvent(this.#updateWalls.bind(this), "updateWalls")
+        
+        requestAnimationFrame(this.#loop.bind(this))
+    }
+
+    #loop() {
+        console.log(this.catterpillar.x, this.catterpillar.y)
+        
+        if (this.catterpillar.x < -500 || this.catterpillar.x > this.ref.renderer.options.width + 500 ||
+            this.catterpillar.y < -500 || this.catterpillar.y > this.ref.renderer.options.height + 500) {
+            // Re-center Catterpillar
+            this.catterpillar.remove()
+            this.createCatterpillar({ x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 })  
+         
+        }
+
+        requestAnimationFrame(this.#loop.bind(this))
     }
 
     #onResize() {
@@ -65,13 +67,13 @@ export class MatterController {
     #createWalls() {
         const width = this.ref.renderer.options.width
         const height = this.ref.renderer.options.height
-        const wallThickness = 1000
+        const wallThickness = 100
 
         // Top wall
         new Wall({
             x: width / 2,
             y: 0 - wallThickness / 2,
-            width: width,
+            width: width * 2,
             height: wallThickness,
             id: "top"
         }, this.ref.world)
@@ -80,7 +82,7 @@ export class MatterController {
         new Wall({
             x: width / 2,
             y: height + wallThickness / 2 - 100,
-            width: width * 1.28,
+            width: width * 2,
             height: wallThickness,
             id: "bottom"
         }, this.ref.world)
@@ -180,6 +182,22 @@ export class MatterController {
         }
 
         this.ref.addClickEvent(fn, name)
+    }
+
+    createCatterpillar(position: { x: number, y: number }) {
+        this.catterpillar = new Catterpillar({ x: position.x, y: position.y, identity: { id: 1, name: "Catterpillar1", textureId: 1, colorSchemeId: 1, offset: 0 }}, this.ref.world).ref
+
+        // Custom colors for the main catterpillar
+        this.catterpillar.bodyParts.forEach((part, index) => {
+            if (index === 0) {
+                part.body.render.fillStyle = "tomato"
+            } else if (index === this.catterpillar.bodyParts.length - 1) {
+                part.body.render.fillStyle = "brown"
+            } else {
+                part.body.render.fillStyle = `hsl(128, ${Math.random() * 10 + 90}%,  ${Math.random() * 10 + 45}%)`
+            }
+        })
+        
     }
 
     // document.body.addEventListener("mousedown", PhysicsService.mouseDownEvent);

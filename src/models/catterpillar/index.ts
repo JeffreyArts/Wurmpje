@@ -113,7 +113,17 @@ export class Catterpillar {
     
 
         Matter.World.add(this.world, this.composite)
-        
+        requestAnimationFrame(this.#loop.bind(this))
+    }
+
+    #loop() {
+
+        // Set X & Y values based on the center body part
+        const centerIndex = Math.round(this.bodyParts.length / 2)
+        this.x = this.bodyParts[centerIndex].body.position.x
+        this.y = this.bodyParts[centerIndex].body.position.y
+
+        requestAnimationFrame(this.#loop.bind(this))
     }
 
     #calculateLength() {
@@ -591,7 +601,8 @@ export class Catterpillar {
             bodyA: bodyPart.body,
             pointB: { x: pinPos.x, y: pinPos.y },
             length: 0,
-            stiffness: 0.1,
+            stiffness: 0.02,
+            damping: 1,
             label: `pinConstraint,${bodyPart.body.id}`,
             render: {
                 visible: this.dev,
@@ -627,6 +638,9 @@ export class Catterpillar {
         this.pins = this.pins.filter(pin => pin !== pinConstraint)
     }
 
+    remove() {
+        Matter.Composite.remove(this.world, this.composite)
+    }
 }
 
 export default Catterpillar
