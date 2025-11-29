@@ -616,19 +616,21 @@ export class Catterpillar {
     }
 
     unpin(bodyPart: BodyPart | number | Matter.Constraint) {
-
+        let BP = undefined as BodyPart | undefined
         if (typeof bodyPart == "number") {
-            bodyPart = this.bodyParts[bodyPart]
-        }
-
-        if (bodyPart?.type === "constraint") {
+            BP = this.bodyParts[bodyPart]
+        } else if (bodyPart?.type === "constraint") {
             const bodyPartConstraint = bodyPart
-            bodyPart = this.bodyParts.find(bp => bp.body.id === bodyPartConstraint.bodyA.id )
+            BP = this.bodyParts.find(bp => bp.body.id === bodyPartConstraint.bodyA.id )
+        } else {
+            BP = bodyPart as BodyPart
         }
-
+        const id = BP.body.id
+        
         // Find constraint
         const pinConstraint = this.composite.constraints.find(constraint => {
-            return constraint.label === `pinConstraint,${bodyPart.body.id}`
+            
+            return constraint.label === `pinConstraint,${id}`
         })
 
         if (pinConstraint) {
