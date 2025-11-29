@@ -1,5 +1,7 @@
 import Matter from "matter-js"
+import paper from "paper"
 import { MatterSetup } from "./setup"
+import { Draw } from "./draw"
 
 import { Wall } from "./create/wall"
 import { Ball } from "./create/ball"
@@ -13,18 +15,22 @@ export class MatterController {
     resizeEvents: Array<Function> = []
     catterpillar: CatterpillarModel
     mousePin: Matter.Constraint = null
+    draw: Draw
 
     constructor(target: HTMLElement) {
         this.ref = new MatterSetup(target, {
             devMode: true
         })
+    
+        this.draw = new Draw(this.ref.paper)
+
         
-
         this.#createWalls()
-
-
+        
+        
         this.createCatterpillar({ x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 })
-
+        
+        this.draw.addCatterpillar(this.catterpillar, { primaryColor: "green", secondaryColor: "darkgreen", svgTextureDir: "./bodyparts/vert/v1" })
 
         window.addEventListener("resize", this.#onResize.bind(this))
 
@@ -37,7 +43,6 @@ export class MatterController {
         
         requestAnimationFrame(this.#loop.bind(this))
     }
-
     #loop() {
         if (this.catterpillar.x < 0 || this.catterpillar.x > this.ref.renderer.options.width  ||
             this.catterpillar.y < 0 || this.catterpillar.y > this.ref.renderer.options.height ) {
@@ -199,7 +204,16 @@ export class MatterController {
     }
 
     createCatterpillar(position: { x: number, y: number }) {
-        this.catterpillar = new Catterpillar({ x: position.x, y: position.y, identity: { id: 1, name: "Catterpillar1", textureId: 1, colorSchemeId: 1, offset: 0 }}, this.ref.world).ref
+        this.catterpillar = new Catterpillar({
+            x: position.x,
+            y: position.y,
+            identity: {
+                id: 1,
+                name: "Catterpillar1",
+                textureId: 1,
+                colorSchemeId: 1,
+                offset: 0 }
+        }, this.ref.world).ref
 
         // Custom colors for the main catterpillar
         this.catterpillar.bodyParts.forEach((part, index) => {

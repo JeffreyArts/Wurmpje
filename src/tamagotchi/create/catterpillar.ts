@@ -20,11 +20,8 @@ export class Catterpillar {
             id: identity.id.toString(),
             x: x,
             y: y,
-            primaryColor: "",
-            secondaryColor: "",
-            svgTextureDir: "",
             hasStroke: false,
-            length: 9,
+            length: 6,
             thickness: 24,
         }
 

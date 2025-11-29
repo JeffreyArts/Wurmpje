@@ -1220,10 +1220,10 @@ p-locate@^5.0.0:
   dependencies:
     p-limit "^3.0.2"
 
-paper@0.12.17:
-  version "0.12.17"
-  resolved "https://registry.yarnpkg.com/paper/-/paper-0.12.17.tgz#57215615f3db5a32826ab60d3e08bc7953614052"
-  integrity sha512-oCe+e1C2w8hKIcGoAqUjD0GGxGPv+itrRXlEFUmp3H8tY/NTnHOkYgpJFPGw6OJ8Q1Wa6+RgzlY7Dx/2WWHtkA==
+paper@^0.12.18:
+  version "0.12.18"
+  resolved "https://registry.yarnpkg.com/paper/-/paper-0.12.18.tgz#e024056217a35c36e2b5fda4629310fdc7025c91"
+  integrity sha512-ZSLIEejQTJZuYHhSSqAf4jXOnii0kPhCJGAnYAANtdS72aNwXJ9cP95tZHgq1tnNpvEwgQhggy+4OarviqTCGw==
 
 parent-module@^1.0.0:
   version "1.0.1"

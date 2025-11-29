@@ -1,4 +1,5 @@
 import Matter from "matter-js"
+import paper from "paper"
 export type mouseEventFunction = (mousePos: { x: number, y: number }) => void
 export type pointerDownEventFunction = (mousePos: { x: number, y: number }) => void
 export type resizeEventFunction = () => void
@@ -10,6 +11,9 @@ export class MatterSetup {
     renderer: Matter.Render
     runner: Matter.Runner
     el: HTMLElement
+    paperEl: HTMLCanvasElement
+    matterEl: HTMLCanvasElement
+    paper: paper.PaperScope
     devMode: boolean = false
     clickEvents: Array<{ fn: mouseEventFunction, name: string }> = []
     pointerDownEvents: Array<{ fn: mouseEventFunction, name: string }> = []
@@ -21,13 +25,24 @@ export class MatterSetup {
     constructor(target: HTMLElement, options?: {
         devMode: boolean
     }) {
-        
+        this.paper = new paper.PaperScope()
         this.engine = Matter.Engine.create()
         this.world = this.engine.world
         this.el = target
+
+
+        
+        // Create paper canvas
+        this.paperEl = document.createElement("canvas")
+        this.paperEl.style.position = "absolute"
+        this.paperEl.style.inset = "0 0 0 0"
+        this.paperEl.style.height = "100%"
+        this.paperEl.style.width = "100%"
+        this.el.appendChild(this.paperEl)
+        this.paper.setup(this.paperEl)
         
         this.renderer = Matter.Render.create({
-            element: target,
+            element: this.el,
             engine: this.engine,
             options: {
                 width: target.clientWidth,

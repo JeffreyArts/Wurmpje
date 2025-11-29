@@ -4,42 +4,6 @@ import { Mouth } from "./mouth"
 import { Eye } from "./eye"
 import { BodyPart } from "./bodypart"
 
-// eslint-disable-next-line 
-const availableBodyPartTextures = [
-    "/bodyparts/360/camo",
-    "/bodyparts/360/cow",
-    "/bodyparts/360/dots",
-    "/bodyparts/360/giraffe",
-    "/bodyparts/360/leafs",
-    "/bodyparts/360/panter",
-    "/bodyparts/360/paths",
-    "/bodyparts/360/polkadots",
-    "/bodyparts/360/worms",
-    "/bodyparts/bottom/b1",
-    "/bodyparts/bottom/b2",
-    "/bodyparts/bottom/b3",
-    "/bodyparts/bottom/b4",
-    "/bodyparts/bottom/b5",
-    "/bodyparts/bottom/b6",
-    "/bodyparts/bottom/b7",
-    "/bodyparts/bottom/b8",
-    "/bodyparts/top/t1",
-    "/bodyparts/top/t2",
-    "/bodyparts/top/t3",
-    "/bodyparts/top/t4",
-    "/bodyparts/top/t5",
-    "/bodyparts/top/t6",
-    "/bodyparts/top/t7",
-    "/bodyparts/top/t8",
-    "/bodyparts/top/t9",
-    "/bodyparts/top/t10",
-    "/bodyparts/vert/v1",
-    "/bodyparts/vert/v2",
-    "/bodyparts/vert/v3",
-    "/bodyparts/vert/v4",
-    "/bodyparts/vert/v5",
-    "/bodyparts/vert/v6",
-]
 
 
 export class Catterpillar {
@@ -64,9 +28,6 @@ export class Catterpillar {
     }
     length: number
     thickness: number
-    primaryColor: string
-    secondaryColor: string
-    baseTextureDir: typeof availableBodyPartTextures[number]
     isStanding: boolean
     isMoving: boolean
 
@@ -74,9 +35,6 @@ export class Catterpillar {
         id: string,
         x: number,
         y: number,
-        primaryColor: string,
-        secondaryColor: string,
-        svgTextureDir: string,
         hasStroke: boolean,
         length: number,
         thickness?: number,
@@ -92,10 +50,6 @@ export class Catterpillar {
         this.length = options.length
         this.thickness = options.thickness ? options.thickness : 16
         this.bodyParts = []
-        
-        this.primaryColor = options.primaryColor
-        this.secondaryColor = options.secondaryColor
-        this.baseTextureDir = options.svgTextureDir
         
         // Create composite
         this.composite = Matter.Composite.create({ label: `catterpillar,${options.id}` })
@@ -135,7 +89,7 @@ export class Catterpillar {
             bodyA: this.head.body,
             bodyB: this.butt.body,
             length: this.#calculateLength(),
-            stiffness: .8,
+            stiffness: .5, // This influences the switching of direction .8 seems to cause issues with certain lengths
             damping: .1,
             label: "spine",
             render: {
@@ -155,7 +109,6 @@ export class Catterpillar {
 
         for (let i = 0; i < this.length; i++) {
 
-            const svgTexture = `${this.baseTextureDir}/${i%8 + 1}.svg`
             
             let type: "head" | "butt" | undefined
             if (i == 0) {
@@ -177,10 +130,7 @@ export class Catterpillar {
                 radius: this.thickness,
                 x,
                 y: this.y,
-                primaryColor: this.primaryColor,
-                secondaryColor: this.secondaryColor,
                 collisionGroup: -1 * catterpillars.length - 1,
-                svgTexture,
             }
 
             if (type) {
@@ -200,9 +150,9 @@ export class Catterpillar {
                     pointA: { x: 0, y:0 },
                     pointB: { x: 0, y:0 },
                     length,
-                    // stiffness: 0.5,
-                    // damping: 0.1,
-                    label: "bodyPartConnection",
+                    stiffness: 0.4,
+                    damping: 0.1,
+                    label: `bodyPartConnection,${part.body.id},${prev.body.id}`,
                     render: {
                         visible: this.dev,
                         strokeStyle: "#444",
@@ -253,6 +203,14 @@ export class Catterpillar {
         }
 
         this.contraction = undefined
+    }
+
+    #isPointingLeft() {
+        return this.head.body.position.x < this.butt.body.position.x
+    }
+
+    #isPointingRight() {
+        return this.head.body.position.x > this.butt.body.position.x
     }
 
     // perc: number between 0 and 1 to determin the contraction width
@@ -439,13 +397,13 @@ export class Catterpillar {
                     type: "line",
                 }
             })
-            const bellyBody = this.bodyParts[Math.ceil(this.bodyParts.length / 2)].body
-            
+            const bellyBody = this.bodyParts[Math.floor((this.bodyParts.length-1) / 2)-1].body
+            bellyBody.render.fillStyle = "purple"
             const bellyConstraint = Matter.Constraint.create({
                 bodyA: bellyBody,
                 pointB: { x: bellyBody.position.x, y: bellyBody.position.y },
                 length: 0,
-                stiffness: 0.5,
+                stiffness: 0.16, // A higher stiffness make is harder to switch direction
                 label: "bellyConstraint",
                 render: {
                     visible: this.dev,
@@ -543,23 +501,39 @@ export class Catterpillar {
                 gsap.ticker.remove(this.contraction.tickerFn)
             }
 
-            if (this.contraction.buttConstraint) {
-                Matter.Composite.remove(this.composite, this.contraction.buttConstraint)
-            }
-        
+            let loosenConstraint, loosenConstraintStiffness
+
+            this.composite.constraints.forEach(constraint => {
+                if (constraint.label.startsWith(`bodyPartConnection,${this.butt.body.id}`)) {
+                    loosenConstraint = constraint
+                    loosenConstraintStiffness = constraint.stiffness
+                    loosenConstraint.stiffness = 0.01
+                }
+            })
+
+
             if (this.contraction.bellyConstraint) {
                 Matter.Composite.remove(this.composite, this.contraction.bellyConstraint)
             }
+            
+            if (this.contraction.buttConstraint) {
+                Matter.Composite.remove(this.composite, this.contraction.buttConstraint)
+            }
+
             gsap.to(this.spine, {
                 length: this.#calculateLength(),
                 duration:  .4,
                 ease:  "linear",
                 onComplete: () => {
+                    
+                    loosenConstraint.stiffness = loosenConstraintStiffness
+                    
                     this.#removeContraction()
+                    
                     resolve(true)
                 }
             })
-            this.contraction = undefined
+
         })
     }
 
@@ -584,9 +558,9 @@ export class Catterpillar {
         this.isMoving = false
     }
 
-    async turnAround() {
+    turnAround = async () => {
         
-        if (this.head.body.position.x < this.butt.body.position.x) {
+        if (this.#isPointingLeft()) {
             await this.standUp(90, .6)
         } else {
             await this.standUp(-90, .6)

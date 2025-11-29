@@ -1,8 +1,7 @@
 <template>
   
   <div id="catterpillar-container">
-    <div id="matter-js" ref="matterContainer"></div>
-    <div id="paper-js" ref="paperContainer"></div>
+    <div id="catterpillar" ref="catterpillar"></div>
 
     <footer class="buttons-container">
         <button class="button" @click="toggleClickTo('createCatterpillar')" :class="[{'__isSelected': clickType === 'createCatterpillar'}]">
@@ -32,6 +31,7 @@
 <script lang="ts">
 import {defineComponent} from "vue"
 import { MatterController } from "@/tamagotchi/controller"
+import { gsap } from "gsap"
 import _ from "lodash"
     
 export default defineComponent ({ 
@@ -48,9 +48,8 @@ export default defineComponent ({
     },
     mounted() {
         this.controller = new MatterController(
-            this.$refs["matterContainer"] as HTMLElement
+            this.$refs["catterpillar"] as HTMLElement
         )
-        this.toggleDevMode()
         this.toggleDevMode()
 
         this.toggleClickTo("moveCatterpillar")
@@ -62,19 +61,22 @@ export default defineComponent ({
         },
         toggleDevMode() {
             this.dev = !this.dev
-            if (this.controller) {
-                this.controller.ref.renderer.options.showCollisions = this.dev
-                this.controller.catterpillar.composite.constraints.forEach(constraint => {
-                    constraint.render.visible = this.dev
-                })
-                this.controller.ref.world.composites.forEach(composite => {
-                    if (composite.label.startsWith("catterpillar")) {
-                        composite.constraints.forEach(constraint => {
-                            constraint.render.visible = this.dev
-                        })   
-                    }
-                })
-            }
+            const paperEl = this.$el.querySelector("[id^='paper-view']") as HTMLCanvasElement
+            console.log(paperEl)
+            gsap.to(paperEl, {duration: 0.3, opacity: this.dev ? 0 : 1})
+            // if (this.controller) {
+            //     this.controller.ref.renderer.options.showCollisions = this.dev
+            //     this.controller.catterpillar.composite.constraints.forEach(constraint => {
+            //         constraint.render.visible = this.dev
+            //     })
+            //     this.controller.ref.world.composites.forEach(composite => {
+            //         if (composite.label.startsWith("catterpillar")) {
+            //             composite.constraints.forEach(constraint => {
+            //                 constraint.render.visible = this.dev
+            //             })   
+            //         }
+            //     })
+            // }
         }
     }
 })
