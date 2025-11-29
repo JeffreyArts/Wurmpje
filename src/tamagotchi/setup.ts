@@ -99,7 +99,8 @@ export class MatterSetup {
     
     #disableScrollToRefresh(event: TouchEvent) {
         const target = event.target as HTMLElement
-        if (target.id == "paper-js") {
+        
+        if (target.id == "paper-js" || target.id == "matter" || target.classList.contains("buttons-container")) {
             event.preventDefault()
         }
     }
