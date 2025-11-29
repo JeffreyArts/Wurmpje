@@ -142,16 +142,19 @@ export class MatterController {
             const bounds = bodyPart.body.bounds
             if (x >= bounds.min.x && x <= bounds.max.x && y >= bounds.min.y && y <= bounds.max.y) {
                 // Create constraint and attach to body part
-                this.mousePin = this.catterpillar.pin(bodyPart, { x, y  })
+                this.mousePin = this.catterpillar.pin(bodyPart, { x, y, name: "mousePin" })
             }
         })
     }
 
     #releaseCatterpillar() {
-        if (this.mousePin) {
-            this.catterpillar.unpin(this.mousePin)
-            this.mousePin = null
-        }
+        this.catterpillar.pins.forEach(pin => {
+            const labels = pin.label.split(",")
+
+            if (labels.includes("mousePin")) {
+                this.catterpillar.unpin(pin)
+            }
+        })
     }
 
     #dragCatterpillar(mouse: { x: number, y: number }) {

@@ -600,15 +600,19 @@ export class Catterpillar {
         await this.releaseStance()
     }
 
-    pin(bodyPart: BodyPart, pinPos: { x: number, y: number }) {
+    pin(bodyPart: BodyPart, pinPos: { x: number, y: number, name?: string }) : Matter.Constraint {
         // Create constraint
+        let label = `pinConstraint,${bodyPart.body.id}`
+        if (pinPos.name) {
+            label = `pinConstraint,${pinPos.name},${bodyPart.body.id}`
+        }
         const pinConstraint = Matter.Constraint.create({
             bodyA: bodyPart.body,
             pointB: { x: pinPos.x, y: pinPos.y },
             length: 0,
             stiffness: 0.02,
             damping: 1,
-            label: `pinConstraint,${bodyPart.body.id}`,
+            label,
             render: {
                 visible: this.dev,
                 strokeStyle: "blue",
@@ -620,24 +624,8 @@ export class Catterpillar {
         return pinConstraint
     }
 
-    unpin(bodyPart: BodyPart | number | Matter.Constraint) {
-        let BP = undefined as BodyPart | undefined
-        if (typeof bodyPart == "number") {
-            BP = this.bodyParts[bodyPart]
-        } else if (bodyPart?.type === "constraint") {
-            const bodyPartConstraint = bodyPart
-            BP = this.bodyParts.find(bp => bp.body.id === bodyPartConstraint.bodyA.id )
-        } else {
-            BP = bodyPart as BodyPart
-        }
-        const id = BP.body.id
-        
-        // Find constraint
-        const pinConstraint = this.composite.constraints.find(constraint => {
-            
-            return constraint.label === `pinConstraint,${id}`
-        })
-
+    unpin(pinConstraint:  Matter.Constraint) {
+       
         if (pinConstraint) {
             Matter.Composite.remove(this.composite, pinConstraint)
         }
