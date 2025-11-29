@@ -27,7 +27,6 @@ export class Catterpillar {
             length: 9,
             thickness: 24,
         }
-        console.log(this.world)
 
         // Set composite
         this.ref = new CatterpillarModel(catterPillarOptions, world)

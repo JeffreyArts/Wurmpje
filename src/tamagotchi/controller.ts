@@ -12,6 +12,7 @@ export class MatterController {
     clickEvents: Array<Function> = []
     resizeEvents: Array<Function> = []
     catterpillar: CatterpillarModel
+    mousePin: Matter.Constraint = null
 
     constructor(target: HTMLElement) {
         this.ref = new MatterSetup(target, {
@@ -41,6 +42,10 @@ export class MatterController {
 
         window.addEventListener("resize", this.#onResize.bind(this))
 
+        
+        this.ref.addpointerDownEvent(this.#grabCatterpillar.bind(this), "grabCatterpillar")
+        this.ref.addpointerUpEvent(this.#releaseCatterpillar.bind(this), "releaseCatterpillar")
+        this.ref.addpointerMoveEvent(this.#dragCatterpillar.bind(this), "dragCatterpillar")
         this.ref.addResizeEvent(this.#resizeCanvas.bind(this), "resizeCanvas")
         this.ref.addResizeEvent(this.#updateWalls.bind(this), "updateWalls")
     }
@@ -109,6 +114,30 @@ export class MatterController {
         })
 
         this.#createWalls()
+    }
+
+    #grabCatterpillar({ x, y }: { x: number, y: number }) {
+        // Check if x & y Match a body part
+        this.catterpillar.bodyParts.forEach(bodyPart => {
+            const bounds = bodyPart.body.bounds
+            if (x >= bounds.min.x && x <= bounds.max.x && y >= bounds.min.y && y <= bounds.max.y) {
+                // Create constraint and attach to body part
+                this.mousePin = this.catterpillar.pin(bodyPart, { x, y  })
+            }
+        })
+    }
+
+    #releaseCatterpillar() {
+        if (this.mousePin) {
+            this.catterpillar.unpin(this.mousePin)
+            this.mousePin = null
+        }
+    }
+
+    #dragCatterpillar({ x, y }: { x: number, y: number }) {
+        if (this.mousePin) {
+            this.mousePin.pointB = { x, y } 
+        }
     }
 
     switchClickEvent(name: string) {

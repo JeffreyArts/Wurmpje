@@ -54,6 +54,7 @@ export class Catterpillar {
     head: BodyPart
     butt: BodyPart
     spine: Matter.Constraint
+    pins: Matter.Constraint[]
     contraction?: {
         headConstraint?: Matter.Constraint,
         buttConstraint?: Matter.Constraint
@@ -82,22 +83,23 @@ export class Catterpillar {
     }, world: Matter.World) {
         this.world = world
         this.dev = true
+        this.pins = []
         this.isStanding = false
         this.isMoving = false
-
+        
         this.x = options.x
         this.y = options.y
         this.length = options.length
         this.thickness = options.thickness ? options.thickness : 16
         this.bodyParts = []
-
+        
         this.primaryColor = options.primaryColor
         this.secondaryColor = options.secondaryColor
         this.baseTextureDir = options.svgTextureDir
-
+        
         // Create composite
         this.composite = Matter.Composite.create({ label: `catterpillar,${options.id}` })
-
+        
         // Create body parts
         this.#createBodyParts()
         this.#createSpine()
@@ -554,8 +556,21 @@ export class Catterpillar {
 
     async move() {
         this.isMoving = true
-        await this.contractSpine(0.5)
-        await this.releaseSpine(0.5)
+        // Deze collision check werkt niet goed
+        // const headCollisions = Matter.Query.collides(this.head.body, this.world.bodies)
+        // const buttCollisions = Matter.Query.collides(this.butt.body, this.world.bodies)
+        // if (headCollisions.length < 1 || buttCollisions.length < 1) {
+        //     console.warn("Catterpillar is colliding, cannot move now")
+        //     this.isMoving = false
+        //     return
+        // }
+        
+        try {
+            await this.contractSpine(0.5)
+            await this.releaseSpine(0.5)
+        } catch {
+            
+        }
         this.isMoving = false
     }
 
@@ -568,6 +583,48 @@ export class Catterpillar {
         }
 
         await this.releaseStance()
+    }
+
+    pin(bodyPart: BodyPart, pinPos: { x: number, y: number }) {
+        // Create constraint
+        const pinConstraint = Matter.Constraint.create({
+            bodyA: bodyPart.body,
+            pointB: { x: pinPos.x, y: pinPos.y },
+            length: 0,
+            stiffness: 0.1,
+            label: `pinConstraint,${bodyPart.body.id}`,
+            render: {
+                visible: this.dev,
+                strokeStyle: "blue",
+                type: "line",
+            }
+        })
+        Matter.Composite.add(this.composite, pinConstraint)
+        this.pins.push(pinConstraint)
+        return pinConstraint
+    }
+
+    unpin(bodyPart: BodyPart | number | Matter.Constraint) {
+
+        if (typeof bodyPart == "number") {
+            bodyPart = this.bodyParts[bodyPart]
+        }
+
+        if (bodyPart?.type === "constraint") {
+            const bodyPartConstraint = bodyPart
+            bodyPart = this.bodyParts.find(bp => bp.body.id === bodyPartConstraint.bodyA.id )
+        }
+
+        // Find constraint
+        const pinConstraint = this.composite.constraints.find(constraint => {
+            return constraint.label === `pinConstraint,${bodyPart.body.id}`
+        })
+
+        if (pinConstraint) {
+            Matter.Composite.remove(this.composite, pinConstraint)
+        }
+
+        this.pins = this.pins.filter(pin => pin !== pinConstraint)
     }
 
 }

@@ -31,7 +31,7 @@
 
 <script lang="ts">
 import {defineComponent} from "vue"
-import { MatterController } from "@/matter/controller"
+import { MatterController } from "@/tamagotchi/controller"
 import _ from "lodash"
     
 export default defineComponent ({ 
