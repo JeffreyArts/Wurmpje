@@ -39,10 +39,8 @@ export class MatterController {
     }
 
     #loop() {
-        console.log(this.catterpillar.x, this.catterpillar.y)
-        
-        if (this.catterpillar.x < -500 || this.catterpillar.x > this.ref.renderer.options.width + 500 ||
-            this.catterpillar.y < -500 || this.catterpillar.y > this.ref.renderer.options.height + 500) {
+        if (this.catterpillar.x < 0 || this.catterpillar.x > this.ref.renderer.options.width  ||
+            this.catterpillar.y < 0 || this.catterpillar.y > this.ref.renderer.options.height ) {
             // Re-center Catterpillar
             this.catterpillar.remove()
             this.createCatterpillar({ x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 })  
@@ -92,7 +90,7 @@ export class MatterController {
             x: width + wallThickness / 2,
             y: height / 2,
             width: wallThickness,
-            height: height,
+            height: height * 2,
             id: "right"
         }, this.ref.world)
 
@@ -101,7 +99,7 @@ export class MatterController {
             x: -wallThickness / 2,
             y: height / 2,
             width: wallThickness,
-            height: height,
+            height: height * 2,
             id: "left"
         }, this.ref.world)
     }
@@ -136,7 +134,23 @@ export class MatterController {
         }
     }
 
-    #dragCatterpillar({ x, y }: { x: number, y: number }) {
+    #dragCatterpillar(mouse: { x: number, y: number }) {
+        let x = mouse.x
+        let y = mouse.y
+        
+        if (mouse.x < 0) {
+            x = 0
+        }
+        if (mouse.x > this.ref.renderer.options.width) {
+            x = this.ref.renderer.options.width
+        }
+
+        if (mouse.y < 0) {
+            y = 0
+        }
+        if (mouse.y > this.ref.renderer.options.height) {
+            y = this.ref.renderer.options.height
+        }
         if (this.mousePin) {
             this.mousePin.pointB = { x, y } 
         }

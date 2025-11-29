@@ -21,6 +21,7 @@ export class MatterSetup {
     constructor(target: HTMLElement, options?: {
         devMode: boolean
     }) {
+        
         this.engine = Matter.Engine.create()
         this.world = this.engine.world
         this.el = target
