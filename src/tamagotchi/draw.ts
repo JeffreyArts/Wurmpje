@@ -129,7 +129,6 @@ export class Draw {
         
         if (layer) {
             layer.addChild(svgItem)
-            svgItem.bringToFront()
         }
         
         return svgItem
