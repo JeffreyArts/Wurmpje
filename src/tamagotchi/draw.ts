@@ -257,7 +257,6 @@ export class Draw {
                     catterpillar.rightEye,
                     layer
                 )
-                console.log("Added eyes to catterpillar head", catterpillar.leftEye)
             }
 
             this.layers.push(layer)
@@ -278,7 +277,7 @@ export class Draw {
 
         this.layers.forEach(layer => {
             layer.children.forEach(child => {
-                gsap.to(child, { delay: .08, opacity: 1, duration: .16 })
+                gsap.fromTo(child, { delay: .08, opacity: 0 }, { opacity: 1, duration: .16 })
             })
         })
     }
@@ -287,7 +286,7 @@ export class Draw {
         pos: { x: number, y: number },
         mouth: Mouth,
         options: { stroke?: string; strokeWidth?: number; fill?: string } = {},
-        layer?: Two.Group
+        layer: Two.Group
     ) {
         const anchors = mouth.coordinates.map(p => new Two.Anchor(p.x, p.y))
 
@@ -318,7 +317,7 @@ export class Draw {
             }
         })
 
-        if (layer) layer.add(path)
+        layer.add(path)
         return path
     }
 

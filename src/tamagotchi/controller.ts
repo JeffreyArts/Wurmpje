@@ -78,8 +78,8 @@ export class MatterController {
         this.ref.renderer.options.width = this.ref.renderer.element.parentElement.clientWidth
         this.ref.renderer.options.height = this.ref.renderer.element.parentElement.clientHeight
 
-        this.ref.paper.view.viewSize.width = this.ref.renderer.options.width
-        this.ref.paper.view.viewSize.height = this.ref.renderer.options.height
+        this.ref.two.width = this.ref.renderer.options.width
+        this.ref.two.height = this.ref.renderer.options.height
         Matter.Render.setPixelRatio(this.ref.renderer, window.devicePixelRatio)
     }
 
