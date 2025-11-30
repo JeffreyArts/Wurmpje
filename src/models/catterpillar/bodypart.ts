@@ -1,6 +1,4 @@
-// import Paper from "paper"
 import Matter from "matter-js"
-import Color from "@/models/color"
 
 export type BodyPartOptions = {
     size: number,
@@ -17,37 +15,13 @@ export class BodyPart {
     y: number
     radius: number
     body: Matter.Body
-    primaryColor:string
-    secondaryColor:string
-    svgTexture?: string
-    hasStroke?: boolean
     options: {
         restitution: number
         slop: number,
     }
     dev: boolean
     type: "bodyPart" | "head" | "butt"
-    // paper: paper.Path
 
-    // #generatePaperPath() {
-    //     const newPath = new Paper.Path.Circle(new Paper.Point(this.x,this.y), this.radius) 
-    //     const primaryColor = new Color(this.primaryColor)
-    //     newPath.fillColor = new Paper.Color(primaryColor.toHex())
-    //     newPath.strokeColor = new Paper.Color(primaryColor.adjustHsl(0,0,-0.5).toHex())
-    //     newPath.strokeColor.alpha = .4
-    //     return newPath
-    // }
-
-    // #updatePosition() {
-    //     this.paper.position.x = this.x
-    //     this.paper.position.y = this.y
-    // }
-    // #updateColor() {
-    //     const primaryColor = new Color(this.primaryColor)
-    //     this.paper.fillColor = new Paper.Color(primaryColor.toHex())
-    //     this.paper.strokeColor = new Paper.Color(primaryColor.adjustHsl(0,0,-0.5).toHex())
-    //     this.paper.strokeColor.alpha = .4
-    // }
 
     constructor (
         options: {
@@ -56,9 +30,6 @@ export class BodyPart {
             y?: number,
             restitution?: number,
             slop?: number,
-            primaryColor?: string,
-            secondaryColor?: string,
-            svgTexture?: string,
             type?: "head" | "butt",
             collisionGroup?: number  // negative for non-colliding
         }
@@ -71,7 +42,6 @@ export class BodyPart {
 
         this.x = options?.x ? options.x : 0
         this.y = options?.y ? options.y : 0
-        this.primaryColor = options?.primaryColor ? options.primaryColor : "#58f208"
         this.radius = options?.radius ? options.radius : 8
         
         // Set label
@@ -103,30 +73,37 @@ export class BodyPart {
             label,
             render: {
                 visible: this.dev,
-                fillStyle: this.primaryColor,
-                strokeStyle: this.secondaryColor,
-                lineWidth: this.hasStroke ? 2 : 0,
             }
         })
 
+        console.log(this.body.position.x, this.body)
+
         // this.paper = this.#generatePaperPath()
 
-        return new Proxy(this, {
-            set: function (target, key, value) {
-                // console.log(`${String(key)} set to ${value}`)
-                if (key === "x" || key === "y") {
-                    target[key] = value
-                    // target.#updatePosition()
-                }
-                if (key === "primaryColor") {
-                    target[key] = value
-                    // target.#updateColor()
-                }
-                return true
-            }
-        }) as BodyPart
+        // return new Proxy(this, {
+        //     set: function (target, key, value) {
+        //         // console.log(`${String(key)} set to ${value}`)
+        //         if (key === "x" || key === "y") {
+        //             target[key] = value
+        //             target.#updatePosition()
+        //         }
+        //         if (key === "primaryColor") {
+        //             target[key] = value
+        //             // target.#updateColor()
+        //         }
+        //         return true
+        //     }
+        // }) as BodyPart
+        requestAnimationFrame(() => this.#loop())
     }
 
+
+    #loop() {
+        this.x = this.body.position.x
+        this.y = this.body.position.y
+        requestAnimationFrame(() => this.#loop())
+    }
+    
     remove() {
         // this.paper.remove()
     }

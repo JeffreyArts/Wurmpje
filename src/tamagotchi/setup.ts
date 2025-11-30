@@ -61,10 +61,10 @@ export class MatterSetup {
         }
         
         // create runner
-        this.runner = Matter.Runner.create()
+        // this.runner = Matter.Runner.create()
         
         // run the engine
-        Matter.Runner.run(this.runner, this.engine)
+        // Matter.Runner.run(this.runner, this.engine)
         
         // Manually handle initial resize
         setTimeout(() => { 
@@ -87,6 +87,7 @@ export class MatterSetup {
             }
         })
 
+        requestAnimationFrame(this.#animate.bind(this))
         // window.addEventListener("click", this.#onClick.bind(this))
         window.addEventListener("touchstart", this.#disableScrollToRefresh, { passive: false })
         window.addEventListener("pointerdown", this.#onPointerDown.bind(this))
@@ -94,6 +95,11 @@ export class MatterSetup {
         window.addEventListener("pointermove", this.#onPointerMove.bind(this))
         window.addEventListener("resize", this.#onResize.bind(this))
     }
+    #animate() {
+        Matter.Engine.update(this.engine, 1000 / 60) // update engine met 60 fps
+        requestAnimationFrame(this.#animate.bind(this))
+    }
+
     
     #disableScrollToRefresh(event: TouchEvent) {
         const target = event.target as HTMLElement

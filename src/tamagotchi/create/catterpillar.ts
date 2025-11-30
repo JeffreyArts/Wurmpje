@@ -22,14 +22,13 @@ export class Catterpillar {
         this.identity = identity
 
         this.processIdentity(identity)
-
-        
+    
         const catterPillarOptions =  {
             id: identity.id.toString(),
             x: x,
             y: y,
             length: 8,
-            thickness: 16,
+            thickness: 64,
             primaryColor: this.colorScheme.colors[0],
             secondaryColor: this.colorScheme.colors[1],
             offset: identity.offset,

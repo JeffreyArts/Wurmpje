@@ -3,8 +3,10 @@ import gsap from "gsap"
 import { Point, Path } from "@/models/path"
 
 export type MouthOptions = {
-    x: number,
-    y: number,
+    ref: { 
+        x: number, 
+        y: number
+    }
     offset?: {
         x: number,
         y: number
@@ -50,6 +52,10 @@ export type MouthPoints = {
 export class Mouth  {
     x: number
     y: number
+    ref: { 
+        x: number, 
+        y: number
+    }
     offset: {
         x: number
         y: number
@@ -76,6 +82,8 @@ export class Mouth  {
     ) {
         this.x = 0
         this.y = 0
+        this.ref = options.ref
+
         this.offset = {
             x: 0,
             y: 0
@@ -112,6 +120,7 @@ export class Mouth  {
             center:  this.coordinates[1],
             right:  this.coordinates[2],
         }
+
         this.topLip = {
             left:  this.coordinates[5],
             center:  this.coordinates[4],
@@ -121,20 +130,27 @@ export class Mouth  {
         this.state = "🙂"
         this.getSmilePosition()
         this.#updatePosition()
+        requestAnimationFrame(this.#loop.bind(this))
 
-        return new Proxy(this, {
-            set: function (target: Mouth, key, value) {
-                if (key === "x" || key === "y") {
-                    target[key] = value
-                    target.#updatePosition()
-                }
+        // return new Proxy(this, {
+        //     set: function (target: Mouth, key, value) {
+        //         if (key === "x" || key === "y") {
+        //             target[key] = value// + target.offset[key]
+        //             target.#updatePosition()
+        //         }
                 
-                if (typeof target[key] !== "undefined") {
-                    target[key] = value
-                }
-                return true
-            }
-        })
+        //         if (typeof target[key] !== "undefined") {
+        //             target[key] = value
+        //         }
+        //         return true
+        //     }
+        // })
+    }
+
+    #loop() {
+        this.x = this.ref.x
+        this.y = this.ref.y
+        requestAnimationFrame(this.#loop.bind(this))
     }
 
     #updatePosition() {
@@ -176,24 +192,24 @@ export class Mouth  {
     }) {
         
         // Top lip
-        this.topLip.left.x      = this.x + (newState.topLip.left.x * this.scale)
-        this.topLip.left.y      = this.y + (newState.topLip.left.y * this.scale)
+        this.topLip.left.x      = this.offset.x + (newState.topLip.left.x * this.scale)
+        this.topLip.left.y      = this.offset.y + (newState.topLip.left.y * this.scale)
 
-        this.topLip.center.x    = this.x + (newState.topLip.center.x * this.scale)
-        this.topLip.center.y    = this.y + (newState.topLip.center.y * this.scale)
+        this.topLip.center.x    = this.offset.x + (newState.topLip.center.x * this.scale)
+        this.topLip.center.y    = this.offset.y + (newState.topLip.center.y * this.scale)
         
-        this.topLip.right.x     = this.x + (newState.topLip.right.x * this.scale)
-        this.topLip.right.y     = this.y + (newState.topLip.right.y * this.scale)
+        this.topLip.right.x     = this.offset.x + (newState.topLip.right.x * this.scale)
+        this.topLip.right.y     = this.offset.y + (newState.topLip.right.y * this.scale)
 
         // Bottom lip
-        this.bottomLip.left.x   = this.x + (newState.bottomLip.left.x * this.scale)
-        this.bottomLip.left.y   = this.y + (newState.bottomLip.left.y * this.scale)
+        this.bottomLip.left.x   = this.offset.x + (newState.bottomLip.left.x * this.scale)
+        this.bottomLip.left.y   = this.offset.y + (newState.bottomLip.left.y * this.scale)
 
-        this.bottomLip.center.x = this.x + (newState.bottomLip.center.x * this.scale)
-        this.bottomLip.center.y = this.y + (newState.bottomLip.center.y * this.scale)
+        this.bottomLip.center.x = this.offset.x + (newState.bottomLip.center.x * this.scale)
+        this.bottomLip.center.y = this.offset.y + (newState.bottomLip.center.y * this.scale)
         
-        this.bottomLip.right.x  = this.x + (newState.bottomLip.right.x * this.scale)
-        this.bottomLip.right.y  = this.y + (newState.bottomLip.right.y * this.scale)
+        this.bottomLip.right.x  = this.offset.x + (newState.bottomLip.right.x * this.scale)
+        this.bottomLip.right.y  = this.offset.y + (newState.bottomLip.right.y * this.scale)
 
         // this.paper.smooth({ type: "continuous" })
     }
@@ -405,7 +421,7 @@ export class Mouth  {
                 },
                 center: {
                     x: 0,
-                    y: 1
+                    y: .5
                 },
                 right: {
                     x: 4.5,
@@ -419,7 +435,7 @@ export class Mouth  {
                 },
                 center: {
                     x: 0, 
-                    y: 2.5
+                    y: 3
                 },
                 right: {
                     x: 6,

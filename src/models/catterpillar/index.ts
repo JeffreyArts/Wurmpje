@@ -83,12 +83,13 @@ export class Catterpillar {
         this.#createBodyParts()
         this.#createSpine()
 
+        const scale = this.thickness / 16
         this.mouth = new Mouth({
-            x: this.head.body.position.x,
-            y: this.head.body.position.y,
+            ref: this.head,
+            scale: scale,
             offset: {
                 x: 0,
-                y: 0
+                y: 2.4 * scale
             }
         })
         

@@ -55,11 +55,12 @@ export class Draw {
             obj.shape.position.set(obj.pos.x, obj.pos.y)
 
             if (obj.updateVertices) {
-                const verts = obj.updateVertices()
-                obj.shape.vertices.forEach((v, i) => {
-                    v.x = verts[i].x
-                    v.y = verts[i].y
-                })
+                // const verts = obj.updateVertices()
+
+                // obj.shape.vertices.forEach((v, i) => {
+                //     v.x = verts[i].x
+                //     v.y = verts[i].y
+                // })
             }
         })
         requestAnimationFrame(this.#draw.bind(this))
@@ -223,17 +224,16 @@ export class Draw {
                 color: primaryColor.toHex(),
                 name: `${catterpillar.composite.label}-bodypart-${index}`
             }
-            const circle = this.addCircle(part.body.position, circleOptions, layer)
+            const circle = this.addCircle(part, circleOptions, layer)
             circle.opacity = 0
             if (index !== 0) {
                 textures.forEach(svgItem => {
-                    this.addSVG(part.body.position, svgItem, layer)
+                    this.addSVG(part, svgItem, layer)
                 })
             }
             if (index === 0) {
-                console.log(catterpillar)
                 this.addMouth(
-                    catterpillar.head.body.position,
+                    part.body.position,
                     catterpillar.mouth,
                     {
                         fill: "#000000"
@@ -250,15 +250,14 @@ export class Draw {
             const indexB = parseInt(b.name.split("-")[1])
             return indexB - indexA
         })
-        this.layers.reverse()
+        // Clear all existing layers
+        this.two.clear()
 
-        for (let i = 0; i < this.layers.length; i++) {
-            if (i === 0) {
-                this.layers[i].position.z = -1
-            } else {
-                this.layers[i].position.z = i
-            }
-        }
+        // Voeg lagen toe in de juiste volgorde
+        this.layers.forEach(layer => {
+            this.two.add(layer)
+        })
+
         this.layers.forEach(layer => {
             layer.children.forEach(child => {
                 gsap.to(child, { delay: .08, opacity: 1, duration: .16 })
@@ -295,7 +294,7 @@ export class Draw {
         // Voeg toe aan Draw.objects voor realtime update
         this.objects.push({
             shape: path,
-            pos,
+            pos: mouth,
             updateVertices: () => {
                 return mouth.coordinates.map(p => ({ x: p.x, y: p.y }))
             }
