@@ -41,7 +41,7 @@ export const availableBodyPartTextures = [
 
 export class Draw {
     two: Two
-    objects: Array<{ shape: Two.Shape, pos: { x: number, y: number }}> = []
+    objects: Array<{ shape: Two.Shape, pos: { x: number, y: number }, updateVertices?: () => Array<{ x: number, y: number }> }> = []
     layers: Two.Group[] = []
 
     constructor(two: Two) {
@@ -53,6 +53,14 @@ export class Draw {
         this.two.update()
         this.objects.forEach(obj => {
             obj.shape.position.set(obj.pos.x, obj.pos.y)
+
+            if (obj.updateVertices) {
+                const verts = obj.updateVertices()
+                obj.shape.vertices.forEach((v, i) => {
+                    v.x = verts[i].x
+                    v.y = verts[i].y
+                })
+            }
         })
         requestAnimationFrame(this.#draw.bind(this))
     }
@@ -66,7 +74,6 @@ export class Draw {
         const two = this.two as Two 
 
         try {
-        // ... stappen 1, 2 en 3 (laden en interpreteren) blijven hetzelfde ...
             const response = await fetch(urlOrString)
             if (!response.ok) {
                 throw new Error(`Could not load SVG: HTTP status ${response.status}`)
@@ -102,7 +109,6 @@ export class Draw {
                 const scaleX = options.width / bounds.width
                 const scaleY = options.height / bounds.height
                 const scaleFactor = Math.min(scaleX, scaleY) 
-                // console.log("Scale factor:", scaleFactor, scaleX, scaleY)
                 group.scale = scaleFactor
             }
         
@@ -224,6 +230,18 @@ export class Draw {
                     this.addSVG(part.body.position, svgItem, layer)
                 })
             }
+            if (index === 0) {
+                console.log(catterpillar)
+                this.addMouth(
+                    catterpillar.head.body.position,
+                    catterpillar.mouth,
+                    {
+                        fill: "#000000"
+                    },
+                    layer
+                )
+            }
+
             this.layers.push(layer)
         }
         // Sorteer de lagen op index zodat de juiste volgorde wordt weergegeven
@@ -246,5 +264,44 @@ export class Draw {
                 gsap.to(child, { delay: .08, opacity: 1, duration: .16 })
             })
         })
+    }
+
+    addMouth(
+        pos: { x: number, y: number },
+        mouth: Mouth,
+        options: { stroke?: string; strokeWidth?: number; fill?: string } = {},
+        layer?: Two.Group
+    ) {
+        const anchors = mouth.coordinates.map(p => new Two.Anchor(p.x, p.y))
+
+        const path = new Two.Path(anchors, false, false) // false = niet closed
+        if (options.stroke && options.strokeWidth) {
+            path.stroke = options.stroke
+        } else {
+            path.noStroke()
+        }
+
+        if (options.strokeWidth) {
+            path.linewidth = options.strokeWidth
+        }
+
+        if (options.fill) {
+            path.fill = options.fill
+        }
+
+        path.curved = true
+        path.closed = true
+
+        // Voeg toe aan Draw.objects voor realtime update
+        this.objects.push({
+            shape: path,
+            pos,
+            updateVertices: () => {
+                return mouth.coordinates.map(p => ({ x: p.x, y: p.y }))
+            }
+        })
+
+        if (layer) layer.add(path)
+        return path
     }
 }

@@ -33,8 +33,15 @@ export class Catterpillar {
     primaryColor: string = "#00ff00"
     secondaryColor: string = "#007700"
     texture: { top?: string, "360"?: string, bottom?: string, vert?: string, stroke?: boolean } = {}
-    isStanding: boolean
-    isMoving: boolean
+    
+    isStanding: boolean = false
+    isMoving: boolean = false
+    isScared: boolean = false
+
+    scared:{
+        timeout?: NodeJS.Timeout | number,
+        timeoutAction?: NodeJS.Timeout | number,
+    } = {}
 
     constructor(options: {
         id: string,
@@ -50,8 +57,6 @@ export class Catterpillar {
         this.world = world
         this.dev = true
         this.pins = []
-        this.isStanding = false
-        this.isMoving = false
         
         this.x = options.x
         this.y = options.y
@@ -78,7 +83,18 @@ export class Catterpillar {
         this.#createBodyParts()
         this.#createSpine()
 
+        this.mouth = new Mouth({
+            x: this.head.body.position.x,
+            y: this.head.body.position.y,
+            offset: {
+                x: 0,
+                y: 0
+            }
+        })
         
+        this.mouth.moveToState("🙂")
+        console.log("Mouth created", this.mouth.topLip, this.mouth.bottomLip)
+
         // // Add body parts to composite
         // for (const part of this.bodyParts) {
         //     Matter.Composite.add(this.composite, part.body);
@@ -97,7 +113,43 @@ export class Catterpillar {
         this.x = this.bodyParts[centerIndex].body.position.x
         this.y = this.bodyParts[centerIndex].body.position.y
 
+
+        this.#autoCheckScared()
+        
         requestAnimationFrame(this.#loop.bind(this))
+    }
+
+    #autoCheckScared() {
+        const head = this.head.body
+        const butt = this.butt.body
+
+        const velocity = Math.abs(head.velocity.x) + Math.abs(head.velocity.y) 
+        if (velocity > 20 && !this.isMoving && (Math.abs(head.position.y - butt.position.y) > this.thickness)) {
+            
+            if (this.isScared) {
+                clearTimeout(this.scared.timeout)
+                clearTimeout(this.scared.timeoutAction)
+            } else {
+                // this.eye.left.stopBlinking()
+                // this.eye.right.stopBlinking()
+                this.mouth.moveToState("😮", 1.28)
+                this.isScared = true
+            }
+            
+            this.scared.timeout = setTimeout(() => {
+                this.scared.timeout = 0
+                this.scared.timeoutAction = setTimeout(() => {
+                    // this.eye.left.blink()
+                    // this.eye.right.blink()
+                    this.mouth.moveToState("🙂", 3.2)
+                    this.isScared = false
+                    // this.mouthRecovering = false
+                    // this.eye.left.autoBlink = true
+                    // this.eye.right.autoBlink = true
+                }, 1600)
+
+            }, 200)
+        }
     }
 
     #calculateLength() {

@@ -3,6 +3,8 @@ import gsap from "gsap"
 import { Point, Path } from "@/models/path"
 
 export type MouthOptions = {
+    x: number,
+    y: number,
     offset?: {
         x: number,
         y: number
@@ -52,7 +54,7 @@ export class Mouth  {
         x: number
         y: number
     }
-    coordinates: Path
+    coordinates: Array<Point>
     topLip: {
         left: Point,
         center: Point,
@@ -63,8 +65,8 @@ export class Mouth  {
         center: Point,
         right: Point,
     }
-    animation: null | gsap.TweenTarget
-    inTransition: boolean
+    #animation: null | gsap.TweenTarget
+    #inTransition: boolean
     scale: number
     size: number
     state: MouthState
@@ -80,7 +82,7 @@ export class Mouth  {
         }
         this.size = options.size ? options.size : 16
         this.scale = options.scale ? options.scale : 1
-        this.inTransition = false
+        this.#inTransition = false
 
 
         if (typeof options.offset?.x === "number") {
@@ -91,9 +93,8 @@ export class Mouth  {
             this.offset.y = options.offset.y
         }
 
-        this.state = "🙂"
 
-        this.coordinates = new Path([
+        this.coordinates = [
             new Point(this.size / 2,  0),
             new Point(0 ,  0),
             new Point(-this.size / 2,  0),
@@ -101,30 +102,31 @@ export class Mouth  {
             new Point(0,  0),
             new Point(this.size / 2,  0),
             // new Coord(this.size / 2,  0),// This is going to be removed by calling the closePath method
-        ])
+        ]
         // this.paper.closePath()
 
-        this.animation = null
+        this.#animation = null
 
         this.bottomLip = {
-            left:  this.coordinates.points[0],
-            center:  this.coordinates.points[1],
-            right:  this.coordinates.points[2],
+            left:  this.coordinates[0],
+            center:  this.coordinates[1],
+            right:  this.coordinates[2],
         }
         this.topLip = {
-            left:  this.coordinates.points[5],
-            center:  this.coordinates.points[4],
-            right:  this.coordinates.points[3],
+            left:  this.coordinates[5],
+            center:  this.coordinates[4],
+            right:  this.coordinates[3],
         }
-
-        console.log("Mouth created", this.topLip)
-        // this.paper.fillColor = new Paper.Color("#222")
+        
+        this.state = "🙂"
+        this.getSmilePosition()
+        this.#updatePosition()
 
         return new Proxy(this, {
             set: function (target: Mouth, key, value) {
                 if (key === "x" || key === "y") {
                     target[key] = value
-                    target.updatePosition()
+                    target.#updatePosition()
                 }
                 
                 if (typeof target[key] !== "undefined") {
@@ -135,32 +137,32 @@ export class Mouth  {
         })
     }
 
-    updatePosition() {
-        if (this.inTransition) {
+    #updatePosition() {
+        if (this.#inTransition) {
             return
         }
 
         if (this.state === "🙂") {
-            this.updateState(this.getSmilePosition())
+            this.#updateState(this.getSmilePosition())
         }
         
         if (this.state === "😮") {
-            this.updateState(this.getOpenPosition())
+            this.#updateState(this.getOpenPosition())
         }
 
         if (this.state === "😐") {
-            this.updateState(this.getShockedPosition())
+            this.#updateState(this.getShockedPosition())
         }
 
         if (this.state === "🙁") {
-            this.updateState(this.getSadPosition())
+            this.#updateState(this.getSadPosition())
         }
         if (this.state === "😚" || this.state === "😙" || this.state === "😗") {
-            this.updateState(this.getKissPosition())
+            this.#updateState(this.getKissPosition())
         }
     }
 
-    updateState(newState: {
+    #updateState(newState: {
         topLip: {
             left: { x: number, y: number },
             center: { x: number, y: number },
@@ -196,29 +198,30 @@ export class Mouth  {
         // this.paper.smooth({ type: "continuous" })
     }
 
-    switchState(state: MouthState | MouthPoints, duration = .64 as number) {
+    moveToState = (state: MouthState | MouthPoints, duration = .64 as number) => {
         // duration = amount of seconds that the switch take
         // Don't switch state if it is the same state
         
-        if (this.inTransition && this.animation) {
-            gsap.killTweensOf(this.animation)
+        if (this.#inTransition && this.#animation) {
+            gsap.killTweensOf(this.#animation)
         }
 
+        console.log("Current mouth state:", this.state, "-> New mouth state:", state    )
         if (state == this.state) {
             return
         }
-        this.inTransition = true
+        this.#inTransition = true
         // const progress = { perc: 0 }
         let ease = "sine.inOut"
         if (state === "😮") {
             ease = "elastic.out(1,0.5)"
         }
 
-        const from = this.getPosition(this.state)
+        const from = this.#getPosition(this.state)
         
         let to = state as MouthPoints
         if (typeof state === "string") {
-            to = this.getPosition(state)
+            to = this.#getPosition(state)
         } 
 
         
@@ -238,7 +241,7 @@ export class Mouth  {
             "bottomLip.right.y": from.bottomLip.right.y,
         }
         
-        this.animation = gsap.to(gsapFrom
+        this.#animation = gsap.to(gsapFrom
             , {
                 "topLip.left.x": to.topLip.left.x,
                 "topLip.left.y": to.topLip.left.y,
@@ -255,10 +258,10 @@ export class Mouth  {
                 duration,
                 ease,
                 onUpdate: () => { 
-                    if (!this.animation) {
+                    if (!this.#animation) {
                         return
                     }
-                    this.updateState({
+                    this.#updateState({
                         topLip: {
                             left: {
                                 x: gsapFrom["topLip.left.x"],
@@ -294,10 +297,10 @@ export class Mouth  {
                     if (typeof state === "string") {
                         this.state = state
                         if (state === "😚" || state === "😙" || state === "😗")  {
-                            this.switchState("🙂", .4)
+                            this.moveToState("🙂", .4)
                         }
                     }
-                    this.inTransition = false
+                    this.#inTransition = false
                 }
             })
     }
@@ -306,7 +309,7 @@ export class Mouth  {
         finalState: MouthPoints, 
         perc: number
     ) {
-        if (!this.inTransition) {
+        if (!this.#inTransition) {
             return
         }
 
@@ -337,7 +340,7 @@ export class Mouth  {
         // this.paper.remove()
     }
     
-    getPosition(state?: MouthState) : MouthPoints{
+    #getPosition(state?: MouthState) : MouthPoints{
         if (!state) {
             state = this.state
         }
