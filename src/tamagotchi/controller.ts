@@ -50,6 +50,7 @@ export class MatterController {
         this.ref.addpointerDownEvent(this.#grabCatterpillar.bind(this), "grabCatterpillar")
         this.ref.addpointerUpEvent(this.#releaseCatterpillar.bind(this), "releaseCatterpillar")
         this.ref.addpointerMoveEvent(this.#dragCatterpillar.bind(this), "dragCatterpillar")
+        this.ref.addpointerMoveEvent(this.#lookAtMouse.bind(this), "lookAtMouse")
         this.ref.addResizeEvent(this.#resizeCanvas.bind(this), "resizeCanvas")
         this.ref.addResizeEvent(this.#updateWalls.bind(this), "updateWalls")
         
@@ -176,6 +177,17 @@ export class MatterController {
         }
         if (this.mousePin) {
             this.mousePin.pointB = { x, y } 
+        }
+    }
+
+    #lookAtMouse(mouse: { x: number, y: number }) {
+        
+        if (this.catterpillar) {
+            if (this.catterpillar.leftEye.isFollowing) {
+                return
+            }
+            this.catterpillar.leftEye.lookAt({ x: mouse.x, y: mouse.y })
+            this.catterpillar.rightEye.lookAt({ x: mouse.x, y: mouse.y })
         }
     }
 

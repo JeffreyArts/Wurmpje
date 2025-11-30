@@ -132,19 +132,6 @@ export class Mouth  {
         this.#updatePosition()
         requestAnimationFrame(this.#loop.bind(this))
 
-        // return new Proxy(this, {
-        //     set: function (target: Mouth, key, value) {
-        //         if (key === "x" || key === "y") {
-        //             target[key] = value// + target.offset[key]
-        //             target.#updatePosition()
-        //         }
-                
-        //         if (typeof target[key] !== "undefined") {
-        //             target[key] = value
-        //         }
-        //         return true
-        //     }
-        // })
     }
 
     #loop() {
@@ -421,7 +408,7 @@ export class Mouth  {
                 },
                 center: {
                     x: 0,
-                    y: .5
+                    y: 1
                 },
                 right: {
                     x: 4.5,
@@ -435,7 +422,7 @@ export class Mouth  {
                 },
                 center: {
                     x: 0, 
-                    y: 3
+                    y: 2.5
                 },
                 right: {
                     x: 6,

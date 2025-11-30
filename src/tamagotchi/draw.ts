@@ -3,6 +3,10 @@ import Color from "@/models/color"
 import gsap from "gsap"
 import Two from "two.js"
 
+import { Eye } from "@/models/catterpillar/eye"
+import { Mouth } from "@/models/catterpillar/mouth"
+
+
 export const availableBodyPartTextures = [
     "/bodyparts/360/camo",
     "/bodyparts/360/cow",
@@ -233,7 +237,7 @@ export class Draw {
             }
             if (index === 0) {
                 this.addMouth(
-                    part.body.position,
+                    part,
                     catterpillar.mouth,
                     {
                         // stroke: "#CD2527",
@@ -242,6 +246,18 @@ export class Draw {
                     },
                     layer
                 )
+
+                this.addEye(
+                    part,
+                    catterpillar.leftEye,
+                    layer
+                )
+                this.addEye(
+                    part,
+                    catterpillar.rightEye,
+                    layer
+                )
+                console.log("Added eyes to catterpillar head", catterpillar.leftEye)
             }
 
             this.layers.push(layer)
@@ -304,5 +320,41 @@ export class Draw {
 
         if (layer) layer.add(path)
         return path
+    }
+
+    addEye(
+        pos: { x: number, y: number },
+        eye: Eye,
+        layer: Two.Group
+    ) {
+
+        const anchors = eye.lid.map(p => new Two.Anchor(p.x, p.y))
+
+        const eyelid = new Two.Path(anchors, false, false) // false = niet closed
+        eyelid.curved = true
+        eyelid.closed = true
+
+        this.objects.push({
+            shape: eyelid,
+            pos: eye,
+            updateVertices: () => {
+                return eye.lid.map(p => ({ x: p.x, y: p.y }))
+            }
+        })
+        eyelid.fill = "#fff"
+        layer.add(eyelid)
+
+
+        const pupil = this.two.makeCircle(eye.pupil.x, eye.pupil.y, Math.max(eye.width, eye.height) / 5)
+        pupil.fill = "#000"
+        pupil.noStroke()
+
+        this.objects.push({
+            shape: pupil,
+            pos: eye.pupil,
+        })
+
+        layer.add(pupil)
+        return pupil
     }
 }

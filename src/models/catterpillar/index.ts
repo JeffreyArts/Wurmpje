@@ -13,7 +13,9 @@ export class Catterpillar {
     composite: Matter.Composite
     world: Matter.World
     mouth: Mouth
-    eyes: Eye[]
+    // eyes: Eye[]
+    leftEye: Eye
+    rightEye: Eye
     x: number
     y: number
     head: BodyPart
@@ -92,6 +94,27 @@ export class Catterpillar {
                 y: 2.4 * scale
             }
         })
+
+        this.rightEye = new Eye({
+            ref: this.head,
+            width: 8 * scale,
+            height: 8 * scale,
+            offset: {
+                x: 0, // wordt auto berekend in de #loop
+                y: -8 * scale,
+            }
+        })
+
+        this.leftEye = new Eye({
+            ref: this.head,
+            width: 8 * scale,
+            height: 8 * scale,
+            offset: {
+                x: 0, // wordt auto berekend in de #loop
+                y: -8 * scale,
+            }
+        })
+        
         
         this.mouth.moveToState("🙂")
 
@@ -114,9 +137,19 @@ export class Catterpillar {
         this.y = this.bodyParts[centerIndex].body.position.y
 
 
-        // Update mouth offset
+
+        // SETTING OFFSETS
         const offsetX = (this.head.x - this.x) / (this.#calculateLength() / 2)
+        
+        // Update mouth offset
         this.mouth.offset.x = offsetX * (this.thickness * 0.08) 
+        
+        // Update eyes offset
+        this.leftEye.offset.x = offsetX * (this.thickness * 0.09) - this.leftEye.width * 1.1
+        this.rightEye.offset.x = offsetX * (this.thickness * 0.09) //+ this.rightEye.width
+
+
+
 
         this.#autoCheckScared()
         
