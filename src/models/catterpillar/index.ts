@@ -93,7 +93,6 @@ export class Catterpillar {
         })
         
         this.mouth.moveToState("🙂")
-        console.log("Mouth created", this.mouth.topLip, this.mouth.bottomLip)
 
         // // Add body parts to composite
         // for (const part of this.bodyParts) {
