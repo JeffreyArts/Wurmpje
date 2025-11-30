@@ -1,19 +1,17 @@
 import Matter from "matter-js"
-import paper from "paper"
+import Two from "two.js"
 export type mouseEventFunction = (mousePos: { x: number, y: number }) => void
 export type pointerDownEventFunction = (mousePos: { x: number, y: number }) => void
 export type resizeEventFunction = () => void
-
-
 export class MatterSetup {
     engine: Matter.Engine
     world: Matter.World
     renderer: Matter.Render
     runner: Matter.Runner
     el: HTMLElement
-    paperEl: HTMLCanvasElement
+    twoEl: HTMLCanvasElement
     matterEl: HTMLCanvasElement
-    paper: paper.PaperScope
+    two: Two
     devMode: boolean = false
     clickEvents: Array<{ fn: mouseEventFunction, name: string }> = []
     pointerDownEvents: Array<{ fn: mouseEventFunction, name: string }> = []
@@ -22,25 +20,25 @@ export class MatterSetup {
     resizeEvents: Array<{ fn: resizeEventFunction, name: string }> = []
     isClicking: boolean = false
 
-    constructor(target: HTMLElement, options?: {
-        devMode: boolean
-    }) {
-        this.paper = new paper.PaperScope()
+    constructor(target: HTMLElement, options?: { devMode: boolean }) {
         this.engine = Matter.Engine.create()
         this.world = this.engine.world
         this.el = target
 
+        // Create Two.js canvas
+        this.twoEl = document.createElement("canvas")
+        this.twoEl.style.position = "absolute"
+        this.twoEl.style.inset = "0 0 0 0"
+        this.twoEl.style.height = "100%"
+        this.twoEl.style.width = "100%"
+        this.twoEl.id = "two-js"
+        this.el.appendChild(this.twoEl)
+        this.two = new Two({
+            width: target.clientWidth,
+            height: target.clientHeight,
+            domElement: this.twoEl,
+        }).appendTo(this.el)
 
-        
-        // Create paper canvas
-        this.paperEl = document.createElement("canvas")
-        this.paperEl.style.position = "absolute"
-        this.paperEl.style.inset = "0 0 0 0"
-        this.paperEl.style.height = "100%"
-        this.paperEl.style.width = "100%"
-        this.el.appendChild(this.paperEl)
-        this.paper.setup(this.paperEl)
-        
         this.renderer = Matter.Render.create({
             element: this.el,
             engine: this.engine,
@@ -99,14 +97,15 @@ export class MatterSetup {
     
     #disableScrollToRefresh(event: TouchEvent) {
         const target = event.target as HTMLElement
-        
-        if (target.id == "paper-js" || target.id == "matter" || target.classList.contains("buttons-container")) {
+        if (target.id == "two-js" || target.id == "matter" || target.classList.contains("buttons-container")) {
             event.preventDefault()
         }
     }
 
     // Resize events
     #onResize() {
+        this.two.width = this.el.clientWidth
+        this.two.height = this.el.clientHeight
         this.resizeEvents.forEach(resizeEvent => {
             resizeEvent.fn()
         })

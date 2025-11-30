@@ -1220,11 +1220,6 @@ p-locate@^5.0.0:
   dependencies:
     p-limit "^3.0.2"
 
-paper@^0.12.18:
-  version "0.12.18"
-  resolved "https://registry.yarnpkg.com/paper/-/paper-0.12.18.tgz#e024056217a35c36e2b5fda4629310fdc7025c91"
-  integrity sha512-ZSLIEejQTJZuYHhSSqAf4jXOnii0kPhCJGAnYAANtdS72aNwXJ9cP95tZHgq1tnNpvEwgQhggy+4OarviqTCGw==
-
 parent-module@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/parent-module/-/parent-module-1.0.1.tgz#691d2709e78c79fae3a156622452d00762caaaa2"
@@ -1395,6 +1390,11 @@ ts-api-utils@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/ts-api-utils/-/ts-api-utils-2.1.0.tgz#595f7094e46eed364c13fd23e75f9513d29baf91"
   integrity sha512-CUgTZL1irw8u29bzrOD/nH85jqyc74D6SshFgujOIA7osm2Rz7dYH77agkx7H4FBNxDq7Cjf+IjaX/8zwFW+ZQ==
+
+two.js@^0.8.21:
+  version "0.8.21"
+  resolved "https://registry.yarnpkg.com/two.js/-/two.js-0.8.21.tgz#514555f043da23e13f73da23a77b15e0c52a90ce"
+  integrity sha512-maXiHB22X70Lym8iqkZeXkfSPJwnPs0Y1JTW+AJlQX10nlvlNbot+Svs5eJ43lfuheduU6nx751FU3wDXxoK+A==
 
 type-check@^0.4.0, type-check@~0.4.0:
   version "0.4.0"

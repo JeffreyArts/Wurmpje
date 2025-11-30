@@ -1,8 +1,8 @@
 import CatterpillarModel from "@/models/catterpillar"
 import Color from "@/models/color"
-import paper from "paper"
 import gsap from "gsap"
- 
+import Two from "two.js"
+
 export const availableBodyPartTextures = [
     "/bodyparts/360/camo",
     "/bodyparts/360/cow",
@@ -38,112 +38,137 @@ export const availableBodyPartTextures = [
     "/bodyparts/vert/v6",
     "/bodyparts/vert/polkadots",
 ]
-    
+
 export class Draw {
-    // catterpillar: CatterpillarModel
-    ref: paper.PaperScope
-    objects: Array<{ shape: paper.Item, pos: { x: number, y: number }}> = []
-    layers: paper.Layer[] = []
-    constructor(ref: paper.PaperScope) {
-        this.ref = ref
+    two: Two
+    objects: Array<{ shape: Two.Shape, pos: { x: number, y: number }}> = []
+    layers: Two.Group[] = []
+
+    constructor(two: Two) {
+        this.two = two
         requestAnimationFrame(this.#draw.bind(this))
     }
 
     #draw() {
-        this.ref.view.update()
-
+        this.two.update()
         this.objects.forEach(obj => {
-            obj.shape.position.x = obj.pos.x
-            obj.shape.position.y = obj.pos.y
+            obj.shape.position.set(obj.pos.x, obj.pos.y)
         })
-
         requestAnimationFrame(this.#draw.bind(this))
     }
 
-    async #importSVGAsync (urlOrString: string, options: { width: number, height: number, rotate?: number }) : Promise<paper.Item> {
-        return new Promise((resolve, reject) => {
-            try {
-                this.ref.project.importSVG(urlOrString, (item: paper.Item) => {
-                    if (!item) {
-                        reject("Could not load SVG")
-                        return
-                    }
+    // Zorg ervoor dat Two.js is geïnstalleerd en geïmporteerd
 
-                    if (options.width && options.height) {
-                        item.scale(options.width / item.bounds.width, options.height / item.bounds.height)
-                    }
-                    
-                    if (options.rotate) {
-                        item.rotate(options.rotate)
-                    }
-                    
-                    resolve(item)
-                })
-            } catch (error) {
-                reject(error)
+    // De retourwaarde is nu een Promise<Two.Group>, aangezien SVG's in Two.js vaak als een groep worden geïmporteerd.
+    // 'Two' en 'Two.Group' typen vereisen dat je de Two.js typendefinities (bijv. @types/two.js) hebt geïnstalleerd.
+
+    async #importSVGAsync (urlOrString: string, options: { width: number, height: number, rotate?: number }) : Promise<Two.Group> {
+        const two = this.two as Two 
+
+        try {
+        // ... stappen 1, 2 en 3 (laden en interpreteren) blijven hetzelfde ...
+            const response = await fetch(urlOrString)
+            if (!response.ok) {
+                throw new Error(`Could not load SVG: HTTP status ${response.status}`)
             }
-        })
-    }
-    
+            const svgData = await response.text()
+            const parser = new DOMParser()
+            const doc = parser.parseFromString(svgData, "image/svg+xml")
+            const svgElement = doc.documentElement as unknown as SVGElement 
+        
+            if (!svgElement || svgElement.tagName !== "svg") {
+                throw new Error("Parsed data is not a valid SVG element")
+            }
+            const svgItem = two.interpret(svgElement)
+            const viewBox = svgElement.getAttribute("viewBox").split(" ")
 
-    addCircle(pos: { x: number, y: number }, 
+            const bounds = {
+                x: parseFloat(viewBox[0]),
+                y: parseFloat(viewBox[1]),
+                width: parseFloat(viewBox[2]),
+                height: parseFloat(viewBox[3]),
+            }
+            svgItem.position.set(-bounds.width/2, -bounds.height/2)
+            const group = two.makeGroup(svgItem)
+        
+            if (!group) {
+                throw new Error("Could not interpret SVG element into a Two.Group")
+            }
+    
+            // 4. Schalen en Roteren (Logica blijft hetzelfde)
+            if (options.width && options.height) {
+                // get bounds from viewBox
+               
+                const scaleX = options.width / bounds.width
+                const scaleY = options.height / bounds.height
+                const scaleFactor = Math.min(scaleX, scaleY) 
+                // console.log("Scale factor:", scaleFactor, scaleX, scaleY)
+                group.scale = scaleFactor
+            }
+        
+            if (options.rotate) {
+                group.rotation = options.rotate * (Math.PI / 180)
+            }
+        
+            // 5. Toevoegen aan de scene
+            two.add(group) 
+            two.update() 
+            return group
+
+        } catch (error) {
+            console.error(`Error in #importSVGAsync for URL ${urlOrString}:`, error)
+            return Promise.reject(error)
+        }
+    }
+
+    addCircle(
+        pos: { x: number, y: number },
         options: { radius: number, color: string, name?: string, strokeWidth?: number, strokeColor?: string },
-        layer?: paper.Layer
-    ): paper.Path.Circle {
+        layer?: Two.Group
+    ): Two.Circle {
         const { radius, color } = options
         let { name } = options
         if (!name) {
             name = `circle-${Date.now()}`
         }
-
-        const circleOptions = {
-            center: new this.ref.Point(pos.x, pos.y),
-            radius: radius,
-            fillColor: color,
-            name: name
-        }
-
+        const circle = this.two.makeCircle(pos.x, pos.y, radius)
+        circle.fill = color
+        circle.noStroke()
         if (options.strokeWidth && options.strokeColor) {
-            circleOptions["strokeColor"] = options.strokeColor
-            circleOptions["strokeWidth"] = options.strokeWidth
+            circle.stroke = options.strokeColor
+            circle.linewidth = options.strokeWidth
         }
-
-        const circle = new this.ref.Path.Circle(circleOptions)
         this.objects.push({ shape: circle, pos: pos })
-        
-        if (layer) {
-            layer.addChild(circle)
-            circle.sendToBack()
-        }
 
+        if (layer) {
+            layer.add(circle)
+        }
         return circle
     }
 
     addSVG(
-        pos: { x: number, y: number }, 
-        svgItem: paper.Item,
-        layer?: paper.Layer
-    ): paper.Item {
-        // svgItem.position = new this.ref.Point(pos.x, pos.y)
+        pos: { x: number, y: number },
+        svgItem: Two.Shape,
+        layer?: Two.Group
+    ): Two.Shape {
+        svgItem.position.set(pos.x, pos.y)
         this.objects.push({ shape: svgItem, pos: pos })
-        
+
         if (layer) {
-            layer.addChild(svgItem)
+            layer.add(svgItem)
         }
-        
+
         return svgItem
     }
-    
 
     async addCatterpillar(catterpillar: CatterpillarModel) {
-        const texturePromises = [] 
+        const texturePromises = []
         const bodyParts = catterpillar.bodyParts
         for (let index = 0; index < bodyParts.length; index++) {
             const part = bodyParts[index]
-            const diameter = catterpillar.thickness*1.25
+            const diameter = catterpillar.thickness * 1.25
             const primaryColor = new Color(catterpillar.primaryColor)
             const secondaryColor = new Color(catterpillar.secondaryColor)
-
             // Load texture
             const textures = []
             const svgOptions = { width: diameter, height: diameter } as { width: number, height: number, rotate?: number }
@@ -151,7 +176,7 @@ export class Draw {
             for (const textureType in catterpillar.texture) {
                 svgOptions.rotate = undefined
                 svgUrl = "./bodyparts/"
-                if ( textureType == "360") {
+                if (textureType == "360") {
                     svgOptions.rotate = index * (360 / catterpillar.bodyParts.length)
                     svgUrl += `360/${catterpillar.texture[textureType]}`
                 } else if (textureType == "top") {
@@ -163,39 +188,35 @@ export class Draw {
                 } else {
                     continue
                 }
-                svgUrl += `/${index % 8 + 1 }.svg`
-
+                svgUrl += `/${index % 8 + 1}.svg`
                 if (index !== 0) {
                     const svgItem = await this.#importSVGAsync(svgUrl, svgOptions)
                     texturePromises.push(svgItem)
-                    svgItem.name = `${catterpillar.composite.label}-texture-${index}-${textureType}`
                     svgItem.opacity = 0
-                    svgItem.fillColor = new paper.Color(secondaryColor.toHex())
+                    svgItem.fill = secondaryColor.toHex()
                     textures.push(svgItem)
                 }
             }
-
             // Create layers if not exist
-            const layer = new this.ref.Layer({ name: `layer-${index}` })
+            const layer = this.two.makeGroup() as Two.Group
+            layer.name = `layer-${index}`
             const offset = Math.random() * 0.025
             // Define bodyPart color
-            if (index %2 === 0 ) { 
+            if (index % 2 === 0) {
                 primaryColor.adjustHsl(0, 0, offset)
                 secondaryColor.adjustHsl(0, 0, offset)
             } else {
                 primaryColor.adjustHsl(0, 0, -offset)
                 secondaryColor.adjustHsl(0, 0, -offset)
             }
-
             // Add to canvas
             const circleOptions = {
-                radius: diameter/2,
+                radius: diameter / 2,
                 strokeWidth: catterpillar.stroke,
                 strokeColor: secondaryColor.toHex(),
                 color: primaryColor.toHex(),
-                name: `${catterpillar.composite.label}-bodypart-${index}` 
+                name: `${catterpillar.composite.label}-bodypart-${index}`
             }
-
             const circle = this.addCircle(part.body.position, circleOptions, layer)
             circle.opacity = 0
             if (index !== 0) {
@@ -203,27 +224,24 @@ export class Draw {
                     this.addSVG(part.body.position, svgItem, layer)
                 })
             }
-            this.layers.push(layer) 
+            this.layers.push(layer)
         }
-
         // Sorteer de lagen op index zodat de juiste volgorde wordt weergegeven
-        this.ref.project.layers.sort((a, b) => {
-            const indexA = parseInt(a.name.split("-")[2])
-            const indexB = parseInt(b.name.split("-")[2])
+        this.layers.sort((a, b) => {
+            const indexA = parseInt(a.name.split("-")[1])
+            const indexB = parseInt(b.name.split("-")[1])
             return indexB - indexA
         })
-        this.ref.project.layers.reverse()
-        
-        const layers = [...this.ref.project.layers] // kopieer de array
-        for (let i = 0; i < layers.length; i++) {
+        this.layers.reverse()
+
+        for (let i = 0; i < this.layers.length; i++) {
             if (i === 0) {
-                layers[i].sendToBack()
+                this.layers[i].position.z = -1
             } else {
-                layers[i].insertAbove(layers[i - 1])
+                this.layers[i].position.z = i
             }
         }
-
-        this.ref.project.layers.forEach(layer => {
+        this.layers.forEach(layer => {
             layer.children.forEach(child => {
                 gsap.to(child, { delay: .08, opacity: 1, duration: .16 })
             })

@@ -1,5 +1,5 @@
 import Matter from "matter-js"
-import paper from "paper"
+import Two from "two.js"
 import { MatterSetup } from "./setup"
 import { Draw } from "./draw"
 
@@ -33,7 +33,7 @@ export class MatterController {
             devMode: true
         })
     
-        this.draw = new Draw(this.ref.paper)
+        this.draw = new Draw(this.ref.two)
         this.identity = identity
 
         

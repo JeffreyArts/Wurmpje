@@ -1,6 +1,6 @@
 import _ from "lodash"
 import Matter from "matter-js"
-import Paper from "paper"
+// import Paper from "paper"
 import gsap from "gsap"
 
 export type SpeechBubbleOptions = {
