@@ -114,6 +114,10 @@ export class Catterpillar {
         this.y = this.bodyParts[centerIndex].body.position.y
 
 
+        // Update mouth offset
+        const offsetX = (this.head.x - this.x) / (this.#calculateLength() / 2)
+        this.mouth.offset.x = offsetX * (this.thickness * 0.08) 
+
         this.#autoCheckScared()
         
         requestAnimationFrame(this.#loop.bind(this))
@@ -282,7 +286,7 @@ export class Catterpillar {
                     pointA: { x: 0, y:0 },
                     pointB: { x: 0, y:0 },
                     length,
-                    stiffness: 0.4,
+                    stiffness: 0.2,
                     damping: 0.1,
                     label: `bodyPartConnection,${part.body.id},${prev.body.id}`,
                     render: {

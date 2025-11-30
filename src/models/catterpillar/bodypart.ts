@@ -76,24 +76,6 @@ export class BodyPart {
             }
         })
 
-        console.log(this.body.position.x, this.body)
-
-        // this.paper = this.#generatePaperPath()
-
-        // return new Proxy(this, {
-        //     set: function (target, key, value) {
-        //         // console.log(`${String(key)} set to ${value}`)
-        //         if (key === "x" || key === "y") {
-        //             target[key] = value
-        //             target.#updatePosition()
-        //         }
-        //         if (key === "primaryColor") {
-        //             target[key] = value
-        //             // target.#updateColor()
-        //         }
-        //         return true
-        //     }
-        // }) as BodyPart
         requestAnimationFrame(() => this.#loop())
     }
 
@@ -102,10 +84,6 @@ export class BodyPart {
         this.x = this.body.position.x
         this.y = this.body.position.y
         requestAnimationFrame(() => this.#loop())
-    }
-    
-    remove() {
-        // this.paper.remove()
     }
 }
 

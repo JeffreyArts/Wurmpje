@@ -55,12 +55,12 @@ export class Draw {
             obj.shape.position.set(obj.pos.x, obj.pos.y)
 
             if (obj.updateVertices) {
-                // const verts = obj.updateVertices()
+                const verts = obj.updateVertices()
 
-                // obj.shape.vertices.forEach((v, i) => {
-                //     v.x = verts[i].x
-                //     v.y = verts[i].y
-                // })
+                obj.shape.vertices.forEach((v, i) => {
+                    v.x = verts[i].x
+                    v.y = verts[i].y
+                })
             }
         })
         requestAnimationFrame(this.#draw.bind(this))
@@ -236,7 +236,9 @@ export class Draw {
                     part.body.position,
                     catterpillar.mouth,
                     {
-                        fill: "#000000"
+                        // stroke: "#CD2527",
+                        // strokeWidth: 2,
+                        fill: "#000"
                     },
                     layer
                 )

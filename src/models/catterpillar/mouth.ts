@@ -148,8 +148,8 @@ export class Mouth  {
     }
 
     #loop() {
-        this.x = this.ref.x
-        this.y = this.ref.y
+        this.x = this.ref.x + this.offset.x 
+        this.y = this.ref.y + this.offset.y
         requestAnimationFrame(this.#loop.bind(this))
     }
 
@@ -192,24 +192,24 @@ export class Mouth  {
     }) {
         
         // Top lip
-        this.topLip.left.x      = this.offset.x + (newState.topLip.left.x * this.scale)
-        this.topLip.left.y      = this.offset.y + (newState.topLip.left.y * this.scale)
+        this.topLip.left.x      = newState.topLip.left.x * this.scale
+        this.topLip.left.y      = newState.topLip.left.y * this.scale
 
-        this.topLip.center.x    = this.offset.x + (newState.topLip.center.x * this.scale)
-        this.topLip.center.y    = this.offset.y + (newState.topLip.center.y * this.scale)
+        this.topLip.center.x    = newState.topLip.center.x * this.scale
+        this.topLip.center.y    = newState.topLip.center.y * this.scale
         
-        this.topLip.right.x     = this.offset.x + (newState.topLip.right.x * this.scale)
-        this.topLip.right.y     = this.offset.y + (newState.topLip.right.y * this.scale)
+        this.topLip.right.x     = newState.topLip.right.x * this.scale
+        this.topLip.right.y     = newState.topLip.right.y * this.scale
 
         // Bottom lip
-        this.bottomLip.left.x   = this.offset.x + (newState.bottomLip.left.x * this.scale)
-        this.bottomLip.left.y   = this.offset.y + (newState.bottomLip.left.y * this.scale)
+        this.bottomLip.left.x   = newState.bottomLip.left.x * this.scale
+        this.bottomLip.left.y   = newState.bottomLip.left.y * this.scale
 
-        this.bottomLip.center.x = this.offset.x + (newState.bottomLip.center.x * this.scale)
-        this.bottomLip.center.y = this.offset.y + (newState.bottomLip.center.y * this.scale)
+        this.bottomLip.center.x = newState.bottomLip.center.x * this.scale
+        this.bottomLip.center.y = newState.bottomLip.center.y * this.scale
         
-        this.bottomLip.right.x  = this.offset.x + (newState.bottomLip.right.x * this.scale)
-        this.bottomLip.right.y  = this.offset.y + (newState.bottomLip.right.y * this.scale)
+        this.bottomLip.right.x  = newState.bottomLip.right.x * this.scale
+        this.bottomLip.right.y  = newState.bottomLip.right.y * this.scale
 
         // this.paper.smooth({ type: "continuous" })
     }
