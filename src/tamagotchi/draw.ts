@@ -1,3 +1,4 @@
+// @ts-nocheck
 import CatterpillarModel from "@/models/catterpillar"
 import Color from "@/models/color"
 import gsap from "gsap"

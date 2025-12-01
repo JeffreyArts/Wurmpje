@@ -216,7 +216,13 @@ export class MatterController {
         } else if (name == "createCatterpillar") {
             fn = ({ x,y }) => {
                 const id = this.ref.world.composites.filter(c => c.label.startsWith("catterpillar")).length + 1
-                new Catterpillar({ x: x, y: y, identity: { id, name: `Catterpillar${id}`, textureIndex: 1, colorSchemeIndex: 1, offset: 0 }}, this.ref.world) 
+                new Catterpillar({
+                    x: x,
+                    y: y,
+                    identity: { id, name: `Catterpillar${id}`, textureIndex: 1, colorSchemeIndex: 1, offset: 0 },
+                    length: 14,
+                    thickness: 10
+                }, this.ref.world) 
             }
         } else if (name == "standUpCatterpillar") {
             fn = () => {
@@ -270,8 +276,8 @@ export class MatterController {
             x: position.x,
             y: position.y,
             identity: identity as IdentityField,
-            length: 14,
-            thickness: 10
+            length: 6,
+            thickness: 20
         }, this.ref.world).ref
 
         // Custom colors for the main catterpillar

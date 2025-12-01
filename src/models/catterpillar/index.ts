@@ -729,7 +729,7 @@ export class Catterpillar {
 
     turnAround = async () => {
         
-        if (this.#isPointingLeft()) {
+        if (this.isPointingLeft()) {
             await this.standUp(90, 1 * this.length / 10)
         } else {
             await this.standUp(-90, 1 * this.length / 10)
