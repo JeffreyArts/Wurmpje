@@ -152,7 +152,7 @@ export class Catterpillar {
         const butt = this.butt.body
 
         const velocity = Math.abs(head.velocity.x) + Math.abs(head.velocity.y) 
-        if (velocity > 20 && !this.isMoving && (Math.abs(head.position.y - butt.position.y) > this.thickness)) {
+        if (velocity > 30 && !this.isMoving && (Math.abs(head.position.y - butt.position.y) > this.thickness)) {
             
             if (this.isScared) {
                 clearTimeout(this.scared.timeout)
@@ -365,11 +365,11 @@ export class Catterpillar {
         this.contraction = undefined
     }
 
-    #isPointingLeft() {
+    isPointingLeft() {
         return this.head.body.position.x < this.butt.body.position.x
     }
 
-    #isPointingRight() {
+    isPointingRight() {
         return this.head.body.position.x > this.butt.body.position.x
     }
 
@@ -512,7 +512,7 @@ export class Catterpillar {
             }
 
             this.contraction.tickerFn = () => {
-                const directionX =  this.#isPointingLeft() ? -1 : 1
+                const directionX =  this.isPointingLeft() ? -1 : 1
                 Matter.Body.setVelocity(this.head.body, {
                     x: directionX,
                     y: 0

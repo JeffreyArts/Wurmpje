@@ -191,13 +191,27 @@ export class MatterController {
         }
     }
 
+
+
     switchClickEvent(name: string) {
         this.ref.clickEvents = []
         let fn
 
         if (name == "moveCatterpillar") {
-            fn = () => {
-                this.catterpillar.move()
+            fn = ({ x, y }) => {
+                if (this.catterpillar.isPointingLeft()) {
+                    if (x < this.catterpillar.x) {
+                        this.catterpillar.move()
+                    } else {
+                        this.catterpillar.turnAround()
+                    }
+                } else {
+                    if (x > this.catterpillar.x) {
+                        this.catterpillar.move()
+                    } else {
+                        this.catterpillar.turnAround()
+                    }
+                }
             }
         } else if (name == "createCatterpillar") {
             fn = ({ x,y }) => {
@@ -255,7 +269,9 @@ export class MatterController {
         this.catterpillar = new Catterpillar({
             x: position.x,
             y: position.y,
-            identity: identity as IdentityField
+            identity: identity as IdentityField,
+            length: 14,
+            thickness: 10
         }, this.ref.world).ref
 
         // Custom colors for the main catterpillar
