@@ -118,13 +118,6 @@ export class Catterpillar {
         
         this.mouth.moveToState("🙂")
 
-        // // Add body parts to composite
-        // for (const part of this.bodyParts) {
-        //     Matter.Composite.add(this.composite, part.body);
-        //     console.log(part.type)
-        // }
-    
-
         Matter.World.add(this.world, this.composite)
         requestAnimationFrame(this.#loop.bind(this))
     }
@@ -147,8 +140,6 @@ export class Catterpillar {
         // Update eyes offset
         this.leftEye.offset.x = offsetX * (this.thickness * 0.09) - this.leftEye.width * 1.1
         this.rightEye.offset.x = offsetX * (this.thickness * 0.09) //+ this.rightEye.width
-
-
 
 
         this.#autoCheckScared()
@@ -296,7 +287,7 @@ export class Catterpillar {
             
             const compositeParts = []
             const bodyPartOptions = {
-                radius: this.thickness,
+                radius: this.thickness/2,
                 x,
                 y: this.y,
                 collisionGroup: -1 * catterpillars.length - 1,
@@ -312,7 +303,7 @@ export class Catterpillar {
             compositeParts.push(part.body)
 
             if (prev) {
-                const length = (part.radius/2 + prev.radius/2) + .1
+                const length = (part.radius + prev.radius) + .1
                 const constraint = Matter.Constraint.create({
                     bodyA: part.body,
                     bodyB: prev.body,

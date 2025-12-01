@@ -63,7 +63,7 @@ export class BodyPart {
 
         const group = options?.collisionGroup ? options.collisionGroup : 0
 
-        this.body = Matter.Bodies.circle(this.x, this.y, this.radius/2, { 
+        this.body = Matter.Bodies.circle(this.x, this.y, this.radius, { 
             collisionFilter: { group },
             mass: 1,
             density: .2,

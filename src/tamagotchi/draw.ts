@@ -149,7 +149,7 @@ export class Draw {
             circle.stroke = options.strokeColor
             circle.linewidth = options.strokeWidth
         }
-        this.objects.push({ shape: circle, pos: pos })
+        this.objects.push({ shape: circle, pos: pos, name })
 
         if (layer) {
             layer.add(circle)
@@ -160,10 +160,17 @@ export class Draw {
     addSVG(
         pos: { x: number, y: number },
         svgItem: Two.Shape,
+        options?: { name?: string },
         layer?: Two.Group
     ): Two.Shape {
         svgItem.position.set(pos.x, pos.y)
         this.objects.push({ shape: svgItem, pos: pos })
+        let { name } = options
+        if (!name) {
+            name = `svg-${Date.now()}`
+        }
+
+        this.objects.push({ shape: svgItem, pos: pos, name })
 
         if (layer) {
             layer.add(svgItem)
@@ -226,13 +233,13 @@ export class Draw {
                 strokeWidth: catterpillar.stroke,
                 strokeColor: secondaryColor.toHex(),
                 color: primaryColor.toHex(),
-                name: `${catterpillar.composite.label}-bodypart-${index}`
+                name: `${catterpillar.composite.label}-bodyPart-${index}`
             }
             const circle = this.addCircle(part, circleOptions, layer)
             circle.opacity = 0
             if (index !== 0) {
                 textures.forEach(svgItem => {
-                    this.addSVG(part, svgItem, layer)
+                    this.addSVG(part, svgItem, { name: `bodypart-${index}-texture` }, layer)
                 })
             }
             if (index === 0) {
@@ -312,6 +319,7 @@ export class Draw {
         this.objects.push({
             shape: path,
             pos: mouth,
+            name: "mouth",
             updateVertices: () => {
                 return mouth.coordinates.map(p => ({ x: p.x, y: p.y }))
             }
@@ -336,6 +344,7 @@ export class Draw {
         this.objects.push({
             shape: eyelid,
             pos: eye,
+            name: "eyelid",
             updateVertices: () => {
                 return eye.lid.map(p => ({ x: p.x, y: p.y }))
             }
@@ -350,6 +359,7 @@ export class Draw {
 
         this.objects.push({
             shape: pupil,
+            name: "pupil",
             pos: eye.pupil,
         })
 
