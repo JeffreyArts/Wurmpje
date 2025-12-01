@@ -266,8 +266,8 @@ export class MatterController {
             identity = {
                 id,
                 name: "catterpillar",
-                textureIndex: 1,//textureIndex,
-                colorSchemeIndex: 14,//colorSchemeIndex,
+                textureIndex: textureIndex,
+                colorSchemeIndex: 34,//colorSchemeIndex,
                 offset: Math.floor(Math.random() * 16)
             }
         }

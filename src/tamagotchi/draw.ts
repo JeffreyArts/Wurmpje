@@ -238,12 +238,18 @@ export class Draw {
             }
 
             if (part.type == "head") {
-                console.log(primaryColor.hex(), Chroma, primaryColor.luminance(), primaryColor.get("hsl")[2])
+                
                 // Add stroke to head if color is almost white
                 if (Math.round(primaryColor.get("hsl")[2] * 100)/100 >= 0.9) {
                     circleOptions.strokeWidth = catterpillar.thickness * 0.05
                     circleOptions.strokeColor = secondaryColor.hex()
                 }
+            } else {
+                if (Math.round(primaryColor.get("hsl")[2] * 100)/100 >= 0.95) {
+                    circleOptions.strokeWidth = catterpillar.thickness * 0.05
+                    circleOptions.strokeColor = secondaryColor.hex()
+                }
+
             }
             
             const circle = this.addCircle(part, circleOptions, layer)
