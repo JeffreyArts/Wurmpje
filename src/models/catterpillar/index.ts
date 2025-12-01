@@ -3,9 +3,9 @@ import gsap from "gsap"
 import { Mouth } from "./mouth"
 import { Eye } from "./eye"
 import { BodyPart } from "./bodypart"
-import Color from "@/models/color"
+import Chroma from "chroma-js"
 
-
+type Emote = "happy" | "sad" | "kiss" | "surprised"
 
 export class Catterpillar {
     dev: boolean
@@ -185,63 +185,27 @@ export class Catterpillar {
     }
 
     #setColors(primaryColor: string, secondaryColor: string, offset: number) {
-        const c1 = new Color(primaryColor)
-        const c2 = new Color(secondaryColor)
-        
-        if (offset == 0) {
-            // no change
-        } else if (offset == 1) {
-            c1.adjustHsl(0,0,.1)
-            c2.adjustHsl(0,0,.1)       
-        } else if (offset == 2) {
-            c1.adjustHsl(0,.08,0)
-            c2.adjustHsl(0,0.1,0.1)       
-        } else if (offset == 3) {
-            c1.adjustHsl(.08,0,0)
-            c2.adjustHsl(0,0,.08)       
-        } else if (offset == 4) {
-            c1.adjustHsl(.02,0,0)
-            c2.adjustHsl(-.02,0,0)       
-        } else if (offset == 5) {
-            c1.adjustHsl(-.04,0,0)
-            c2.adjustHsl(.08,-.04,0)       
-        } else if (offset == 6) {
-            c1.adjustHsl(.1,0,0.02)
-            c2.adjustHsl(-.1,-.08,0)       
-        } else if (offset == 7) {
-            c1.adjustHsl(1,0,-0.04)
-            c2.adjustHsl(6,0,0.06)       
-        } else if (offset == 8) {
-            c1.adjustHsl(0,0,0)
-            c2.adjustHsl(4,0,0)       
-        } else if (offset == 9) {
-            c1.adjustHsl(10,0,0.08)
-            c2.adjustHsl(10,0,.02)       
-        } else if (offset == 9) {
-            c1.adjustHsl(0,0,0)
-            c2.adjustHsl(0,0,0)       
-        } else if (offset == 10) {
-            c1.adjustHsl(-8,0,0.1)
-            c2.adjustHsl(-5,0,0.1)       
-        } else if (offset == 11) {
-            c1.adjustHsl(-4,0.1,0.1)
-            c2.adjustHsl(-8,0.1,0.1)       
-        } else if (offset == 12) {
-            c1.adjustHsl(1,-0.1,0.1)
-            c2.adjustHsl(-2,0.1,0)       
-        } else if (offset == 13) {
-            c1.adjustHsl(0,0.1,0)
-            c2.adjustHsl(0,0.1,0)       
-        } else if (offset == 14) {
-            c1.adjustHsl(0,0.2,0.04)
-            c2.adjustHsl(0,0.2,0.04)       
-        } else if (offset == 15) {
-            c1.adjustHsl(3,0.1,.05)
-            c2.adjustHsl(-2,0.05,0)       
+        let c1 = Chroma(primaryColor)
+        let c2 = Chroma(secondaryColor)
+
+        const mixColors = ["#00ff99", "#ff00cc", "#ffff00", "#00ffff", "#ff6600", "#ff0066"]
+
+        if (offset % 4 == 0) {
+            c1 = c1.tint(offset/4 / 16)
+            c2 = c2.tint(offset/4 / 16)
+        }
+        if (offset % 3 == 0) {
+            c1 = c1.mix(Chroma(mixColors[offset/3]), .2)
+            c2 = c2.mix(Chroma(mixColors[offset/3]), .2)
         }
 
-        this.primaryColor = c1.toHex()
-        this.secondaryColor = c2.toHex()
+        if (offset % 5 == 1) {
+            c1 = c1.brighten(.1/(offset/10))
+            c2 = c2.brighten(.1/(offset/10))
+        }
+
+        this.primaryColor = c1.hex()
+        this.secondaryColor = c2.hex()
     }
 
     #createSpine() {
@@ -773,6 +737,25 @@ export class Catterpillar {
 
     remove() {
         Matter.Composite.remove(this.world, this.composite)
+    }
+
+    emote(state: Emote, duration = 1) {
+        if (!state){
+            throw new Error("Catterpillar.emote: state is required")
+        }
+
+        if (state === "happy") {
+            this.mouth.moveToState("🙂", duration)
+        } else if (state === "sad") {
+            this.mouth.moveToState("🙁", duration)
+        } else if (state === "kiss") {
+            this.mouth.moveToState("😚", duration)
+        } else if (state === "surprised") {
+            this.mouth.moveToState("😮", duration)
+        } else if (state === "angry") {
+            // this.mouth.moveToState("😮", duration)
+            // Mo
+        }
     }
 }
 

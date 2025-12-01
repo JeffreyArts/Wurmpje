@@ -10,12 +10,6 @@ export default [{
     "360": "worms",
     "stroke": false
 }, {
-    "360": "polkadots",
-    "stroke": false
-}, {
-    "360": "polkadots",
-    "stroke": true
-}, {
     "360": "paths",
     "stroke": false
 }, {
@@ -576,5 +570,11 @@ export default [{
     "stroke": false
 }, {
     "vert": "v6",
+    "stroke": true
+}, {
+    "vert": "polkadots",
+    "stroke": false
+}, {
+    "vert": "polkadots",
     "stroke": true
 }] as Array < textureInterface >

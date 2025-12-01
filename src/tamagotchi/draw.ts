@@ -1,6 +1,6 @@
 // @ts-nocheck
 import CatterpillarModel from "@/models/catterpillar"
-import Color from "@/models/color"
+import Chroma from "chroma-js"
 import gsap from "gsap"
 import Two from "two.js"
 
@@ -186,8 +186,8 @@ export class Draw {
         for (let index = 0; index < bodyParts.length; index++) {
             const part = bodyParts[index]
             const diameter = catterpillar.thickness * 1.25
-            const primaryColor = new Color(catterpillar.primaryColor)
-            const secondaryColor = new Color(catterpillar.secondaryColor)
+            const primaryColor = Chroma(catterpillar.primaryColor)
+            const secondaryColor = Chroma(catterpillar.secondaryColor)
             // Load texture
             const textures = []
             const svgOptions = { width: diameter, height: diameter } as { width: number, height: number, rotate?: number }
@@ -212,31 +212,42 @@ export class Draw {
                     const svgItem = await this.#importSVGAsync(svgUrl, svgOptions)
                     texturePromises.push(svgItem)
                     svgItem.opacity = 0
-                    svgItem.fill = secondaryColor.toHex()
+                    svgItem.fill = secondaryColor.hex()
                     textures.push(svgItem)
                 }
             }
             // Create layers if not exist
             const layer = this.two.makeGroup() as Two.Group
             layer.name = `layer-${index}`
-            const offset = Math.random() * 0.025
+            const offset = Math.random() * 0.125
             // Define bodyPart color
             if (index % 2 === 0) {
-                primaryColor.adjustHsl(0, 0, offset)
-                secondaryColor.adjustHsl(0, 0, offset)
+                primaryColor.brighten(offset)
+                secondaryColor.brighten(offset)
             } else {
-                primaryColor.adjustHsl(0, 0, -offset)
-                secondaryColor.adjustHsl(0, 0, -offset)
+                primaryColor.darken(offset)
+                secondaryColor.darken(offset)
             }
             // Add to canvas
             const circleOptions = {
                 radius: diameter / 2,
                 strokeWidth: catterpillar.stroke,
-                strokeColor: secondaryColor.toHex(),
-                color: primaryColor.toHex(),
+                strokeColor: secondaryColor.hex(),
+                color: primaryColor.hex(),
                 name: `${catterpillar.composite.label}-bodyPart-${index}`
             }
+
+            if (part.type == "head") {
+                console.log(primaryColor.hex(), Chroma, primaryColor.luminance(), primaryColor.get("hsl")[2])
+                // Add stroke to head if color is almost white
+                if (Math.round(primaryColor.get("hsl")[2] * 100)/100 >= 0.9) {
+                    circleOptions.strokeWidth = catterpillar.thickness * 0.05
+                    circleOptions.strokeColor = secondaryColor.hex()
+                }
+            }
+            
             const circle = this.addCircle(part, circleOptions, layer)
+            
             circle.opacity = 0
             if (index !== 0) {
                 textures.forEach(svgItem => {
