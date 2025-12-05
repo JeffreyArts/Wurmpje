@@ -123,6 +123,12 @@ export class Catterpillar {
         requestAnimationFrame(this.#loop.bind(this))
     }
 
+    #inTouchWithEarth() {
+        const headCollisions = Matter.Query.collides(this.head.body, this.world.bodies)
+        const buttCollisions = Matter.Query.collides(this.butt.body, this.world.bodies)
+        return (headCollisions.length > 0 || buttCollisions.length > 0) 
+    }
+
     #loop() {
 
         // Set X & Y values based on the center body part
@@ -572,6 +578,10 @@ export class Catterpillar {
     // speed: amount of seconds to reach the standing angle
     standUp = (angle = 0, speed = 2) => {
         return new Promise(async (resolve, reject) => {
+            if (!this.#inTouchWithEarth()) {
+                console.warn("Catterpillar is not touching solid ground, cannot stand up now")
+                return reject()
+            }
 
             if (this.isMoving) {
                 console.warn("Catterpillar is moving, cannot stand up now")
@@ -731,16 +741,14 @@ export class Catterpillar {
     }
 
 
-    async move() {
+    move = async () => {
         this.isMoving = true
-        // Deze collision check werkt niet goed
-        // const headCollisions = Matter.Query.collides(this.head.body, this.world.bodies)
-        // const buttCollisions = Matter.Query.collides(this.butt.body, this.world.bodies)
-        // if (headCollisions.length < 1 || buttCollisions.length < 1) {
-        //     console.warn("Catterpillar is colliding, cannot move now")
-        //     this.isMoving = false
-        //     return
-        // }
+
+        if (!this.#inTouchWithEarth()) {
+            console.warn("Catterpillar is not touching solid ground, cannot move now")
+            this.isMoving = false
+            return
+        }
         
         try {
             await this.contractSpine(0.5, 0.8 * this.length / 10)
@@ -752,6 +760,10 @@ export class Catterpillar {
     }
 
     turnAround = async () => {
+        if (!this.#inTouchWithEarth()) {
+            console.warn("Catterpillar is not touching solid ground, cannot turn around now")
+            return
+        }
         
         if (this.isPointingLeft()) {
             await this.standUp(90, 1 * this.length / 10)
