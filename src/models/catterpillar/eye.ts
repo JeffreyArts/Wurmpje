@@ -136,6 +136,52 @@ export class Eye  {
     lookDown(distance: number) {
         this.look(90, distance)
     }
+
+    close(duration = .4) {
+        return new Promise<void>(resolve => {
+            const ease = "power2.out"
+            gsap.to(this.lid[1], {
+                y: this.height / 2,
+                duration,
+                ease,
+            })
+            gsap.to(this.lid[3], {
+                y: this.height / 2,
+                duration,
+                ease,
+                onComplete: () => {
+                    resolve()
+                }
+            })
+        })
+    }
+
+    open(duration = .2) {
+        return new Promise<void>(resolve => {
+            const ease = "power2.out"
+            gsap.to(this.lid[1], {
+                y: 0,
+                duration,
+                ease,
+            })
+            gsap.to(this.lid[3], {
+                y: this.height,
+                duration,
+                ease,
+                onComplete: () => {
+                    resolve()
+                }
+            })
+        })
+    }
+
+    blink(duration = .4) {
+        return new Promise<void>(async resolve => {
+            await this.close(duration / 2)
+            await this.open(duration / 2)
+            resolve()
+        })
+    }
 }
 
 export default Eye

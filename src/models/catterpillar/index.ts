@@ -749,7 +749,14 @@ export class Catterpillar {
         } else if (state === "sad") {
             this.mouth.moveToState("🙁", duration)
         } else if (state === "kiss") {
-            this.mouth.moveToState("😚", duration)
+            this.mouth.moveToState("😚", .5)
+            setTimeout(() => {
+                if (this.isPointingLeft()) {
+                    this.rightEye.blink(1)
+                } else {
+                    this.leftEye.blink(1)
+                }
+            }, 100)
         } else if (state === "surprised") {
             this.mouth.moveToState("😮", duration)
         } else if (state === "angry") {

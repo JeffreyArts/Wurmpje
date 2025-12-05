@@ -352,36 +352,48 @@ export class Draw {
         eye: Eye,
         layer: Two.Group
     ) {
-
+        // 1. Maak eyelid path
         const anchors = eye.lid.map(p => new Two.Anchor(p.x, p.y))
+        const eyelid = new Two.Path(anchors, true, true)
+        eyelid.fill = "#fff"
+        
+        // 2. Maak pupil
+        const pupil = this.two.makeCircle(
+            eye.pupil.x,
+            eye.pupil.y,
+            Math.max(eye.width, eye.height) / 5
+        )
+        pupil.fill = "#000"
+        pupil.noStroke()
+        
+        // 3. Maak group die gemaskt wordt
+        const eyeGroup = new Two.Group()
+        const eyelidMask = eyelid.clone()
+        eyeGroup.add(pupil)
+        eyeGroup.mask = eyelidMask
 
-        const eyelid = new Two.Path(anchors, false, false) // false = niet closed
-        eyelid.curved = true
-        eyelid.closed = true
-
+        // 4. Voeg toe aan Draw.objects voor realtime update
         this.objects.push({
             shape: eyelid,
             pos: eye,
             name: "eyelid",
-            updateVertices: () => {
-                return eye.lid.map(p => ({ x: p.x, y: p.y }))
-            }
+            updateVertices: () => eye.lid.map(p => ({ x: p.x, y: p.y }))
         })
-        eyelid.fill = "#fff"
-        layer.add(eyelid)
-
-
-        const pupil = this.two.makeCircle(eye.pupil.x, eye.pupil.y, Math.max(eye.width, eye.height) / 5)
-        pupil.fill = "#000"
-        pupil.noStroke()
+        this.objects.push({
+            shape: eyelidMask,
+            pos: eye,
+            name: "eyelid",
+            updateVertices: () => eye.lid.map(p => ({ x: p.x, y: p.y }))
+        })
 
         this.objects.push({
             shape: pupil,
-            name: "pupil",
             pos: eye.pupil,
+            name: "pupil",
         })
 
-        layer.add(pupil)
-        return pupil
+        // 5. Voeg toe aan layers, zodat ze ook zichtbaar zijn
+        layer.add(eyelid)
+        layer.add(eyeGroup)
     }
 }

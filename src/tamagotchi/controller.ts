@@ -11,7 +11,7 @@ import type { IdentityField } from "@/models/identity"
 
 import ColorSchemes from "@/assets/default-color-schemes"
 import Textures from "@/assets/default-textures"
-
+const catterpillar = null
 
 export class MatterController {
     ref: MatterSetup
@@ -40,7 +40,7 @@ export class MatterController {
         this.#createWalls()
         
         
-        this.createCatterpillar({ x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }, this.identity )
+        window.catterpillar = this.createCatterpillar({ x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }, this.identity )
         
         this.draw.addCatterpillar(this.catterpillar)
 
@@ -290,7 +290,7 @@ export class MatterController {
                 part.body.render.fillStyle = `hsl(128, ${Math.random() * 10 + 90}%,  ${Math.random() * 10 + 45}%)`
             }
         })
-        
+        return this.catterpillar
     }
 
     // document.body.addEventListener("mousedown", PhysicsService.mouseDownEvent);
