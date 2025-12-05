@@ -2,7 +2,6 @@ import Matter from "matter-js"
 
 export type BodyPartOptions = {
     size: number,
-    stiffness?: number,
     damping?: number,
     slop?: number,
     points?: number,
@@ -36,7 +35,7 @@ export class BodyPart {
     ) {
         this.dev = true
         this.options = {
-            restitution: .5,
+            restitution: 0.8,
             slop: .01,
         }
 

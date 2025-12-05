@@ -180,7 +180,7 @@ export class Draw {
         return svgItem
     }
 
-    async addCatterpillar(catterpillar: CatterpillarModel) {
+    addCatterpillar = async (catterpillar: CatterpillarModel) => {
         const texturePromises = []
         const bodyParts = catterpillar.bodyParts
         for (let index = 0; index < bodyParts.length; index++) {

@@ -38,8 +38,13 @@ export default defineComponent ({
     },
     mounted() {
         this.controller = new MatterController(
-            this.$refs["catterpillar"] as HTMLElement
+            this.$refs["catterpillar"] as HTMLElement,
+            {
+                length: 8,
+                thickness: 30
+            }
         )
+        
         this.toggleDevMode()
         this.toggleDevMode()
 
@@ -69,7 +74,24 @@ export default defineComponent ({
             //         }
             //     })
             // }
-        }
+        },
+        increaseLength(amount: number) {
+            if (this.controller) {
+                this.controller.catterpillar.remove()
+                this.controller.catterpillar.length += amount
+                this.controller.catterpillar = this.controller.createCatterpillar(
+                    { x: this.controller.catterpillar.head.body.position.x, y: this.controller.catterpillar.head.body.position.y },
+                    {
+                        identity: this.controller.catterpillar.identity,
+                        length: this.controller.catterpillar.length,
+                        thickness: this.controller.catterpillar.thickness
+                    }
+                )
+                this.controller.draw.objects = []
+                
+                this.controller.draw.addCatterpillar(this.controller.catterpillar)
+            }
+        },
     }
 })
 </script>

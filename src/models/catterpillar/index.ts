@@ -279,7 +279,7 @@ export class Catterpillar {
             bodyA: this.head.body,
             bodyB: this.butt.body,
             length: this.#calculateLength(),
-            stiffness: .5, // This influences the switching of direction .8 seems to cause issues with certain lengths
+            stiffness: .01, // This influences the switching of direction .8 seems to cause issues with certain lengths
             damping: .1,
             label: "spine",
             render: {
@@ -340,8 +340,8 @@ export class Catterpillar {
                     pointA: { x: 0, y:0 },
                     pointB: { x: 0, y:0 },
                     length,
-                    stiffness: 0.2,
-                    damping: 0.1,
+                    stiffness: 0.16,
+                    damping: 0.2,
                     label: `bodyPartConnection,${part.body.id},${prev.body.id}`,
                     render: {
                         visible: this.dev,
@@ -459,6 +459,7 @@ export class Catterpillar {
             // Start contraction via GSAP tween
             const obj = { ...this.spine, perc, buttX: Math.abs(this.butt.body.position.x - this.head.body.position.x) }
 
+            this.spine.stiffness = .5
             this.contraction.contractionTween = gsap.to(obj, {
                 length: newLength,
                 duration: duration,
@@ -472,7 +473,24 @@ export class Catterpillar {
                     }
 
                     this.spine.length = obj.length
-                    const maxVelocity = this.thickness * 0.00006
+                    let maxVelocity = this.length / 100000
+                    if ( this.length < 8) {
+                        maxVelocity = maxVelocity * 16
+                    } else if ( this.length < 12) {
+                        maxVelocity = maxVelocity * 8
+                    } else if ( this.length < 16) {
+                        maxVelocity = maxVelocity * 4
+                    } else if ( this.length < 20) {
+                        maxVelocity = maxVelocity * 2
+                    } else if ( this.length < 24) {
+                        maxVelocity = maxVelocity
+                    } else if ( this.length < 30) {
+                        maxVelocity = maxVelocity * .5
+                    } else if ( this.length < 32) {
+                        maxVelocity = maxVelocity * .4
+                    } else {
+                        maxVelocity = maxVelocity * .3
+                    }
 
                     // Move buttConstraint.pintB.x to simulate pushing off
                     if (this.butt.body.position.x > this.head.body.position.x) {
@@ -566,6 +584,7 @@ export class Catterpillar {
                 onComplete: () => {
                     // remove constraints
                     this.#removeContraction()
+                    this.spine.stiffness = .01
 
                     resolve(true)
                 }

@@ -25,22 +25,42 @@ export class MatterController {
         name: "Catterpillar",
         textureIndex: 1,
         colorSchemeIndex: 1,
-        offset: 0
+        offset: 0,
     }
 
-    constructor(target: HTMLElement, identity?: IdentityField ) {
+    constructor(target: HTMLElement, options?: {
+        identity?: IdentityField,
+        length?: number,
+        thickness?: number,
+    } ) {
+
+        const catterpillarOptions = {} as { identity?: IdentityField, length?: number, thickness?: number }
+
+        if (options) {
+            const { identity, length, thickness } = options || {}
+            if (identity) {
+                this.identity = identity
+            }
+            if (length) {
+                catterpillarOptions.length = length
+            }
+            if (thickness) {
+                catterpillarOptions.thickness = thickness
+            }
+        }
+        
         this.ref = new MatterSetup(target, {
             devMode: true
         })
     
         this.draw = new Draw(this.ref.two)
-        this.identity = identity
 
         
         this.#createWalls()
         
         
-        window.catterpillar = this.createCatterpillar({ x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }, this.identity )
+        const startPosition = { x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }
+        window.catterpillar = this.createCatterpillar(startPosition, catterpillarOptions)
         
         this.draw.addCatterpillar(this.catterpillar)
 
@@ -253,8 +273,8 @@ export class MatterController {
         this.ref.addClickEvent(fn, name)
     }
 
-    createCatterpillar(position: { x: number, y: number }, identity?: IdentityField) {
-        
+    createCatterpillar(position: { x: number, y: number }, options?: { identity?: IdentityField, length?: number, thickness?: number }) {
+        let { identity } = options || {}
 
         if (!identity) {
             const id = this.ref.world.composites.filter(c => c.label.startsWith("catterpillar")).length + 1
@@ -272,12 +292,15 @@ export class MatterController {
             }
         }
 
+        const length = options?.length ? options.length : 9
+        const thickness = options?.thickness ? options.thickness : 20
+
         this.catterpillar = new Catterpillar({
             x: position.x,
             y: position.y,
             identity: identity as IdentityField,
-            length: 9,
-            thickness: 20
+            length,
+            thickness
         }, this.ref.world).ref
 
         // Custom colors for the main catterpillar
