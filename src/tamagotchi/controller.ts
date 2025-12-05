@@ -260,14 +260,14 @@ export class MatterController {
             const id = this.ref.world.composites.filter(c => c.label.startsWith("catterpillar")).length + 1
 
             const colorSchemeIndex = Math.floor(ColorSchemes.length * Math.random())
-            const textureIndex = Math.floor(Textures.length * Math.random())
-            // const textureIndex = Textures.length-1
+            // const textureIndex = Math.floor(Textures.length * Math.random())
+            const textureIndex = Textures.length-1
 
             identity = {
                 id,
                 name: "catterpillar",
                 textureIndex: textureIndex,
-                colorSchemeIndex: 34,//colorSchemeIndex,
+                colorSchemeIndex: colorSchemeIndex,
                 offset: Math.floor(Math.random() * 16)
             }
         }
@@ -276,7 +276,7 @@ export class MatterController {
             x: position.x,
             y: position.y,
             identity: identity as IdentityField,
-            length: 6,
+            length: 9,
             thickness: 20
         }, this.ref.world).ref
 

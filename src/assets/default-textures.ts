@@ -577,4 +577,19 @@ export default [{
 }, {
     "vert": "polkadots",
     "stroke": true
+}, {
+    "360": "mandala",
+    "stroke": true
+}, {
+    "360": "mandala2",
+    "stroke": true
+}, {
+    "360": "mandala3",
+    "stroke": false
+}, {
+    "360": "mandala4",
+    "stroke": true
+}, {
+    "360": "mandala4",
+    "stroke": false
 }] as Array < textureInterface >
