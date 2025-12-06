@@ -1,6 +1,5 @@
 import _ from "lodash"
 import Matter from "matter-js"
-// import Paper from "paper"
 import gsap from "gsap"
 
 export type SpeechBubbleOptions = {
@@ -18,11 +17,10 @@ class SpeechBubble  {
         left: Matter.Composite,
         right: Matter.Composite,
         anchor: Matter.Composite,
-        outline: Array<{ paper: paper.Point, matter: Matter.Body }>
+        outline: Array<Matter.Body>
     }
     size: number
     parentElement: HTMLElement
-    paperJS: paper.Path
     x: number
     y: number
     death: boolean
@@ -30,6 +28,57 @@ class SpeechBubble  {
     domElement: HTMLDivElement
     composite: Matter.Composite
     world: Matter.World
+
+    constructor (
+        world: Matter.World,
+        parentElement: HTMLElement,
+        options = {
+            x: 128,
+            y: 122,
+            text: "..."
+        } as SpeechBubbleOptions) {
+        this.death = false
+        this.world = world
+        this.text = options.text ? options.text : "..."
+        this.parentElement = parentElement
+        this.anchor = {
+            width: 20,
+            height: 22
+        }
+        if (!options.x) {
+            options.x = 128
+        }
+        if (!options.y) {
+            options.y = 128
+        }
+        
+        this.x = options.x
+        this.y = options.y
+        this.domElement = this.#createDomElement(this.text)
+        this.size = this.domElement.clientHeight
+
+        this.#createBubble(this.x, this.y)
+        setTimeout(() => {
+            this.updatePosition()
+        })
+        this.#loop()
+            
+        return new Proxy(this, {
+            set: function (target: SpeechBubble, key, value) {
+                if (key === "x" || key === "y") {
+                    target[key] = value
+                    target.updatePosition()
+                }
+
+                if (key === "text") {
+                    target[key] = value
+                    target.updateText()
+                }
+
+                return true
+            }
+        })
+    }
 
     #createDomElement (text: string) {
         const domElement = document.createElement("div")
@@ -89,8 +138,7 @@ class SpeechBubble  {
                     lineWidth: 1,
                     type: "line"
                 }
-            })  
-            this.paperJS.add(new Paper.Point({ x: borderX, y: borderY }))
+            })
             Matter.Composite.add(res, [borderPoint, constraint])
         })
 
@@ -146,11 +194,6 @@ class SpeechBubble  {
         return res
     }
     #createBubble (x: number, y: number) {
-        const bgc = "#F8FADB"
-        
-        this.paperJS =  new Paper.Path({
-            fillColor: bgc,
-        })
         this.bubble = {
             left: this.#createCircle(x,y - this.anchor.height - this.size / 2, [90, 135, 180, 225, 270]),
             right: this.#createCircle(x + this.domElement.clientWidth,y - this.anchor.height - this.size / 2, [270, 315, 0, 45, 90]),
@@ -163,7 +206,7 @@ class SpeechBubble  {
             label: "speechBubble",
         })
         
-        this.bubble.anchor = this.#createAnchor(),
+        this.bubble.anchor = this.#createAnchor()
         Matter.Composite.add(this.composite, this.bubble.anchor)
         
         const leftTop = _.find(this.bubble.left.bodies, { label: "borderPoint-270" })
@@ -205,44 +248,9 @@ class SpeechBubble  {
         this.domElement.style.left = (this.x + this.anchor.width) + "px"
         this.domElement.style.top = (this.y - this.anchor.height - this.size / 2) + "px"
 
-        // this.paperJS.closePath()
-        this.paperJS.smooth({ type: "geometric" })
         return this.bubble
     }
 
-    
-
-    #draw() {
-        if (this.death){ 
-            return
-        }
-
-        const leftSide = _.filter(this.bubble.left.bodies, body => body.label.startsWith("borderPoint"))
-        const rightSide = _.filter(this.bubble.right.bodies, body => body.label.startsWith("borderPoint"))
-        const points = _.union(leftSide,rightSide)
-        
-        const anchor = _.find(this.bubble.anchor.bodies, { label: "anchorPoint" })
-
-        if (anchor) {
-            const lastIndex = this.paperJS.segments.length -1
-            this.paperJS.segments[0].point.x = anchor.position.x
-            this.paperJS.segments[0].point.y = anchor.position.y
-
-            this.paperJS.segments[lastIndex].point.x = points[0].position.x
-            this.paperJS.segments[lastIndex].point.y = points[0].position.y
-
-        }
-
-        for (let index = 1; index < points.length - 1; index++) {
-            const body = points[index]
-            this.paperJS.segments[index].point.x = body.position.x
-            this.paperJS.segments[index].point.y = body.position.y    
-        }
-
-        this.paperJS.smooth({ type: "geometric" })
-        
-        requestAnimationFrame(() => this.#draw())
-    }
     #updateTextPosition() {
         const leftTop = _.find(this.bubble.left.bodies, { label: "borderPoint-270" })
         const leftBottom = _.find(this.bubble.left.bodies, { label: "borderPoint-90" })
@@ -254,6 +262,7 @@ class SpeechBubble  {
             this.domElement.style.left = x + "px"
         }
     }
+
     #updateSize() {
         const topConstraint = _.find(this.composite.constraints, { label: "topConstraint" })
         const leftConstraint = _.find(this.composite.constraints, { label: "leftConstraint" })
@@ -309,58 +318,6 @@ class SpeechBubble  {
         const x = Math.cos(angle * Math.PI/180) * force
         const y = Math.sin(angle * Math.PI/180) * force
         Matter.Body.setVelocity(body, Matter.Vector.create(x,y))
-    }
-
-    constructor (
-        world: Matter.World,
-        parentElement: HTMLElement,
-        options = {
-            x: 128,
-            y: 122,
-            text: "..."
-        } as SpeechBubbleOptions) {
-        this.death = false
-        this.world = world
-        this.text = options.text ? options.text : "..."
-        this.parentElement = parentElement
-        this.anchor = {
-            width: 20,
-            height: 22
-        }
-        if (!options.x) {
-            options.x = 128
-        }
-        if (!options.y) {
-            options.y = 128
-        }
-        
-        this.x = options.x
-        this.y = options.y
-        this.domElement = this.#createDomElement(this.text)
-        this.size = this.domElement.clientHeight
-
-        this.#createBubble(this.x, this.y)
-        setTimeout(() => {
-            this.updatePosition()
-        })
-        this.#draw()
-        this.#loop()
-            
-        return new Proxy(this, {
-            set: function (target: SpeechBubble, key, value) {
-                if (key === "x" || key === "y") {
-                    target[key] = value
-                    target.updatePosition()
-                }
-
-                if (key === "text") {
-                    target[key] = value
-                    target.updateText()
-                }
-
-                return true
-            }
-        })
     }
 
     updateText() {
