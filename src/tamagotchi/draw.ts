@@ -186,8 +186,23 @@ export class Draw {
         for (let index = 0; index < bodyParts.length; index++) {
             const part = bodyParts[index]
             const diameter = catterpillar.thickness * 1.25
-            const primaryColor = Chroma(catterpillar.primaryColor)
+            let primaryColor = Chroma(catterpillar.primaryColor)
             const secondaryColor = Chroma(catterpillar.secondaryColor)
+
+            // Ensure primary color is not too dark
+            const primaryColorLightness = primaryColor.get("hsl")[2]
+            if (primaryColorLightness <  0.24) {
+                const brightenAmount = 0.24 - primaryColorLightness
+                primaryColor = primaryColor.brighten(brightenAmount * 10)
+            }
+            
+            // Ensure secondary color is not too dark
+            const secondaryColorLightness = secondaryColor.get("hsl")[2]
+            if (secondaryColorLightness <  0.24) {
+                const brightenAmount = 0.24 - secondaryColorLightness
+                secondaryColor = secondaryColor.brighten(brightenAmount * 10)
+            }
+
             // Load texture
             const textures = []
             const svgOptions = { width: diameter, height: diameter } as { width: number, height: number, rotate?: number }
