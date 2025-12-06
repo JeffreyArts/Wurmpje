@@ -1,17 +1,14 @@
 import Matter from "matter-js"
-import Two from "two.js"
 import { MatterSetup } from "./setup"
 import { Draw } from "./draw"
 
 import { Wall } from "./create/wall"
-import { Ball } from "./create/ball"
 import { Catterpillar } from "./create/catterpillar"
 import CatterpillarModel from "@/models/catterpillar"
 import type { IdentityField } from "@/models/identity"
 
 import ColorSchemes from "@/assets/default-color-schemes"
 import Textures from "@/assets/default-textures"
-const catterpillar = null
 
 export class MatterController {
     ref: MatterSetup
@@ -26,12 +23,14 @@ export class MatterController {
         textureIndex: 1,
         colorSchemeIndex: 1,
         offset: 0,
+        gender: 0
     }
 
     constructor(target: HTMLElement, options?: {
         identity?: IdentityField,
         length?: number,
         thickness?: number,
+        catterpillarPos?: { x: number, y: number }
     } ) {
 
         const catterpillarOptions = {} as { identity?: IdentityField, length?: number, thickness?: number }
@@ -58,9 +57,12 @@ export class MatterController {
         
         this.#createWalls()
         
-        
-        const startPosition = { x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }
-        window.catterpillar = this.createCatterpillar(startPosition, catterpillarOptions)
+        let startPosition = { x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }
+        if (options?.catterpillarPos) {
+            startPosition = options.catterpillarPos
+        }
+
+        this.createCatterpillar(startPosition, catterpillarOptions)
         
         this.draw.addCatterpillar(this.catterpillar)
 
@@ -239,7 +241,7 @@ export class MatterController {
                 new Catterpillar({
                     x: x,
                     y: y,
-                    identity: { id, name: `Catterpillar${id}`, textureIndex: 1, colorSchemeIndex: 1, offset: 0 },
+                    identity: { id, name: `Catterpillar${id}`, textureIndex: 1, colorSchemeIndex: 1, offset: 0, gender: 0 },
                     length: 14,
                     thickness: 10
                 }, this.ref.world) 
@@ -288,7 +290,8 @@ export class MatterController {
                 name: "catterpillar",
                 textureIndex: textureIndex,
                 colorSchemeIndex: colorSchemeIndex,
-                offset: Math.floor(Math.random() * 16)
+                offset: Math.floor(Math.random() * 16),
+                gender: Math.random() > 0.5 ? 1 : 0
             }
         }
 

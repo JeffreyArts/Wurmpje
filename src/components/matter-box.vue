@@ -23,6 +23,7 @@ import {defineComponent} from "vue"
 import { MatterController } from "@/tamagotchi/controller"
 import { gsap } from "gsap"
 import _ from "lodash"
+import type Catterpillar from "@/models/catterpillar"
     
 export default defineComponent ({ 
     props: [],
@@ -58,7 +59,7 @@ export default defineComponent ({
         toggleDevMode() {
             this.dev = !this.dev
             const twoEl = this.$el.querySelector("[id^='two-js']") as HTMLCanvasElement
-            const rendererEl = document.getElementById("matter") as HTMLCanvasElement
+            const rendererEl = this.$el.querySelector("#matter") as HTMLCanvasElement
             gsap.to(twoEl, {duration: 0.3, opacity: this.dev ? 0 : 1})
             gsap.to(rendererEl, {duration: 0.3, opacity: this.dev ? 1 : 0})
             // if (this.controller) {
@@ -82,14 +83,14 @@ export default defineComponent ({
                 this.controller.catterpillar = this.controller.createCatterpillar(
                     { x: this.controller.catterpillar.head.body.position.x, y: this.controller.catterpillar.head.body.position.y },
                     {
-                        identity: this.controller.catterpillar.identity,
                         length: this.controller.catterpillar.length,
                         thickness: this.controller.catterpillar.thickness
                     }
                 )
                 this.controller.draw.objects = []
-                
-                this.controller.draw.addCatterpillar(this.controller.catterpillar)
+                if (this.controller.catterpillar) {
+                    this.controller.draw.addCatterpillar(this.controller.catterpillar as Catterpillar)
+                }
             }
         },
     }

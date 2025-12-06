@@ -1,18 +1,9 @@
-export type IdentityString = {
+export type IdentityField = {
     id: number;                 // 29-bit: 23 bits seconds/4 + 6 bits random
     name: string;               // max 16 chars, letters A-Z/a-z + space
     textureIndex: number;       // 0-1023
     colorSchemeIndex: number;   // 0-1023
     offset: number;             // 0-15
-    gender: number;             // 0 | 1
-}
-
-export type IdentityJSON = {
-    id: number;                 // 29-bit: 23 bits seconds/4 + 6 bits random
-    name: string;               // max 16 chars, letters A-Z/a-z + space
-    textureIndex: number;       // 0-1023
-    colorSchemeIndex: number;   // 0-1023
-    offset: number;             // 0-15 
     gender: number;             // 0 | 1
 }
 
@@ -35,21 +26,21 @@ export class Identity {
 
 
     // Encoding
-    encode(json: IdentityString): string {
+    encode(json: IdentityField): string {
         const identity = this.validateIdentityJSON(json)
         const bytes = this.bitPack(identity)
         return this.base45Encode(bytes)
     }
 
     // Decoding
-    decode(encoded: string): IdentityString {
-        this.validateIdentityString(encoded)
+    decode(encoded: string): IdentityField {
+        this.validateIdentityField(encoded)
         const bytes = this.base45Decode(encoded)
         return this.bitUnpack(bytes)
     }
 
     // Encoding
-    private validateIdentityJSON(json: IdentityString): IdentityString {
+    private validateIdentityJSON(json: IdentityField): IdentityField {
         if (typeof json !== "object" || json === null) {
             throw new Error("Input must be a non-null object")
         }
@@ -95,7 +86,7 @@ export class Identity {
     }
 
     // Decoding
-    private validateIdentityString(encodedString: string): string {
+    private validateIdentityField(encodedString: string): string {
         const BASE45_CHARS = Identity.BASE45_CHARS
 
         for (const c of encodedString) {
@@ -149,7 +140,7 @@ export class Identity {
     }
 
     // Encoding
-    private bitPack(identity: IdentityString): Uint8Array {
+    private bitPack(identity: IdentityField): Uint8Array {
         const bits: number[] = []
 
         // ID: 29 bits
@@ -183,7 +174,7 @@ export class Identity {
     }
 
     // Decoding
-    private bitUnpack(bytes: Uint8Array): IdentityString {
+    private bitUnpack(bytes: Uint8Array): IdentityField {
 
         const bits: number[] = []
         for (let i = 0; i < bytes.length; i++) {

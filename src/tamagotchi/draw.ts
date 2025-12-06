@@ -71,6 +71,37 @@ export class Draw {
         requestAnimationFrame(this.#draw.bind(this))
     }
 
+    drawBG = (options?: { color?: string, blockSize?: number, offset?: number }) =>{
+
+        const color = options?.color || "#fafafa"
+        const blockSize = options?.blockSize || 8
+        const offset = options?.offset || 2
+
+        const gridHeight = this.two.height / (blockSize + offset)
+        const gridWidth = this.two.width / (blockSize + offset)
+
+        // create bg Group
+        console.log(gridHeight)
+        const bg = this.two.makeGroup()
+        for (let y = 0; y < gridHeight; y ++) {
+            for (let x = 0; x < gridWidth; x ++) {
+                const rect = this.two.makeRectangle(
+                    (blockSize + offset)/2 + (blockSize + offset) * x,
+                    (blockSize + offset)/2 + (blockSize + offset) * y,
+                    blockSize,
+                    blockSize
+                )
+                rect.fill = color
+                rect.noStroke()
+                bg.add(rect)
+
+            }
+        }
+        
+        this.layers.unshift(bg)
+        console.log(this.layers)
+    }
+
     // Zorg ervoor dat Two.js is geïnstalleerd en geïmporteerd
 
     // De retourwaarde is nu een Promise<Two.Group>, aangezien SVG's in Two.js vaak als een groep worden geïmporteerd.
@@ -303,6 +334,7 @@ export class Draw {
         }
         // Sorteer de lagen op index zodat de juiste volgorde wordt weergegeven
         this.layers.sort((a, b) => {
+            if (!a.name || !b.name) return 0
             const indexA = parseInt(a.name.split("-")[1])
             const indexB = parseInt(b.name.split("-")[1])
             return indexB - indexA
@@ -316,6 +348,7 @@ export class Draw {
         })
 
         this.layers.forEach(layer => {
+            if (!layer.children) return
             layer.children.forEach(child => {
                 gsap.fromTo(child, { delay: .08, opacity: 0 }, { opacity: 1, duration: .16 })
             })
