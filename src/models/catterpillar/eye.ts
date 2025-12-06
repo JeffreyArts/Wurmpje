@@ -45,7 +45,6 @@ export class Eye  {
         this.ref = options.ref
         this.offset = options.offset ? options.offset : { x: 0, y: 0 }
 
-        console.log("Eye options:", options)
         this.width = options.width ? options.width : 8
         this.height = options.height ? options.height : 8
         this.pupil = new Point(this.ref.x, this.ref.y)

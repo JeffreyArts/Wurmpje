@@ -47,6 +47,10 @@ export class MatterController {
                 catterpillarOptions.thickness = thickness
             }
         }
+
+        if (this.identity) {
+            catterpillarOptions.identity = this.identity
+        }
         
         this.ref = new MatterSetup(target, {
             devMode: true

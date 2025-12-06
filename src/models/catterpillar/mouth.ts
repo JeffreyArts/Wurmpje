@@ -209,7 +209,6 @@ export class Mouth  {
             gsap.killTweensOf(this.#animation)
         }
 
-        console.log("Current mouth state:", this.state, "-> New mouth state:", state    )
         if (state == this.state) {
             return
         }

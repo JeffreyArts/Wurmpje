@@ -9,7 +9,7 @@
 <script lang="ts">
 import {defineComponent} from "vue"
 import { MatterController } from "@/tamagotchi/controller"
-import { gsap } from "gsap"
+import useIdentityStore from "@/stores/identity"
 import _ from "lodash"
     
 export default defineComponent ({ 
@@ -21,10 +21,19 @@ export default defineComponent ({
             thickness: 0
         }
     },
+    setup() {
+        const identityStore = useIdentityStore()
+        return {
+            identity: identityStore
+        }
+    },
     watch: {
         
     },
-    mounted() {
+    async mounted() {
+
+        await this.identity.initialised
+        
         this.length = 7
         this.thickness = 40/this.length * 4
         this.createIcon()

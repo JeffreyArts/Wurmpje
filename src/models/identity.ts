@@ -34,7 +34,7 @@ export class Identity {
 
     // Decoding
     decode(encoded: string): IdentityField {
-        this.validateIdentityField(encoded)
+        this.validateIdentityString(encoded)
         const bytes = this.base45Decode(encoded)
         return this.bitUnpack(bytes)
     }
@@ -44,7 +44,6 @@ export class Identity {
         if (typeof json !== "object" || json === null) {
             throw new Error("Input must be a non-null object")
         }
-
 
         const { id, name, textureIndex, colorSchemeIndex, offset, gender } = json
 
@@ -86,7 +85,7 @@ export class Identity {
     }
 
     // Decoding
-    private validateIdentityField(encodedString: string): string {
+    private validateIdentityString(encodedString: string): string {
         const BASE45_CHARS = Identity.BASE45_CHARS
 
         for (const c of encodedString) {
@@ -140,7 +139,7 @@ export class Identity {
     }
 
     // Encoding
-    private bitPack(identity: IdentityField): Uint8Array {
+    private bitPack(identity: string): Uint8Array {
         const bits: number[] = []
 
         // ID: 29 bits

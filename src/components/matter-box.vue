@@ -1,6 +1,10 @@
 <template>
   
   <div id="catterpillar-container">
+    <header v-if="identity" class="catterpillar-header">
+        <h1 class="catterpillar-name">{{ identity.name }}</h1>
+        <span class="catterpillar-age">{{ age }}</span>
+    </header>
     <div id="catterpillar" ref="catterpillar"></div>
 
     <footer class="buttons-container">
@@ -21,6 +25,7 @@
 <script lang="ts">
 import {defineComponent} from "vue"
 import { MatterController } from "@/tamagotchi/controller"
+import useIdentityStore from "@/stores/identity"
 import { gsap } from "gsap"
 import _ from "lodash"
 import type Catterpillar from "@/models/catterpillar"
@@ -34,13 +39,40 @@ export default defineComponent ({
             dev: false
         }
     },
+    setup() {
+        const identityStore = useIdentityStore()
+        return {
+            identity: identityStore
+        }
+    },
     watch: {
         
     },
-    mounted() {
+    computed: {
+        age(): string {
+            if (!this.identity.age) {
+                return "-"
+            }
+            if (this.identity.age == 1) {
+                return "1 day old"
+            }
+            if (this.identity.age > 2) {
+                return `${this.identity.age} days`
+            }
+        }
+    },
+    async mounted() {
+        
+        try {
+            await this.identity.initialised
+        } catch (e) {
+            return console.error("Failed to initialise identity store:", e)
+        }
+        
         this.controller = new MatterController(
             this.$refs["catterpillar"] as HTMLElement,
             {
+                identity: this.identity.origin,
                 length: 8,
                 thickness: 30
             }
@@ -113,6 +145,29 @@ export default defineComponent ({
         right: 0;
         bottom: 0;
     }
+}
+
+.catterpillar-header {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    translate: -50% 0;
+    max-width: 320px;
+    text-align: center;
+    padding-top: 16px;
+}
+
+.catterpillar-name {
+    font-size: 24px;
+    font-family: var(--accent-font);
+    line-height: 24px;
+    margin: 0;
+}
+
+.catterpillar-age {
+    font-size: 16px;
+    font-family: var(--accent-font);
+    opacity: 0.4;
 }
 
 .button {

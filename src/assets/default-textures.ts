@@ -1,4 +1,4 @@
-type textureInterface = {
+export type textureInterface = {
     top?: string
     bottom?: string
     vert?: string

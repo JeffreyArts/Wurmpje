@@ -126,7 +126,6 @@ export class Catterpillar {
     #inTouchWithEarth() {
         const headCollisions = Matter.Query.collides(this.head.body, this.world.bodies)
         const buttCollisions = Matter.Query.collides(this.butt.body, this.world.bodies)
-        console.log(headCollisions, buttCollisions)
         return (headCollisions.length > 0 && buttCollisions.length > 0) 
     }
 

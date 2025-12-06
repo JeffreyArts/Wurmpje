@@ -8,7 +8,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue"
-import gsap from "gsap"
+import useIdentityStore from "@/stores/identity"
 import matterBox from "@/components/matter-box.vue";
 import Favicon from "@/components/favicon.vue";
 
@@ -20,6 +20,12 @@ export default defineComponent ({
     },
     props: [],
     setup() {
+        const identityStore = useIdentityStore()
+        identityStore.init()
+
+        return {
+            identity: identityStore
+        }
     },
     data() {
         return {

@@ -81,7 +81,6 @@ export class Draw {
         const gridWidth = this.two.width / (blockSize + offset)
 
         // create bg Group
-        console.log(gridHeight)
         const bg = this.two.makeGroup()
         for (let y = 0; y < gridHeight; y ++) {
             for (let x = 0; x < gridWidth; x ++) {
@@ -99,7 +98,6 @@ export class Draw {
         }
         
         this.layers.unshift(bg)
-        console.log(this.layers)
     }
 
     // Zorg ervoor dat Two.js is geïnstalleerd en geïmporteerd
@@ -218,7 +216,7 @@ export class Draw {
             const part = bodyParts[index]
             const diameter = catterpillar.thickness * 1.25
             let primaryColor = Chroma(catterpillar.primaryColor)
-            const secondaryColor = Chroma(catterpillar.secondaryColor)
+            let secondaryColor = Chroma(catterpillar.secondaryColor)
 
             // Ensure primary color is not too dark
             const primaryColorLightness = primaryColor.get("hsl")[2]
