@@ -1,10 +1,21 @@
-export type IdentityField = {
-    id: number;            // 29-bit: 23 bits seconds/4 + 6 bits random
-    name: string;          // max 16 chars, letters A-Z/a-z + space
-    textureIndex: number;     // 0-1023
-    colorSchemeIndex: number; // 0-1023
-    offset: number;   // 0-15
+export type IdentityString = {
+    id: number;                 // 29-bit: 23 bits seconds/4 + 6 bits random
+    name: string;               // max 16 chars, letters A-Z/a-z + space
+    textureIndex: number;       // 0-1023
+    colorSchemeIndex: number;   // 0-1023
+    offset: number;             // 0-15
+    gender: number;             // 0 | 1
 }
+
+export type IdentityJSON = {
+    id: number;                 // 29-bit: 23 bits seconds/4 + 6 bits random
+    name: string;               // max 16 chars, letters A-Z/a-z + space
+    textureIndex: number;       // 0-1023
+    colorSchemeIndex: number;   // 0-1023
+    offset: number;             // 0-15 
+    gender: number;             // 0 | 1
+}
+
 
 // Generate and encode identity to QR-ready Base45 string of 29 + 96 + 10 + 10 + 4 = 149 bits
 export class Identity {
@@ -24,43 +35,63 @@ export class Identity {
 
 
     // Encoding
-    encode(json: IdentityField): string {
+    encode(json: IdentityString): string {
         const identity = this.validateIdentityJSON(json)
         const bytes = this.bitPack(identity)
         return this.base45Encode(bytes)
     }
 
     // Decoding
-    decode(encoded: string): IdentityField {
+    decode(encoded: string): IdentityString {
         this.validateIdentityString(encoded)
         const bytes = this.base45Decode(encoded)
         return this.bitUnpack(bytes)
     }
 
     // Encoding
-    private validateIdentityJSON(json: IdentityField): IdentityField {
-        if (typeof json !== "object" || json === null)
+    private validateIdentityJSON(json: IdentityString): IdentityString {
+        if (typeof json !== "object" || json === null) {
             throw new Error("Input must be a non-null object")
+        }
 
-        const { id, name, textureIndex, colorSchemeIndex, offset } = json
 
-        if (typeof id !== "number" || id < 0 || id > 0x1FFFFFFF)
+        const { id, name, textureIndex, colorSchemeIndex, offset, gender } = json
+
+        // Check id
+        if (typeof id !== "number" || id < 0 || id > 0x1FFFFFFF) {
             throw new Error("Invalid id: must be 0-536870911 (29-bit)")
-
-        if (typeof name !== "string" || name.length > 16)
+        }
+        
+        // Check name 
+        if (typeof name !== "string" || name.length > 16) {
             throw new Error("Invalid name: must be string of max 16 chars")
+        }
 
-        if (!/^[A-Za-z ]*$/.test(name))
+        if (!/^[A-Za-z ]*$/.test(name)) {
             throw new Error("Invalid name: must contain only letters A-Z/a-z or space")
+        }
 
-        if (typeof textureIndex !== "number" || textureIndex < 0 || textureIndex > 1023)
+        // Check textureIndex
+        if (typeof textureIndex !== "number" || textureIndex < 0 || textureIndex > 1023) {
             throw new Error("Invalid textureIndex: must be 0-1023")
-        if (typeof colorSchemeIndex !== "number" || colorSchemeIndex < 0 || colorSchemeIndex > 1023)
-            throw new Error("Invalid colorSchemeIndex: must be 0-1023")
-        if (typeof offset !== "number" || offset < 0 || offset > 15)
-            throw new Error("Invalid offset: must be 0-15")
+        }
 
-        return { id, name, textureIndex, colorSchemeIndex, offset }
+        // Check colorSchemeIndex
+        if (typeof colorSchemeIndex !== "number" || colorSchemeIndex < 0 || colorSchemeIndex > 1023){
+            throw new Error("Invalid colorSchemeIndex: must be 0-1023")
+        }
+
+        // Check offset
+        if (typeof offset !== "number" || offset < 0 || offset > 15) {
+            throw new Error("Invalid offset: must be 0-15")
+        }
+
+        // Check gender
+        if (gender != 0 && gender != 1) {
+            throw new Error("Invalid gender: must be 0 (male) or 1 (female)")
+        }
+
+        return { id, name, textureIndex, colorSchemeIndex, offset, gender }
     }
 
     // Decoding
@@ -74,8 +105,8 @@ export class Identity {
         }
 
         // UPDATE: Totaal is nu 149 bits (was 147)
-        // 149 bits / 8 = 18,625 bytes → afgerond naar 19 bytes (nog steeds 19, maar krap aan!)
-        const minBytes = Math.ceil(149 / 8) // 19 bytes
+        // 150 bits / 8 = 18,750 bytes → afgerond naar 19 bytes (nog steeds 19, maar krap aan!)
+        const minBytes = Math.ceil(150 / 8) // 19 bytes
         
         const minLength = Math.ceil(minBytes * 3 / 2) 
         if (encodedString.length < minLength) {
@@ -118,7 +149,7 @@ export class Identity {
     }
 
     // Encoding
-    private bitPack(identity: IdentityField): Uint8Array {
+    private bitPack(identity: IdentityString): Uint8Array {
         const bits: number[] = []
 
         // ID: 29 bits
@@ -139,6 +170,9 @@ export class Identity {
         // offset: 4 bits
         this.push(bits, identity.offset, 4)
 
+        // gender: 1 bit
+        this.push(bits, identity.gender, 1)
+
         // Convert bits to bytes
         const bytes = new Uint8Array(Math.ceil(bits.length / 8))
         bits.forEach((bit, i) => {
@@ -149,7 +183,7 @@ export class Identity {
     }
 
     // Decoding
-    private bitUnpack(bytes: Uint8Array): IdentityField {
+    private bitUnpack(bytes: Uint8Array): IdentityString {
 
         const bits: number[] = []
         for (let i = 0; i < bytes.length; i++) {
@@ -191,7 +225,12 @@ export class Identity {
         const offset = result.value
         cursor = result.cursor
 
-        return { id, name, textureIndex, colorSchemeIndex, offset }
+        // gender: 1 bit
+        result = this.unPush(bits, cursor, 1)
+        const gender = result.value
+        cursor = result.cursor
+
+        return { id, name, textureIndex, colorSchemeIndex, offset, gender }
     }
 
     private base45Encode(bytes: Uint8Array): string {
@@ -222,6 +261,7 @@ export class Identity {
 
         return result
     }
+
     private base45Decode(str: string): Uint8Array {
         const chars = Identity.BASE45_CHARS
         const bytes: number[] = []
