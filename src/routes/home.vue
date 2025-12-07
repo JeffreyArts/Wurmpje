@@ -20,11 +20,16 @@ export default defineComponent ({
     },
     props: [],
     setup() {
-        const identityStore = useIdentityStore()
-        identityStore.init()
+        try {
 
-        return {
-            identity: identityStore
+            const identityStore = useIdentityStore()
+            identityStore.init()
+            
+            return {
+                identity: identityStore
+            }
+        } catch (e) {
+            console.error("Failed to initialise identity store:", e)
         }
     },
     data() {
@@ -36,11 +41,17 @@ export default defineComponent ({
         meta: [
             {
                 name: "description",
-                content: "Lorem ipsum dolor samet...",
+                content: "Welcome to the world of Wurmpje, your personal digital pet!",
             },
         ]
     },
-    mounted() {
+    async mounted() {
+        await this.identity.initialised
+
+        if (!this.identity.origin) {
+            console.warn("No identity found, redirecting to setup page.")
+            this.$router.push({ name: "setup" })
+        }
     },
     methods: {
         

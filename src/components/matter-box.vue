@@ -1,11 +1,12 @@
 <template>
   
   <div id="catterpillar-container">
-    <header v-if="identity" class="catterpillar-header">
+    <header v-if="identity && identity.name" class="catterpillar-header">
         <h1 class="catterpillar-name">{{ identity.name }}</h1>
         <span class="catterpillar-age">{{ age }}</span>
     </header>
-    <div id="catterpillar" ref="catterpillar"></div>
+
+    <section id="catterpillar" ref="catterpillar"></section>
 
     <footer class="buttons-container">
         <!-- <button class="button" @click="toggleClickTo('createCatterpillar')" :class="[{'__isSelected': clickType === 'createCatterpillar'}]">
@@ -222,7 +223,7 @@ export default defineComponent ({
 
 #devmode {
     position: fixed;
-    top: 16px;
+    bottom: 16px;
     right: 16px;
 }
 </style>

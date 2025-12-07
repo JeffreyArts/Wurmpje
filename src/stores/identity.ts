@@ -58,7 +58,8 @@ const identity = defineStore("identity", {
             const identityParam = urlParams.get("i")
                     
             if (!identityParam) {
-                throw new Error("No identity found in URL parameter ?i")
+                console.warn("No identity found in URL parameter ?i")
+                return
             }
                 
             if (identityParam) {
@@ -68,7 +69,8 @@ const identity = defineStore("identity", {
         loadIdentityFromLocalStorage() {
             const identityString = localStorage.getItem("identity")
             if (!identityString) {
-                throw new Error("No identity found in local storage")
+                console.warn("No identity found in local storage")
+                return
             }
 
             if (identityString) {
