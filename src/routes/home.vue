@@ -1,6 +1,6 @@
 <template>
     <div class="home">
-        <favicon class="thumbnail-helper"/>
+        <!-- <favicon class="thumbnail-helper"/> -->
         <matter-box class="matter-box"/>
     </div>
 </template>
@@ -10,13 +10,13 @@
 import { defineComponent } from "vue"
 import useIdentityStore from "@/stores/identity"
 import matterBox from "@/components/matter-box.vue";
-import Favicon from "@/components/favicon.vue";
+// import Favicon from "@/components/favicon.vue";
 
 export default defineComponent ({ 
     name: "homePage",
     components: { 
         matterBox,
-        Favicon
+        // Favicon
     },
     props: [],
     setup() {
