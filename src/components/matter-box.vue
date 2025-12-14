@@ -16,8 +16,8 @@
         <button class="button" id="devmode" @click="toggleDevMode()" :class="[{'__isSelected': dev, '__isDisabled': !dev}]">
             Dev Mode
         </button>
-        
     </footer>
+
   </div>
 </template>
 
@@ -185,6 +185,18 @@ export default defineComponent ({
         border-radius: 8px;
     }
 
+    &.dark {
+        background-color: var(--contrast-color);
+        color: var(--primary-bg-color);
+        border: 1px solid var(--contrast-color);
+        &:hover, &:focus {
+            background-color: var(--primary-bg-color);
+            color: var(--contrast-color);
+            cursor: pointer;
+            border-radius: 2px;
+        }
+    }
+    
     &.default {
         background-color: #eee;
         color: #222;

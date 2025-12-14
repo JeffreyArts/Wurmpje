@@ -12,6 +12,7 @@
   "dependencies": {
     "chroma-js": "^3.2.0",
     "gsap": "^3.13.0",
+    "jao-icons": "^1.5.3",
     "lodash": "^4.17.21",
     "matter-js": "^0.20.0",
     "normalize.css": "^8.0.1",
