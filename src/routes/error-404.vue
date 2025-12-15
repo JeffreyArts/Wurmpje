@@ -1,7 +1,7 @@
 <template>
     <div class="page-404">
         <h1 class="page-404-title">
-            {{title}}
+            404 not <br>found
         </h1>
         <h3>{{ message }}</h3>
     </div>
