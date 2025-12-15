@@ -139,7 +139,7 @@ export class Identity {
     }
 
     // Encoding
-    private bitPack(identity: string): Uint8Array {
+    private bitPack(identity: IdentityField): Uint8Array {
         const bits: number[] = []
 
         // ID: 29 bits

@@ -2,6 +2,7 @@
 import Error404 from "@/routes/error-404.vue"
 import Home from "@/routes/home.vue"
 import Setup from "@/routes/setup.vue"
+import Scan from "@/routes/scan.vue"
 
 import { createWebHistory, createRouter } from "vue-router"
 
@@ -10,6 +11,11 @@ const routes = [
         path: "/",
         // name: "404 | Not found",
         component: Home,
+    },
+    {
+        path: "/scan",
+        name: "scan",
+        component: Scan,
     },
     {
         path: "/",

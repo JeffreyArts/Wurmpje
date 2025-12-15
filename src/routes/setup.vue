@@ -45,12 +45,12 @@
 
             <br><br><br>
 
-            <figure class="scan-qr">
+            <router-link to="/scan" class="scan-qr">
                 <jaoIcon name="camera" size="large" inactive-color="transparent" activeColor="var(--contrast-color)"/>
                 <figcaption>
                     Click on the camera and try to scan a QR code to breed your own wurmpje
                 </figcaption>
-            </figure>
+            </router-link>
         </section>
     </div>
 </template>
@@ -185,11 +185,13 @@ export default defineComponent ({
     opacity: 0;
 }
 
-.scan-qr {
+.setup .scan-qr {
     width: 256px;
     margin: 16px 0 0;
     text-align: center;
-
+    color: var(--contrast-color);
+    text-decoration: none;
+    
     svg {
         margin: auto;
         max-width: 77.7%;
