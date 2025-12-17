@@ -35,15 +35,17 @@
         </section>
         
         <section v-if="!showModal && !success" class="no-nothing">
-            <h1>Nothing to see here</h1>
-            <p>
-                You didn't thought it was a cookie banner, did you? <br>
-                Would you like to re-open the invitation modal, <br> or do you want to scan a QR code? <br>
-                <br>
-            </p>
-            <button class="button dark" @click="showModal = true">Re-open invitation modal</button>
+            <section>
+                <h1>Nothing to see here</h1>
+                <p>
+                    You didn't thought it was a cookie banner, did you? <br>
+                    Would you like to re-open the invitation modal, <br> or do you want to scan a QR code? <br>
+                    <br>
+                </p>
+                <button class="button dark" @click="showModal = true">Re-open invitation modal</button>
+            </section>
 
-            <br><br><br>
+            
 
             <router-link to="/scan" class="scan-qr">
                 <jaoIcon name="camera" size="large" inactive-color="transparent" activeColor="var(--contrast-color)"/>
@@ -183,6 +185,7 @@ export default defineComponent ({
     min-height: 100vh;
     flex-flow: column;
     opacity: 0;
+    gap: 48px;
 }
 
 .setup .scan-qr {
@@ -191,7 +194,7 @@ export default defineComponent ({
     text-align: center;
     color: var(--contrast-color);
     text-decoration: none;
-    
+
     svg {
         margin: auto;
         max-width: 77.7%;

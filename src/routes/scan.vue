@@ -1,22 +1,39 @@
 <template>
     <div class="scan-page">
+
+        <router-link class="page-go-back" to="/">
+            <jao-icon name="chevron-left-fat" size="small" inactive-color="transparent" active-color="currentColor"/>
+            <span>Go back</span>
+        </router-link>
+
         <div class="loader">
-            <jao-icon name="heart" id="loader" size="medium" inactive-color="transparent" active-color="var(--contrast-color)"/>
+            <jao-icon name="heart" id="loader" size="medium" inactive-color="transparent" active-color="currentColor"/>
         </div>
 
         <div class="qr-scanner-container">
             <video id="qr-scanner"></video>
         </div>
+        
 
-        <div class="progressbar">
-            <span class="bar" v-for="i in 48" :key="i"></span>
-        </div>
-
-        <!-- <span class="story-line-messages"> -->
+        <div class="scan-page-view-finder">
             <span class="story-line-message">
                 {{ message.text }}
             </span>
-        <!-- </span> -->
+
+            <div class="view-finder"></div>
+
+            <div class="progressbar">
+                <span class="bar" v-for="i in 48" :key="i"></span>    
+            </div>
+
+
+            <footer class="scan-page-view-finder-actions">
+                <i class="jao-icon">
+                    <jao-icon name="redo" size="medium" inactive-color="transparent" active-color="var(--contrast-color)"/>
+                    <span>try different code</span>    
+                </i>
+            </footer>
+        </div>
     </div>
 </template>
 
@@ -24,8 +41,6 @@
 import { defineComponent } from "vue"
 import useIdentityStore from "@/stores/identity"
 import matterBox from "@/components/matter-box.vue"
-import Favicon from "@/components/favicon.vue"
-// import Modal from "@/components/modal.vue"
 import jaoIcon from "@/components/jao-icon.vue"
 import gsap from "gsap"
 import QrScanner from "qr-scanner"
@@ -34,7 +49,6 @@ export default defineComponent({
     name: "setupPage",
     components: {
         matterBox,
-        Favicon,
         // Modal,
         jaoIcon,
     },
@@ -62,8 +76,7 @@ export default defineComponent({
             },
             qrScanner: null as QrScanner | null,
             lastScans: [] as Array<{timestamp: number; data: string}>,
-            readyForNextScan: true,
-            progress: 0,
+            
             scanStories: [
                 [
                     "Hey! I see something",
@@ -117,19 +130,24 @@ export default defineComponent({
             ] as Array<string>,
             failureLines: [
                 "Nope",
-                "Maybe try a different code?",
-                "Can't find one here",
+                "Maybe you can find a wurmpje in a different QR code?",
+                "I don't see a wurmpje here",
+                "Maybe one is hidden in another QR code?",
                 "Sorry, no wurmpje here",
                 "Can't find a wurmpje here",
                 "🙂‍↔️",
             ] as Array<string>,
+            storyLine: [] as Array<string>,
+            storyLineIndex: 0,
+            
+            readyForNextScan: true,
+            progress: 0,
+            
             postponeLines: [
                 "Hold a QR code in front of the camera",
                 "The QR code should be in the center of the screen",
                 "Scanning from a screen? Try decreasing the brightness",
             ] as Array<string>,
-            storyLine: [] as Array<string>,
-            storyLineIndex: 0,
             postponeIndex: 0,
             postponeTimeout: null as NodeJS.Timeout | null,
         }
@@ -181,7 +199,6 @@ export default defineComponent({
                         height: size,
                     };
                 },
-                /* your options or returnDetailedScanResult: true if you're not specifying any other options */
             },
         )
 
@@ -192,6 +209,7 @@ export default defineComponent({
             // gsap.killTweensOf(this.$el.querySelector("#loader"));
             gsap.to(this.$el.querySelector("#loader"), {duration: 0.3, opacity: 0});
             gsap.to(this.$el.querySelector("#qr-scanner"), {duration: 0.3, opacity: 1});
+            gsap.to(".scan-page-view-finder", {duration: 2, delay: .4, opacity: 1});
         }, 2000)
 
         this.setPostponeTimer()
@@ -299,18 +317,24 @@ export default defineComponent({
             if (this.qrScanner) {
                 this.qrScanner.stop()
             }
+            success = false
+            
             const qrScannerEl = this.$el.querySelector("#qr-scanner") as HTMLVideoElement
             const scanRegionHighlightEl = this.$el.querySelector(".scan-region-highlight-svg") as SVGElement
             // Navigate to next page
+            gsap.killTweensOf(".story-line-message")
             if (success) {
                 this.updateTextMessage(this.successLines[Math.floor(Math.random() * this.successLines.length)])
             } else {
-                this.updateTextMessage(this.failureLines[Math.floor(Math.random() * this.failureLines.length)])
+                this.processFailure()
             }
 
-            gsap.to(".progressbar", {
+            gsap.to(".progressbar, .view-finder", {
                 duration: 0.6,
                 borderColor: "transparent",
+            })
+            gsap.to(".view-finder", {
+                height: 0,
             })
 
             const bars = this.$el.querySelectorAll(".progressbar .bar")
@@ -332,9 +356,37 @@ export default defineComponent({
 
             gsap.to(".story-line-message", {
                 duration: .8,
-                bottom: 32,
-                delay: 1.8,
+                margin: 0,
+                delay: 1.6,
                 ease: "power1.inOut",
+            })
+
+            gsap.to(".progressbar", {
+                duration: .8,
+                height: 0,
+                margin: 0,
+                delay: 1.6,
+                ease: "power1.inOut",
+            })
+        },
+        processFailure() {
+            gsap.to(".story-line-message", {
+                duration: .8,
+                opacity: 0,
+                ease: "power1.inOut",
+                onComplete: () => {
+                    setTimeout(() => {
+                        this.updateTextMessage(this.failureLines[Math.floor(Math.random() * this.failureLines.length)])
+                    }, 800)
+
+                    gsap.to(".scan-page-view-finder-actions", {
+                        duration: 1,
+                        height: 64,
+                        delay: 2,
+                        onComplete: () => {
+                        },
+                    })
+                },
             })
         },
         updateProgress(value: number) {
@@ -370,7 +422,14 @@ export default defineComponent({
             }
         },
         setPostponeTimer() {
+            clearTimeout(this.postponeTimeout)
             this.postponeTimeout = setTimeout(() => {
+
+                // Safety check
+                if (this.storyLineIndex >= this.storyLine.length) {
+                    return
+                }
+
                 this.updateTextMessage(this.postponeLines[this.postponeIndex])
                 this.postponeIndex = (this.postponeIndex + 1) % this.postponeLines.length
                 clearTimeout(this.postponeTimeout)
@@ -417,6 +476,7 @@ export default defineComponent({
     top: 50%;
     width: 128px;
     z-index: 1;
+    pointer-events: none;
 }
 
 .scan-region-highlight-svg {
@@ -457,44 +517,126 @@ export default defineComponent({
 }
 
 .progressbar {
-    position: fixed;
-    bottom: 32px;
+    /* position: absolute; */
+    /* bottom: 50%;
     left: 50%;
-    translate: -50%;
+    translate: -50%; */
     display: flex;
     gap: 1px;
     z-index: 10;
-    border: 1px solid currentColor;
+    /* border: 1px solid currentColor; */
+    width: 80%;
+    margin-left: 10%;
     color: var(--accent-color);
     padding: 4px;
+    margin-top: 24px;
 }
 
 .progressbar .bar {
-    width: 4px;
+    width: calc(100% / 48 - 1px);
     height: 24px;
     background-color: currentColor; 
     opacity: .2;
 }
 
 .story-line-message {
-    position: fixed;
+    /* position: fixed; */
+    /* bottom: 48px; */
+    /* left: 50%; */
+    /* translate: -50% 0; */
+    margin-bottom: 32px;
+    display: inline-block;
     color: var(--accent-color);
-    bottom: 80px;
-    left: 50%;
-    translate: -50% 0;
     text-align: center;
+    width: 100%;
     font-size: clamp(16px, 4vw, 24px);
     line-height: 1;
     font-family: var(--accent-font);
     z-index: 2;
 }
 
+.scan-page-view-finder {
+    position: fixed;
+    z-index: 1;
+    top: 50%;
+    translate: -50% -50%;
+    left: 50%;
+    width: clamp(256px, calc(100% - 64px), 50vh);
+    pointer-events: none;
+    opacity: 0;
+    color: var(--accent-color);
+}
+
+.scan-page-view-finder .view-finder {
+    aspect-ratio: 1;
+    width: 100%;
+    border: 1px solid currentColor;
+}
+
+.scan-page-view-finder footer {
+    margin-top: 24px;
+    text-align: center;
+    width: 100%;
+}
+
+.scan-page-view-finder .jao-icon {
+    font-style: normal;
+    font-size: 12px;
+    display: flex;
+    font-family: var(--accent-font);
+    color: var(--contrast-color);
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+
+    svg {
+        width: 40px;
+    }
+}
+
+.page-go-back {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 199;
+    font-size: 16px;
+    display: flex;
+    flex-flow: row;
+    gap: 8px;
+    text-decoration: none;
+    font-family: var(--accent-font);
+    line-height: 1;
+    align-items: center;
+    color: var(--contrast-color);
+
+    &:visited {
+        color: var(--contrast-color)
+    }
+
+    &:active {
+        color: var(--accent-color)
+    }
+
+    svg {
+        width: 23px;
+        .jao-icon-cell[v="1"] {
+            fill: currentColor !important;
+        }
+    }
+}
+
+.scan-page-view-finder-actions {
+    width: 100%;
+    height: 0;
+    overflow: hidden;
+}
+
 @media (min-width: 768px) {
     .progressbar {
         gap: 2px;
     }
-    .progressbar .bar {
+    /* .progressbar .bar {
         width: 8px;
-    }
+    } */
 }
 </style>
