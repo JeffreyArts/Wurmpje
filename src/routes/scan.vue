@@ -601,7 +601,7 @@ export default defineComponent({
     text-align: center;
     width: 100%;
     font-size: clamp(16px, 4vw, 24px);
-    line-height: 1;
+    line-height: 1.4;
     font-family: var(--accent-font);
     z-index: 2;
 }
