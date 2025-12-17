@@ -103,6 +103,7 @@ export default defineComponent({
                 return
             }
             modalOverlay.style.pointerEvents = "none"
+            this.$emit('close-immediate')
             gsap.to(modalOverlay, {
                 opacity: 0,
                 duration: 1.28,

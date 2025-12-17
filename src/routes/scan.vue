@@ -28,7 +28,7 @@
 
 
             <footer class="scan-page-view-finder-actions">
-                <i class="jao-icon">
+                <i class="jao-icon" @click="restartScan">
                     <jao-icon name="redo" size="medium" inactive-color="transparent" active-color="var(--contrast-color)"/>
                     <span>try different code</span>    
                 </i>
@@ -79,6 +79,9 @@ export default defineComponent({
             
             scanStories: [
                 [
+                    "I think I saw one!",
+                ],
+                [
                     "Hey! I see something",
                     "Try to center the QR code in the camera view.",
                 ],
@@ -113,9 +116,6 @@ export default defineComponent({
                     "Patience.. it's almost perfect."
                 ],
                 [
-                    "I think I saw one!",
-                ],
-                [
                     "Hmmmm... Let's focus",
                     "A little bit more",
                     "A bit more...",
@@ -132,10 +132,11 @@ export default defineComponent({
                 "Nope",
                 "Maybe you can find a wurmpje in a different QR code?",
                 "I don't see a wurmpje here",
-                "Maybe one is hidden in another QR code?",
+                "Maybe in another QR code?",
                 "Sorry, no wurmpje here",
                 "Can't find a wurmpje here",
                 "🙂‍↔️",
+                "🐛🔍",
             ] as Array<string>,
             storyLine: [] as Array<string>,
             storyLineIndex: 0,
@@ -150,6 +151,7 @@ export default defineComponent({
             ] as Array<string>,
             postponeIndex: 0,
             postponeTimeout: null as NodeJS.Timeout | null,
+            updateTextMessageTween: null as gsap.core.Tween | null,
         }
     },
     head: {
@@ -163,47 +165,11 @@ export default defineComponent({
         ],
     },
     async mounted() {
+
         this.beatingHeart()
-        this.storyLine = this.scanStories[ Math.floor(Math.random() * this.scanStories.length) ]
+        this.initiareQrScanner()
+        this.setPostponeTimer()
 
-        // await this.identity.initialised
-
-        const videoEl = document.getElementById(
-            "qr-scanner",
-        ) as HTMLVideoElement
-        this.qrScanner = new QrScanner(
-            videoEl,
-            this.onScan,
-            {
-                maxScansPerSecond: 8,
-                highlightScanRegion: true,
-                highlightCodeOutline: true,
-                calculateScanRegion: () => {
-                    const video = this.$el.querySelector('#qr-scanner') as HTMLVideoElement;
-
-                    if (!video.videoWidth || !video.videoHeight) {
-                        return {
-                            x: 0,
-                            y: 0,
-                            width: 1,
-                            height: 1,
-                        };
-                    }
-
-                    const size = Math.min(video.videoWidth, video.videoHeight);
-
-                    return {
-                        x: (video.videoWidth - size) / 2,
-                        y: (video.videoHeight - size) / 2,
-                        width: size,
-                        height: size,
-                    };
-                },
-            },
-        )
-
-        // Kill hear tween
-        this.qrScanner.start();
         setTimeout(() => {
             gsap.killTweensOf(this.$el.querySelector("#loader"))
             // gsap.killTweensOf(this.$el.querySelector("#loader"));
@@ -211,10 +177,48 @@ export default defineComponent({
             gsap.to(this.$el.querySelector("#qr-scanner"), {duration: 0.3, opacity: 1});
             gsap.to(".scan-page-view-finder", {duration: 2, delay: .4, opacity: 1});
         }, 2000)
-
-        this.setPostponeTimer()
+        
     },
     methods: {
+        initiareQrScanner() {
+            this.storyLine = this.scanStories[ Math.floor(Math.random() * this.scanStories.length) ]
+            const videoEl = document.getElementById(
+                "qr-scanner",
+            ) as HTMLVideoElement
+            this.qrScanner = new QrScanner(
+                videoEl,
+                this.onScan,
+                {
+                    maxScansPerSecond: 8,
+                    highlightScanRegion: true,
+                    highlightCodeOutline: true,
+                    calculateScanRegion: () => {
+                        const video = this.$el.querySelector('#qr-scanner') as HTMLVideoElement;
+
+                        if (!video.videoWidth || !video.videoHeight) {
+                            return {
+                                x: 0,
+                                y: 0,
+                                width: 1,
+                                height: 1,
+                            };
+                        }
+
+                        const size = Math.min(video.videoWidth, video.videoHeight);
+
+                        return {
+                            x: (video.videoWidth - size) / 2,
+                            y: (video.videoHeight - size) / 2,
+                            width: size,
+                            height: size,
+                        };
+                    },
+                },
+            )
+
+            // Kill hear tween
+            this.qrScanner.start();
+        },
         beatingHeart() {
             const heart = this.$el.querySelector("#loader")
             if (heart) {
@@ -284,8 +288,11 @@ export default defineComponent({
         onScan(result: {data: string, cornerPoints: Array<{x: number, y: number}>}) {
             const { data, cornerPoints } = result
             const dimensions = this.calculateDimensions(cornerPoints)
-
-            clearTimeout(this.postponeTimeout)
+            
+            if (this.postponeTimeout) {
+                clearTimeout(this.postponeTimeout)
+            }
+            
             this.setPostponeTimer()
 
             if (!this.readyForNextScan) {
@@ -377,7 +384,7 @@ export default defineComponent({
                 onComplete: () => {
                     setTimeout(() => {
                         this.updateTextMessage(this.failureLines[Math.floor(Math.random() * this.failureLines.length)])
-                    }, 800)
+                    }, 640)
 
                     gsap.to(".scan-page-view-finder-actions", {
                         duration: 1,
@@ -437,17 +444,62 @@ export default defineComponent({
             }, 8000)
         },
         updateTextMessage(text: string) {
-            gsap.to(".story-line-message", {
+            if (this.updateTextMessageTween) {
+                this.updateTextMessageTween.kill()
+            }
+
+            this.updateTextMessageTween = gsap.to(".story-line-message", {
                 duration: 0.32,
                 opacity: 0,
                 onComplete: () => {
+                    console.log("Updating text message fade in:", text)
                     this.message.text = text
-                    gsap.to(".story-line-message", {
+                    this.updateTextMessageTween = gsap.to(".story-line-message", {
                         duration: 0.6,
                         opacity: 1,
                     })
                 },
             })
+        },
+        restartScan() {
+            this.progress = 0
+            this.storyLineIndex = 0
+
+            this.updateTextMessage("")
+            
+            gsap.killTweensOf(".progressbar .bar")
+            gsap.killTweensOf(".progressbar")
+            gsap.killTweensOf(".scan-page-view-finder-actions")
+            gsap.killTweensOf(".progressbar, .view-finder")
+            gsap.killTweensOf("#qr-scanner")
+            
+            gsap.set(".progressbar .bar", { y: 0, rotate: 0, opacity: 0.2 })
+            gsap.set(".progressbar", { duration:0, marginTop: 24, height: 34, borderColor: "currentColor" })
+            gsap.set(".story-line-message", { marginBottom: 32})
+
+            gsap.to(".scan-page-view-finder-actions", {
+                duration: .2,
+                height: 0,
+            })
+
+            gsap.fromTo(".view-finder",{
+                height: "auto",
+                width: 0
+            }, {
+                duration: 0.6,
+                width: "100%",
+                borderColor: "currentColor",
+            })
+
+            gsap.to(this.$el.querySelector(".qr-scanner-container"), {
+                duration: 0.3,
+                opacity: 1,
+                onComplete: () => {
+                    this.initiareQrScanner()
+                    this.readyForNextScan = true
+                }
+            });
+
         },
     },
 })
@@ -526,7 +578,6 @@ export default defineComponent({
     z-index: 10;
     /* border: 1px solid currentColor; */
     width: 80%;
-    margin-left: 10%;
     color: var(--accent-color);
     padding: 4px;
     margin-top: 24px;
@@ -562,9 +613,11 @@ export default defineComponent({
     translate: -50% -50%;
     left: 50%;
     width: clamp(256px, calc(100% - 64px), 50vh);
-    pointer-events: none;
     opacity: 0;
     color: var(--accent-color);
+    display: flex;
+    flex-flow: column;
+    align-items: center;
 }
 
 .scan-page-view-finder .view-finder {

@@ -1,6 +1,6 @@
 <template>
     <div class="setup">
-        <Modal v-if="showModal" :is-open="showModal" :auto-close="false" @close="closeModal" @submit="subscribe()">
+        <Modal v-if="showModal" :is-open="showModal" :auto-close="false" @close="closeModal" @close-immediate="closeModalImmediate" @submit="subscribe()">
             
             <template #title>
                 <h2>Welcome</h2>
@@ -26,15 +26,8 @@
             </template>
         </Modal>
 
-
-        <section class="subscribed" v-if="success">
-            <h1>Thank you for your interest!</h1>
-            <p>
-                I'll do my best to send you an invitation link as soon as I can!
-            </p>
-        </section>
         
-        <section v-if="!showModal && !success" class="no-nothing">
+        <section v-if="!success" class="site-container">
             <section>
                 <h1>Nothing to see here</h1>
                 <p>
@@ -44,6 +37,14 @@
                 </p>
                 <button class="button dark" @click="showModal = true">Re-open invitation modal</button>
             </section>
+
+
+                <section class="subscribed" v-if="success">
+                    <h1>Thank you for your interest!</h1>
+                    <p>
+                        I'll do my best to send you an invitation link as soon as I can!
+                    </p>
+                </section>
 
             
 
@@ -112,11 +113,11 @@ export default defineComponent ({
 
     },
     methods: {
+        closeModalImmediate() {
+            gsap.to(".site-container", {duration: 0.6, opacity: 1})
+        },
         closeModal() {
             this.showModal = false
-            setTimeout(() => {  
-                gsap.to(".no-nothing", {duration: 0.3, opacity: 1})
-            })
         },
         subscribe() {
             fetch(`${import.meta.env.VITE_PAYLOAD_REST_ENDPOINT}/newsletter-subscriptions`, { 
@@ -176,7 +177,7 @@ export default defineComponent ({
     flex-flow: column;
 }
 
-.setup .no-nothing {
+.setup .site-container {
     display: flex;
     justify-content: center;
     align-items: center;

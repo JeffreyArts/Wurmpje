@@ -9,13 +9,9 @@
     <section id="catterpillar" ref="catterpillar"></section>
 
     <footer class="buttons-container">
-        <!-- <button class="button" @click="toggleClickTo('createCatterpillar')" :class="[{'__isSelected': clickType === 'createCatterpillar'}]">
-            Create Catterpillar
-        </button> -->
-
-        <button class="button" id="devmode" @click="toggleDevMode()" :class="[{'__isSelected': dev, '__isDisabled': !dev}]">
+        <!-- <button class="button" id="devmode" @click="toggleDevMode()" :class="[{'__isSelected': dev, '__isDisabled': !dev}]">
             Dev Mode
-        </button>
+        </button> -->
     </footer>
 
   </div>
