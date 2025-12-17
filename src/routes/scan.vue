@@ -8,16 +8,15 @@
             <video id="qr-scanner"></video>
         </div>
 
-        <span class="story-line-messages">
-            <span class="story-line-message" :style="{
-                left: message.x + 'px',
-                top: message.y + 'px',
-                width: message.width + 'px',
-                rotate: message.rotation + 'rad',
-            }">
+        <div class="progressbar">
+            <span class="bar" v-for="i in 48" :key="i"></span>
+        </div>
+
+        <!-- <span class="story-line-messages"> -->
+            <span class="story-line-message">
                 {{ message.text }}
             </span>
-        </span>
+        <!-- </span> -->
     </div>
 </template>
 
@@ -64,6 +63,7 @@ export default defineComponent({
             qrScanner: null as QrScanner | null,
             lastScans: [] as Array<{timestamp: number; data: string}>,
             readyForNextScan: true,
+            progress: 0,
             scanStories: [
                 [
                     "Hey! I see something",
@@ -123,8 +123,15 @@ export default defineComponent({
                 "Can't find a wurmpje here",
                 "🙂‍↔️",
             ] as Array<string>,
+            postponeLines: [
+                "Hold a QR code in front of the camera",
+                "The QR code should be in the center of the screen",
+                "Scanning from a screen? Try decreasing the brightness",
+            ] as Array<string>,
             storyLine: [] as Array<string>,
             storyLineIndex: 0,
+            postponeIndex: 0,
+            postponeTimeout: null as NodeJS.Timeout | null,
         }
     },
     head: {
@@ -186,6 +193,8 @@ export default defineComponent({
             gsap.to(this.$el.querySelector("#loader"), {duration: 0.3, opacity: 0});
             gsap.to(this.$el.querySelector("#qr-scanner"), {duration: 0.3, opacity: 1});
         }, 2000)
+
+        this.setPostponeTimer()
     },
     methods: {
         beatingHeart() {
@@ -256,12 +265,10 @@ export default defineComponent({
         },
         onScan(result: {data: string, cornerPoints: Array<{x: number, y: number}>}) {
             const { data, cornerPoints } = result
-
-
-
-
             const dimensions = this.calculateDimensions(cornerPoints)
 
+            clearTimeout(this.postponeTimeout)
+            this.setPostponeTimer()
 
             if (!this.readyForNextScan) {
                 return
@@ -281,68 +288,107 @@ export default defineComponent({
             
             
             if (recentScans.length >= 2 && allSame) {
-                
-                this.message =  {
-                    x: dimensions.x,
-                    y: dimensions.y,
-                    text: this.storyLine[this.storyLineIndex],
-                    width: dimensions.width,
-                    // height: dimensions.height,
-                    rotation: dimensions.rotation,
-                }
                 this.readyForNextScan = false
-
-                gsap.to(".qr-scanner-container", {
-                    duration: 1,
-                    delay: 0,
-                    opacity: 0,
-                    repeat: 1,
-                    yoyo: true
-                })
-
-                 gsap.to(".story-line-message", {
-                    duration: 0.4, 
-                    opacity: 1, 
-                    y: 0,
-                    // scale: 1,
-                    ease: "elastic.out(1.7)",
-                    onComplete: () => {
-                        setTimeout(() => {
-                            this.readyForNextScan = true
-                            this.storyLineIndex++
-                            if (this.storyLineIndex >= this.storyLine.length) {
-                                // Parse data for Identity code
-                                this.readyForNextScan = false
-                                this.endScan(Math.random() < 0.5)
-                            }
-                        }, 2000)
-                    }
-                })                
+                this.updateProgress(this.storyLineIndex + 1)
+   
             }
         },
         endScan(success: boolean) {
+            clearTimeout(this.postponeTimeout)
+
             if (this.qrScanner) {
                 this.qrScanner.stop()
             }
             const qrScannerEl = this.$el.querySelector("#qr-scanner") as HTMLVideoElement
             const scanRegionHighlightEl = this.$el.querySelector(".scan-region-highlight-svg") as SVGElement
-            const x = (qrScannerEl.videoWidth - qrScannerEl.videoHeight) / 2
-            const y = (qrScannerEl.videoHeight) / 2
             // Navigate to next page
             if (success) {
-                this.message.text = this.successLines[Math.floor(Math.random() * this.successLines.length)]
+                this.updateTextMessage(this.successLines[Math.floor(Math.random() * this.successLines.length)])
             } else {
-                this.message.text = this.failureLines[Math.floor(Math.random() * this.failureLines.length)]
+                this.updateTextMessage(this.failureLines[Math.floor(Math.random() * this.failureLines.length)])
             }
-            this.message.x = x
-            this.message.y = y
-            this.message.width = "auto"
-            this.message.rotation = -.06 - Math.random() * 0.01
-            // if (success) {
-            //     this.$router.push({ name: "setup" })
-            // } else {
-            //     this.$router.push({ name: "home" })
-            // }
+
+            gsap.to(".progressbar", {
+                duration: 0.6,
+                borderColor: "transparent",
+            })
+
+            const bars = this.$el.querySelectorAll(".progressbar .bar")
+            for (let i = 0; i < bars.length; i++) {
+                const barEl = bars[i]
+                gsap.to(barEl, {
+                    duration: 1,
+                    y: 128,
+                    ease: "elastic.in(1, 0.8)",
+                    rotate: Math.random() * 16 - 8,
+                    delay: Math.random() * 0.4,
+                })
+                gsap.to(barEl, {
+                    duration: 1,
+                    opacity: 0,
+                    delay: .5,
+                })
+            }
+
+            gsap.to(".story-line-message", {
+                duration: .8,
+                bottom: 32,
+                delay: 1.8,
+                ease: "power1.inOut",
+            })
+        },
+        updateProgress(value: number) {
+            const bars = this.$el.querySelectorAll(".progressbar .bar")
+            const maxBars = bars.length
+            const startPoint = this.progress
+            this.progress = Math.round(value / this.storyLine.length * maxBars )  
+            this.updateTextMessage(this.storyLine[this.storyLineIndex])
+            
+            const animateBars = bars
+            let delay = 0
+            for (let i = startPoint; i < this.progress; i++) {
+                const barEl = bars[i]
+                const animation = {
+                    duration: 0.8,
+                    opacity: 1,
+                    delay: delay,
+                }
+
+                if (i === this.progress - 1) {
+                    animation['onComplete'] = () => {
+                        this.storyLineIndex++
+                        this.readyForNextScan = true
+                        if (this.storyLineIndex >= this.storyLine.length) {
+                            // Parse data for Identity code
+                            this.readyForNextScan = false
+                            this.endScan(Math.random() < 0.5)
+                        }
+                    }
+                }
+                gsap.to(barEl, animation)
+                delay += 0.05
+            }
+        },
+        setPostponeTimer() {
+            this.postponeTimeout = setTimeout(() => {
+                this.updateTextMessage(this.postponeLines[this.postponeIndex])
+                this.postponeIndex = (this.postponeIndex + 1) % this.postponeLines.length
+                clearTimeout(this.postponeTimeout)
+                this.setPostponeTimer()
+            }, 8000)
+        },
+        updateTextMessage(text: string) {
+            gsap.to(".story-line-message", {
+                duration: 0.32,
+                opacity: 0,
+                onComplete: () => {
+                    this.message.text = text
+                    gsap.to(".story-line-message", {
+                        duration: 0.6,
+                        opacity: 1,
+                    })
+                },
+            })
         },
     },
 })
@@ -377,7 +423,7 @@ export default defineComponent({
     /* display: none; */
 }
 
-.story-line-messages {
+/* .story-line-messages {
     position: fixed;
     left: 50%;
     top: 50%;
@@ -401,12 +447,54 @@ export default defineComponent({
     line-height: 1.2;
     font-family: var(--accent-font);
     translate: -50% -50%;
-    scale: -1 1;
+    scale: -1 1 !important;
     opacity: 0;
     width: auto !important;
     translate: 0 8px;
-}
+} */
 .scan-region-highlight {
     opacity: 0 !important;
+}
+
+.progressbar {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    translate: -50%;
+    display: flex;
+    gap: 1px;
+    z-index: 10;
+    border: 1px solid currentColor;
+    color: var(--accent-color);
+    padding: 4px;
+}
+
+.progressbar .bar {
+    width: 4px;
+    height: 24px;
+    background-color: currentColor; 
+    opacity: .2;
+}
+
+.story-line-message {
+    position: fixed;
+    color: var(--accent-color);
+    bottom: 80px;
+    left: 50%;
+    translate: -50% 0;
+    text-align: center;
+    font-size: clamp(16px, 4vw, 24px);
+    line-height: 1;
+    font-family: var(--accent-font);
+    z-index: 2;
+}
+
+@media (min-width: 768px) {
+    .progressbar {
+        gap: 2px;
+    }
+    .progressbar .bar {
+        width: 8px;
+    }
 }
 </style>
