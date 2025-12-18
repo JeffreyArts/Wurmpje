@@ -42,6 +42,7 @@ import { defineComponent } from "vue"
 import useIdentityStore from "@/stores/identity"
 import matterBox from "@/components/matter-box.vue"
 import jaoIcon from "@/components/jao-icon.vue"
+import Identity, { type IdentityField } from "@/models/identity"
 import gsap from "gsap"
 import QrScanner from "qr-scanner"
 
@@ -300,7 +301,7 @@ export default defineComponent({
             }
 
             if (data) {
-                this.lastScans.push({ timestamp: Date.now(), data: "scanned data" })
+                this.lastScans.push({ timestamp: Date.now(), data })
             }
             
             // Check if last 4 scans happened within 3 seconds and are the same
@@ -318,19 +319,19 @@ export default defineComponent({
    
             }
         },
-        endScan(success: boolean) {
+        async endScan(success: boolean) {
             clearTimeout(this.postponeTimeout)
 
             if (this.qrScanner) {
                 this.qrScanner.stop()
             }
-            success = false
             
-            const qrScannerEl = this.$el.querySelector("#qr-scanner") as HTMLVideoElement
-            const scanRegionHighlightEl = this.$el.querySelector(".scan-region-highlight-svg") as SVGElement
             // Navigate to next page
             gsap.killTweensOf(".story-line-message")
-            if (success) {
+
+            const identityObject = await this.validateQR(this.lastScans[this.lastScans.length - 1].data)
+            if (identityObject) {
+                console.log("Validated identity object:", identityObject, this.identity.getLatinName(identityObject.textureIndex, identityObject.colorSchemeIndex))
                 this.updateTextMessage(this.successLines[Math.floor(Math.random() * this.successLines.length)])
             } else {
                 this.processFailure()
@@ -501,6 +502,23 @@ export default defineComponent({
             });
 
         },
+        async validateQR(scannedData: string): Promise<IdentityField | null> {
+            const identity = new Identity()
+            const identityObject = await identity.deriveIdentityFromHash(scannedData)
+            
+            if (identityObject.textureIndex >= this.identity.totalTextures()) {
+                return null
+            }
+
+            if (identityObject.colorSchemeIndex >= this.identity.totalColorSchemes()) {
+                return null
+            }
+
+            // Make gender always random for scanned wurmpjes
+            identityObject.gender = Math.random() < 0.5 ? 0 : 1
+
+            return identityObject
+        }
     },
 })
 </script>

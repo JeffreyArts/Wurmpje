@@ -39,6 +39,34 @@ export class Identity {
         return this.bitUnpack(bytes)
     }
 
+
+    // --- Generate Identity from String ---
+    async deriveIdentityFromHash(string: string): Promise<IdentityField> {
+        const data = new TextEncoder().encode(string)
+        const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", data))
+        let bitIndex = 0
+
+        function readBits(n: number): number {
+            let val = 0
+            for (let i = 0; i < n; i++) {
+                const byte = hash[Math.floor(bitIndex / 8)]
+                const bit = (byte >> (7 - (bitIndex % 8))) & 1
+                val = (val << 1) | bit
+                bitIndex++
+            }
+            return val
+        }
+
+        return {
+            id: this.generateId(),
+            name: "",
+            textureIndex: readBits(10),      // 0-1023
+            colorSchemeIndex: readBits(10),  // 0-1023
+            offset: readBits(4),             // 0-15
+            gender: readBits(1)              // 0 of 1
+        }
+    }
+
     // Encoding
     private validateIdentityJSON(json: IdentityField): IdentityField {
         if (typeof json !== "object" || json === null) {

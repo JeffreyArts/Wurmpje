@@ -95,6 +95,23 @@ const identity = defineStore("identity", {
                 localStorage.setItem("birthDate", new Date().toISOString())
             }
             localStorage.setItem("identity", identityString)
+        },
+        totalColorSchemes() {
+            return ColorScheme.length
+        },
+        totalTextures() {
+            return Textures.length
+        },
+        getLatinName(colorSchemeIndex: number, textureIndex: number): string {
+
+            const texture = Textures[textureIndex]
+            const colorScheme = ColorScheme[colorSchemeIndex]
+
+            if (!texture || !colorScheme) {
+                return "undefinedius"
+            }
+
+            return `${texture.name} ${colorScheme.name}`
         }
     },
     getters: {
