@@ -65,6 +65,7 @@ export default defineComponent ({
     },
     async mounted() {
         this.controller = new MatterController( this.$refs["catterpillar"] as HTMLElement, {
+            identity: this.identity,
             length: this.identity.length,
             thickness: this.identity.thickness,
             catterpillarPos: { x: window.innerWidth / 2, y: 100}

@@ -34,7 +34,7 @@ export class MatterController {
         offsetBottom?: number
     } ) {
 
-        const catterpillarOptions = {} as { identity?: IdentityField, length?: number, thickness?: number }
+        const catterpillarOptions = {} as { identity: IdentityField, length?: number, thickness?: number }
 
         if (!options) {
             options = {}
@@ -51,9 +51,7 @@ export class MatterController {
             catterpillarOptions.thickness = thickness
         }
 
-        if (this.identity) {
-            catterpillarOptions.identity = this.identity
-        }
+        catterpillarOptions.identity = identity
         
         this.ref = new MatterSetup(target, {
             devMode: true
@@ -90,7 +88,7 @@ export class MatterController {
             this.catterpillar.y < 0 || this.catterpillar.y > this.ref.renderer.options.height ) {
             // Re-center Catterpillar
             this.catterpillar.remove()
-            this.createCatterpillar({ x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 })  
+            this.createCatterpillar({ x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }, { identity: this.identity, length: this.catterpillar.length, thickness: this.catterpillar.thickness })  
          
         }
 
@@ -288,19 +286,16 @@ export class MatterController {
         if (!identity) {
             const id = this.ref.world.composites.filter(c => c.label.startsWith("catterpillar")).length + 1
 
-            const colorSchemeIndex = Math.floor(ColorSchemes.length * Math.random())
-            // const textureIndex = Math.floor(Textures.length * Math.random())
-            const textureIndex = Textures.length-1
-
             identity = {
                 id,
                 name: "catterpillar",
-                textureIndex: textureIndex,
-                colorSchemeIndex: colorSchemeIndex,
+                textureIndex: identity.textureIndex,
+                colorSchemeIndex: identity.colorSchemeIndex,
                 offset: Math.floor(Math.random() * 16),
                 gender: Math.random() > 0.5 ? 1 : 0
             }
         }
+        this.identity = identity
 
         const length = options?.length ? options.length : 9
         const thickness = options?.thickness ? options.thickness : 20

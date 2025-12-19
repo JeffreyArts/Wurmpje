@@ -132,17 +132,10 @@ const identity = defineStore("identity", {
         },
         async loadIdentityFromLocalStorage() {
             const identityId = localStorage.getItem("selectedIdentity")
-            const identity = await this.findIdentityInDatabase("id", identityId ? parseInt(identityId) : 0) as DBIdentity
+            // const identity = await this.findIdentityInDatabase("id", identityId ? parseInt(identityId) : 0) as DBIdentity
             
             if (identity) {
-                this.current = {
-                    ...identity,
-                    texture:  Textures[identity.textureIndex],
-                    primaryColor:  ColorScheme[identity.colorSchemeIndex].colors[0],
-                    secondaryColor:  ColorScheme[identity.colorSchemeIndex].colors[1],
-                    gender:  identity.gender,
-                    age: this.calculateAgeInDays(identity.created),
-                }
+                await this.selectIdentity(parseInt(identityId))
             } else {
                 console.warn(`Identity with id ${identityId} not found in database`)
             }
@@ -268,7 +261,6 @@ const identity = defineStore("identity", {
                     length: identity.length,
                     thickness: identity.thickness
                 } 
-                this.preloadTextures()
             } else {
                 console.warn(`Identity with id ${id} not found in database`)
             }
