@@ -11,7 +11,7 @@
             <!-- DEFAULT SLOT -->
             <slot></slot>
             <div v-if="!hideSubmit" class="modal-actions">
-                <button class="modal-submit" @click="handleSubmit">
+                <button class="modal-submit" type="submit" ref="modalSubmit" @click="handleSubmit">
                     <!-- SUBMIT TEXT SLOT -->
                     <slot name="submit-text">Submit</slot>
                 </button>
@@ -67,16 +67,26 @@ export default defineComponent({
     },
     mounted() {
         document.addEventListener('keydown', this.handleEscape)
+
+        const formEl = this.$el.querySelector("form")
+        if (formEl.id) {
+            const submitButton = this.$refs.modalSubmit as HTMLButtonElement
+            submitButton.setAttribute("form", formEl.id)
+        }
     },
     beforeUnmount() {
         document.removeEventListener('keydown', this.handleEscape)
     },
     methods: {
         openModal() {
+            const modalOverlay = this.$refs.modalOverlay as HTMLElement
+            const modalContent = this.$refs.modalContent as HTMLElement
+
+            gsap.killTweensOf(modalOverlay)
+            gsap.killTweensOf(modalContent)
+
             this.$nextTick(() => {
-                const modalOverlay = this.$refs.modalOverlay as HTMLElement
-                const modalContent = this.$refs.modalContent as HTMLElement
-                
+    
                 if (!modalOverlay || !modalContent) {
                     return
                 }
@@ -102,6 +112,7 @@ export default defineComponent({
             if (!modalOverlay || !modalContent) {
                 return
             }
+            
             modalOverlay.style.pointerEvents = "none"
             this.$emit('close-immediate')
             gsap.to(modalOverlay, {
@@ -162,8 +173,7 @@ export default defineComponent({
 .modal-content {
     background-color: var(--bg-color);
     padding: 24px;
-    width: 100%;
-    max-width: calc(100% - 64px);
+    width: clamp(240px, calc(100% - 64px - 64px), 640px);
     max-height: 90vh;
     position: relative;
     font-family: var(--default-font);
@@ -210,13 +220,6 @@ export default defineComponent({
     &:focus {
         opacity: 0.9;
         scale: 1.1;
-    }
-}
-
-@media (min-width: 640px) {
-    .modal-content {
-        width: auto;
-        min-width: 400px;
     }
 }
 </style> 

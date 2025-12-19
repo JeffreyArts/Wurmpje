@@ -11,10 +11,10 @@
                 You can also try to breed your own wurmpje via a qr-code.
             </p>
 
-            <form @submit.prevent="subscribe()">
+            <form @submit.prevent="subscribe()" id="submit-email-form">
                 <div class="row">
                     <i class="icon">
-                        <jao-icon name="mail" size="large" inactive-color="transparent" activeColor="var(--bg-color)" @click="closeModal" />
+                        <jao-icon name="mail" size="large" inactive-color="transparent" activeColor="var(--bg-color)" />
                     </i>
                     <input type="email" id="email" class="input large" v-model="email" />
                 </div>
@@ -27,31 +27,30 @@
         </Modal>
 
         
-        <section v-if="!success" class="site-container">
-            <section>
+        <section v-if="showContent" class="site-container">
+            <section v-if="!success">
                 <h1>Nothing to see here</h1>
                 <p>
                     You didn't thought it was a cookie banner, did you? <br>
                     Would you like to re-open the invitation modal, <br> or do you want to scan a QR code? <br>
                     <br>
                 </p>
-                <button class="button dark" @click="showModal = true">Re-open invitation modal</button>
+                <button class="button dark" @click="openModal()">Re-open invitation modal</button>
             </section>
 
+            <section class="subscribed" v-if="success">
+                <h1>Thank you for your interest!</h1>
+                <p>
+                    I'll do my best to send you an invitation link as soon as I can! <br><br>
+                    In the meantime, you can try to scan a QR code to see if you can find a wurmpje in there.
+                </p>
+            </section>
 
-                <section class="subscribed" v-if="success">
-                    <h1>Thank you for your interest!</h1>
-                    <p>
-                        I'll do my best to send you an invitation link as soon as I can!
-                    </p>
-                </section>
-
-            
 
             <router-link to="/scan" class="scan-qr">
                 <jaoIcon name="camera" size="large" inactive-color="transparent" activeColor="var(--contrast-color)"/>
                 <figcaption>
-                    Click on the camera and try to scan a QR code to breed your own wurmpje
+                    Click on the camera and try to scan a QR code to search for a wurmpje
                 </figcaption>
             </router-link>
         </section>
@@ -96,6 +95,7 @@ export default defineComponent ({
             success: "",
             error: "",
             showModal: true,
+            showContent: false
             
         }
     },
@@ -113,13 +113,28 @@ export default defineComponent ({
 
     },
     methods: {
-        closeModalImmediate() {
-            gsap.to(".site-container", {duration: 0.6, opacity: 1})
+        closeModalImmediate(fn?: () => void) {
+            this.showContent = true
+            setTimeout(() => {
+                gsap.to(".site-container", {duration: 0.6, opacity: 1, onComplete: () => {
+                    if (fn) {
+                        fn()
+                    }   
+                }})
+            })
         },
         closeModal() {
             this.showModal = false
         },
+        openModal() {
+            // This timeout is needed to force a reset of the modal component
+            this.showModal = false
+            setTimeout(() => {
+                this.showModal = true
+            }, 0)
+        },
         subscribe() {
+            this.closeModalImmediate()
             fetch(`${import.meta.env.VITE_PAYLOAD_REST_ENDPOINT}/newsletter-subscriptions`, { 
                 method: "POST",
                 headers: { 
@@ -172,7 +187,6 @@ export default defineComponent ({
     justify-content: center;
     align-items: center;
     width: 100%;
-    min-height: 100vh;
     text-align: center;
     flex-flow: column;
 }
@@ -205,6 +219,12 @@ export default defineComponent ({
     figcaption {
         font-family: var(--accent-font);
         font-size: 14px;
+    }
+}
+
+.setup {
+    .icon + .input {
+        max-width: calc(100% - 40px);
     }
 }
 </style>
