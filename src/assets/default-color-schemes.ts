@@ -90,7 +90,28 @@ export default [
     { "colors":["#a86192","#e84a4a"],"name": "discolumen" },
     { "colors":["#dd5a5a","#c0d071"],"name": "stellafunk" },
     { "colors":["#5ac7dd","#fb7941"],"name": "grooventia" },
-    { "colors":["#4076b0","#333333"],"name": "discorum" }
+    { "colors":["#4076b0","#333333"],"name": "discorum" },
+
+
+    // Tessel color schemes:
+    { "colors": ["#dfefca","#487f7c"], name:"schaticus" },
+    { "colors": ["#f45c27","#dfefca"], name:"lieverdicus" },
+    { "colors": ["#266433","#dfefca"], name:"liefia" },
+    { "colors": ["#266433","#add0ee"], name:"moppia" },
+    { "colors": ["#266433","#d1c4e9"], name:"cutieus" },
+    { "colors": ["#032f98","#d1c4e9"], name:"snoesia" },
+    { "colors": ["#d1c4e9","#266433"], name:"lieffius" },
+    { "colors": ["#add0ee","#266433"], name:"dropius" },
+    { "colors": ["#dfefca","#add0ee"], name:"bloempia" },
+    { "colors": ["#032f98","#add0ee"], name:"knuffelberus" },
+    { "colors": ["#add0ee","#032f98"], name:"hartendivus" },
+    { "colors": ["#d1c4e9","#032f98"], name:"liefje" },
+    { "colors": ["#032f98","#f45c27"], name:"zonestralus" },
+    { "colors": ["#dfefca","#f45c27"], name:"schattebautius" },
+    { "colors": ["#add0ee","#f45c27"], name:"schatieus" },
+    { "colors": ["#6d2d59","#f45c27"], name:"liefieus" },
+    { "colors": ["#dfefca","#6d2d59"], name:"moppieus" },
+
 ] as Array<ColorScheme>
 
 

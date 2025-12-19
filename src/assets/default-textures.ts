@@ -7,753 +7,167 @@ export type textureInterface = {
     disabled?: boolean
     name?: string
 }
-export default [{
-    "360": "worms",
-    "stroke": false,
-    "name": "Aurian",
-}, {
-    "360": "paths",
-    "stroke": false,
-    "name": "Rudolfius"
-}, {
-    "360": "panter",
-    "stroke": false,
-    "name": "Serpetra"
-}, {
-    "360": "panter",
-    "stroke": true,
-    "name": "Patriciella"
-}, {
-    "360": "leafs",
-    "stroke": false,
-    "name": "Corpatrick"
-}, {
-    "360": "leafs",
-    "stroke": true,
-    "name": "Rubanus"
-}, {
-    "360": "giraffe",
-    "stroke": false,
-    "name": "Maartjilla"
-}, {
-    "360": "giraffe",
-    "stroke": true,
-    "name": "Erikellus"
-}, {
-    "360": "dots",
-    "stroke": false,
-    "name": "Jeroenimus"
-}, {
-    "360": "dots",
-    "stroke": true,
-    "name": "Rachella"
-}, {
-    "360": "cow",
-    "stroke": false,
-    "name": "Jonius"
-}, {
-    "360": "cow",
-    "stroke": true,
-    "name": "Mauella"
-}, {
-    "360": "camo",
-    "stroke": false,
-    "name": "Andrellus"
-}, {
-    "360": "camo",
-    "stroke": true,
-    "name": "Pucketia"
-}, {
-    "top": "t1",
-    "bottom": "b1",
-    "stroke": false,
-    "name": "Larsentius"
-}, {
-    "top": "t1",
-    "bottom": "b2",
-    "stroke": false,
-    "name": "Jarinus"
-}, {
-    "top": "t1",
-    "bottom": "b2",
-    "stroke": true,
-    "name": "Siliekia"
-}, {
-    "top": "t1",
-    "bottom": "b3",
-    "stroke": false,
-    "name": "Koosinus"
-}, {
-    "top": "t1",
-    "bottom": "b4",
-    "stroke": false,
-    "name": "Koosentius"
-}, {
-    "top": "t1",
-    "bottom": "b5",
-    "stroke": false,
-    "name": "Silkoos"
-}, {
-    "top": "t1",
-    "bottom": "b8",
-    "stroke": false,
-    "name": "Loesina"
-}, {
-    "top": "t1",
-    "bottom": "b8",
-    "stroke": true,
-    "name": "Loesissa"
-}, {
-    "top": "t1",
-    "stroke": false,
-    "name": "Steefentius"
-}, {
-    "top": "t1",
-    "stroke": true,
-    "name": "Aritonius"
-}, {
-    "top": "t2",
-    "bottom": "b1",
-    "stroke": false,
-    "name": "Maartenor"
-}, {
-    "top": "t2",
-    "bottom": "b1",
-    "stroke": true,
-    "name": "Valishanti"
-}, {
-    "top": "t2",
-    "bottom": "b2",
-    "stroke": false,
-    "name": "Marcellus"
-}, {
-    "top": "t2",
-    "bottom": "b3",
-    "stroke": false,
-    "name": "Marceltius"
-}, {
-    "top": "t2",
-    "bottom": "b4",
-    "stroke": false,
-    "name": "Tessella"
-}, {
-    "top": "t2",
-    "bottom": "b5",
-    "stroke": false,
-    "name": "Tesselius"
-}, {
-    "top": "t2",
-    "bottom": "b6",
-    "stroke": false,
-    "name": "Flortessia"
-}, {
-    "top": "t2",
-    "bottom": "b7",
-    "stroke": false,
-    "name": "Gabiella"
-}, {
-    "top": "t2",
-    "bottom": "b8",
-    "stroke": false,
-    "name": "Wardus"
-}, {
-    "top": "t2",
-    "bottom": "b8",
-    "stroke": true,
-    "name": "Maartentius"
-}, {
-    "top": "t2",
-    "stroke": false,
-    "name": "Henkillus"
-}, {
-    "top": "t2",
-    "stroke": true,
-    "name": "Silkim"
-}, {
-    "top": "t3",
-    "bottom": "b2",
-    "stroke": false,
-    "name": "Kimona"
-}, {
-    "top": "t3",
-    "bottom": "b3",
-    "stroke": false,
-    "name": "Amiella"
-}, {
-    "top": "t3",
-    "bottom": "b3",
-    "stroke": true,
-    "name": "Jeffara"
-}, {
-    "top": "t3",
-    "bottom": "b4",
-    "stroke": false,
-    "name": "Jeffator"
-}, {
-    "top": "t3",
-    "bottom": "b5",
-    "stroke": false,
-    "name": "Seppator"
-}, {
-    "top": "t3",
-    "bottom": "b6",
-    "stroke": false,
-    "name": "Rowissa"
-}, {
-    "top": "t3",
-    "bottom": "b8",
-    "stroke": false,
-    "name": "Lisetia"
-}, {
-    "top": "t3",
-    "stroke": false,
-    "name": "Lisara"
-}, {
-    "top": "t3",
-    "stroke": true,
-    "name": "Rodrigorius"
-}, {
-    "top": "t4",
-    "bottom": "b1",
-    "stroke": false,
-    "name": "Corellus"
-}, {
-    "top": "t4",
-    "bottom": "b2",
-    "stroke": false,
-    "name": "Robillus"
-}, {
-    "top": "t4",
-    "bottom": "b2",
-    "stroke": true,
-    "name": "Matentius"
-}, {
-    "top": "t4",
-    "bottom": "b5",
-    "stroke": false,
-    "name": "Michielus"
-}, {
-    "top": "t4",
-    "bottom": "b6",
-    "stroke": false,
-    "name": "Selmaia"
-}, {
-    "top": "t4",
-    "bottom": "b6",
-    "stroke": true,
-    "name": "Maroskar"
-}, {
-    "top": "t4",
-    "bottom": "b7",
-    "stroke": false,
-    "name": "Renellus"
-}, {
-    "top": "t4",
-    "bottom": "b8",
-    "stroke": false,
-    "name": "Litorius"
-}, {
-    "top": "t4",
-    "stroke": false,
-    "name": "Ludona"
-}, {
-    "top": "t4",
-    "stroke": true,
-    "name": "Martinia"
-}, {
-    "top": "t5",
-    "bottom": "b1",
-    "stroke": false,
-    "name": "Basius"
-}, {
-    "top": "t5",
-    "bottom": "b1",
-    "stroke": true,
-    "name": "Aniekellia"
-}, {
-    "top": "t5",
-    "bottom": "b2",
-    "stroke": false,
-    "name": "Florius"
-}, {
-    "top": "t5",
-    "bottom": "b2",
-    "stroke": true,
-    "name": "Ematia"
-}, {
-    "top": "t5",
-    "bottom": "b3",
-    "stroke": false,
-    "name": "Harliator"
-}, {
-    "top": "t5",
-    "bottom": "b3",
-    "stroke": true,
-    "name": "Tommentius"
-}, {
-    "top": "t5",
-    "bottom": "b4",
-    "stroke": false,
-    "name": "Mitchellus"
-}, {
-    "top": "t5",
-    "bottom": "b5",
-    "stroke": false,
-    "name": "Jolandia"
-}, {
-    "top": "t5",
-    "bottom": "b5",
-    "stroke": true,
-    "name": "Aurianus"
-}, {
-    "top": "t5",
-    "bottom": "b6",
-    "stroke": false,
-    "name": "Valius"
-}, {
-    "top": "t5",
-    "bottom": "b7",
-    "stroke": false,
-    "name": "Lucicus"
-}, {
-    "top": "t5",
-    "bottom": "b7",
-    "stroke": true,
-    "name": "Marcicus"
-}, {
-    "top": "t5",
-    "bottom": "b8",
-    "stroke": false,
-    "name": "Coricus"
-}, {
-    "top": "t5",
-    "stroke": false,
-    "name": "Silentius"
-}, {
-    "top": "t5",
-    "stroke": true,
-    "name": "Florator"
-}, {
-    "top": "t6",
-    "bottom": "b1",
-    "stroke": false,
-    "name": "Serus"
-}, {
-    "top": "t6",
-    "bottom": "b2",
-    "stroke": false,
-    "name": "Aurisssa"
-}, {
-    "top": "t6",
-    "bottom": "b2",
-    "stroke": true,
-    "name": "Valitia"
-}, {
-    "top": "t6",
-    "bottom": "b3",
-    "stroke": false,
-    "name": "Luciella"
-}, {
-    "top": "t6",
-    "bottom": "b5",
-    "stroke": false,
-    "name": "Marcialla"
-}, {
-    "top": "t6",
-    "bottom": "b5",
-    "stroke": true,
-    "name": "Corissa"
-}, {
-    "top": "t6",
-    "bottom": "b6",
-    "stroke": false,
-    "name": "Siletia"
-}, {
-    "top": "t6",
-    "bottom": "b7",
-    "stroke": false,
-    "name": "Florella"
-}, {
-    "top": "t6",
-    "stroke": false,
-    "name": "Serella"
-}, {
-    "top": "t7",
-    "bottom": "b1",
-    "stroke": false,
-    "name": "Aurium"
-}, {
-    "top": "t7",
-    "bottom": "b1",
-    "stroke": true,
-    "name": "Valius"
-}, {
-    "top": "t7",
-    "bottom": "b2",
-    "stroke": false,
-    "name": "Luciora"
-}, {
-    "top": "t7",
-    "bottom": "b3",
-    "stroke": false,
-    "name": "Maron"
-}, {
-    "top": "t7",
-    "bottom": "b3",
-    "stroke": true,
-    "name": "Cores"
-}, {
-    "top": "t7",
-    "bottom": "b4",
-    "stroke": false,
-    "name": "Siluxio"
-}, {
-    "top": "t7",
-    "bottom": "b4",
-    "stroke": true,
-    "name": "Florar"
-}, {
-    "top": "t7",
-    "bottom": "b5",
-    "stroke": false,
-    "name": "Seron"
-}, {
-    "top": "t7",
-    "bottom": "b6",
-    "stroke": true,
-    "name": "Valitricia"
-}, {
-    "top": "t7",
-    "bottom": "b7",
-    "stroke": true,
-    "name": "Rudinus"
-}, {
-    "top": "t7",
-    "bottom": "b8",
-    "stroke": false,
-    "name": "Ianellus"
-}, {
-    "top": "t7",
-    "stroke": false,
-    "name": "Lucianux"
-}, {
-    "top": "t7",
-    "stroke": true,
-    "name": "Ianuxia"
-}, {
-    "top": "t8",
-    "bottom": "b1",
-    "stroke": false,
-    "name": "Erikus"
-}, {
-    "top": "t8",
-    "bottom": "b1",
-    "stroke": true,
-    "name": "Erikia"
-}, {
-    "top": "t8",
-    "bottom": "b2",
-    "stroke": true,
-    "name": "Lucioentje"
-}, {
-    "top": "t8",
-    "bottom": "b3",
-    "stroke": true,
-    "name": "Rachelus"
-}, {
-    "top": "t8",
-    "bottom": "b5",
-    "stroke": false,
-    "name": "Rubentius"
-}, {
-    "top": "t8",
-    "bottom": "b5",
-    "stroke": true,
-    "name": "Rubentia"
-}, {
-    "top": "t8",
-    "bottom": "b6",
-    "stroke": true,
-    "name": "Merella"
-}, {
-    "top": "t8",
-    "bottom": "b7",
-    "stroke": false,
-    "name": "Rubenium"
-}, {
-    "top": "t8",
-    "bottom": "b7",
-    "stroke": true,
-    "name": "Jeffus"
-}, {
-    "top": "t8",
-    "bottom": "b8",
-    "stroke": false,
-    "name": "Novakoos"
-}, {
-    "top": "t8",
-    "stroke": false,
-    "name": "Jariella"
-}, {
-    "top": "t8",
-    "stroke": true,
-    "name": "Janentius"
-}, {
-    "top": "t9",
-    "bottom": "b1",
-    "stroke": false,
-    "name": "Janus"
-}, {
-    "top": "t9",
-    "bottom": "b1",
-    "stroke": true,
-    "name": "Rowiella"
-}, {
-    "top": "t9",
-    "bottom": "b2",
-    "stroke": false,
-    "name": "Vilarly"
-}, {
-    "top": "t9",
-    "bottom": "b2",
-    "stroke": true,
-    "name": "Maroes"
-}, {
-    "top": "t9",
-    "bottom": "b3",
-    "stroke": false,
-    "name": "Maritchel"
-}, {
-    "top": "t9",
-    "bottom": "b3",
-    "stroke": true,
-    "name": "Tommissa"
-}, {
-    "top": "t9",
-    "bottom": "b4",
-    "stroke": false,
-    "name": "Liekus"
-}, {
-    "top": "t9",
-    "bottom": "b4",
-    "stroke": true,
-    "name": "Marakim"
-}, {
-    "top": "t9",
-    "bottom": "b5",
-    "stroke": false,
-    "name": "Ludora"
-}, {
-    "top": "t9",
-    "bottom": "b5",
-    "stroke": true,
-    "name": "Kevius"
-}, {
-    "top": "t9",
-    "bottom": "b6",
-    "stroke": false,
-    "name": "Kevia"
-}, {
-    "top": "t9",
-    "bottom": "b6",
-    "stroke": true,
-    "name": "Xenia"
-}, {
-    "top": "t9",
-    "bottom": "b7",
-    "stroke": true,
-    "name": "Xeniellus"
-}, {
-    "top": "t9",
-    "bottom": "b8",
-    "stroke": false,
-    "name": "Puckster"
-}, {
-    "top": "t9",
-    "bottom": "b8",
-    "stroke": true,
-    "name": "Puckorius"
-}, {
-    "top": "t9",
-    "stroke": false,
-    "name": "Jolandarius"
-}, {
-    "top": "t9",
-    "stroke": true,
-    "name": "Patranus"
-}, {
-    "top": "t10",
-    "bottom": "b1",
-    "stroke": false,
-    "name": "Celagaby"
-}, {
-    "top": "t10",
-    "bottom": "b2",
-    "stroke": false,
-    "name": "Teresa"
-}, {
-    "top": "t10",
-    "bottom": "b2",
-    "stroke": true,
-    "name": "Gabriella"
-}, {
-    "top": "t10",
-    "bottom": "b3",
-    "stroke": true,
-    "name": "Willemorius"
-}, {
-    "top": "t10",
-    "bottom": "b5",
-    "stroke": false,
-    "name": "Willemton"
-}, {
-    "top": "t10",
-    "bottom": "b7",
-    "stroke": true,
-    "name": "Aritor"
-}, {
-    "top": "t10",
-    "bottom": "b8",
-    "stroke": true,
-    "name": "Arina"
-}, {
-    "top": "t10",
-    "stroke": false,
-    "name": "Mienora"
-}, {
-    "top": "t10",
-    "stroke": true,
-    "name": "Minia"
-}, {
-    "bottom": "b1",
-    "stroke": false,
-    "name": "Maxius"
-}, {
-    "bottom": "b1",
-    "stroke": true,
-    "name": "Maxia"
-}, {
-    "bottom": "b2",
-    "stroke": false,
-    "name": "Minius"
-}, {
-    "bottom": "b2",
-    "stroke": true,
-    "name": "Cassandra"
-}, {
-    "bottom": "b3",
-    "stroke": false,
-    "name": "Juliella"
-}, {
-    "bottom": "b4",
-    "stroke": false,
-    "name": "Julissa"
-}, {
-    "bottom": "b4",
-    "stroke": true,
-    "name": "Julianus"
-}, {
-    "bottom": "b5",
-    "stroke": false,
-    "name": "Patrickorius"
-}, {
-    "bottom": "b5",
-    "stroke": true,
-    "name": "Patranus"
-}, {
-    "bottom": "b6",
-    "stroke": false,
-    "name": "Loesella"
-}, {
-    "bottom": "b6",
-    "stroke": true,
-    "name": "Marcelicus"
-}, {
-    "bottom": "b7",
-    "stroke": false,
-    "name": "Larsia"
-}, {
-    "bottom": "b7",
-    "stroke": true,
-    "name": "Larsissa"
-}, {
-    "bottom": "b8",
-    "stroke": false,
-    "name": "Narcissicus"
-}, {
-    "bottom": "b8",
-    "stroke": true,
-    "name": "Rowiorius"
-}, {
-    "vert": "v1",
-    "stroke": false,
-    "name": "Seppster"
-}, {
-    "vert": "v1",
-    "stroke": true,
-    "name": "Seppentius"
-}, {
-    "vert": "v2",
-    "stroke": false,
-    "name": "Eriki"
-}, {
-    "vert": "v2",
-    "stroke": true,
-    "name": "Robinia"
-}, {
-    "vert": "v3",
-    "stroke": false,
-    "name": "Robentius"
-}, {
-    "vert": "v3",
-    "stroke": true,
-    "name": "Tomillus"
-}, {
-    "vert": "v4",
-    "stroke": false,
-    "name": "Timia"
-}, {
-    "vert": "v5",
-    "stroke": false,
-    "name": "Timora"
-}, {
-    "vert": "v5",
-    "stroke": true,
-    "name": "Timentius"
-}, {
-    "vert": "v6",
-    "stroke": false,
-    "name": "Vionia"
-}, {
-    "vert": "v6",
-    "stroke": true,
-    "name": "Silossia"
-}, {
-    "vert": "polkadots",
-    "stroke": false,
-    "name": "Polkadotius"
-}, {
-    "vert": "polkadots",
-    "stroke": true,
-    "name": "Polkadotia"
-}, {
-    "360": "mandala",
-    "stroke": true,
-    "name": "Mandalorius"
-}, {
-    "360": "mandala2",
-    "stroke": true,
-    "name": "Mandalina"
-}, {
-    "360": "mandala3",
-    "stroke": false,
-    "name": "Mandora"
-}, {
-    "360": "mandala4",
-    "stroke": true,
-    "name": "Mandentius"
-}, {
-    "360": "mandala4",
-    "stroke": false,
-    "name": "Mandella"
-}] as Array < textureInterface >
+export default [{ "360": "worms", "stroke": false, "name": "Aurian" },
+    { "360": "paths", "stroke": false, "name": "Rudolfius" },
+    { "360": "panter", "stroke": false, "name": "Serpetra" },
+    { "360": "panter", "stroke": true, "name": "Patriciella" },
+    { "360": "leafs", "stroke": false, "name": "Corpatrick" },
+    { "360": "leafs", "stroke": true, "name": "Rubanus" },
+    { "360": "giraffe", "stroke": false, "name": "Maartjilla" },
+    { "360": "giraffe", "stroke": true, "name": "Erikellus" },
+    { "360": "dots", "stroke": false, "name": "Jeroenimus" },
+    { "360": "dots","stroke": true,"name": "Rachella" },
+    { "360": "cow","stroke": false,"name": "Jonius" },
+    { "360": "cow","stroke": true,"name": "Mauella" },
+    { "360": "camo","stroke": false,"name": "Andrellus" },
+    { "360": "camo","stroke": true,"name": "Pucketia" },
+    { "top": "t1","bottom": "b1","stroke": false,"name": "Larsentius" },
+    { "top": "t1","bottom": "b2","stroke": false,"name": "Jarinus" },
+    { "top": "t1","bottom": "b2","stroke": true,"name": "Siliekia" },
+    { "top": "t1","bottom": "b3","stroke": false,"name": "Koosinus" },
+    { "top": "t1","bottom": "b4","stroke": false,"name": "Koosentius" },
+    { "top": "t1","bottom": "b5","stroke": false,"name": "Silkoos" },
+    { "top": "t1","bottom": "b8","stroke": false,"name": "Loesina" },
+    { "top": "t1","bottom": "b8","stroke": true,"name": "Loesissa" },
+    { "top": "t1","stroke": false,"name": "Steefentius" },
+    { "top": "t1","stroke": true,"name": "Aritonius" },
+    { "top": "t2","bottom": "b1","stroke": false,"name": "Maartenor" },
+    { "top": "t2","bottom": "b1","stroke": true,"name": "Valishanti" },
+    { "top": "t2","bottom": "b2","stroke": false,"name": "Marcellus" },
+    { "top": "t2","bottom": "b3","stroke": false,"name": "Marceltius" },
+    { "top": "t2","bottom": "b4","stroke": false,"name": "Tessella" },
+    { "top": "t2","bottom": "b5","stroke": false,"name": "Tesselius" },
+    { "top": "t2","bottom": "b6","stroke": false,"name": "Flortessia" },
+    { "top": "t2","bottom": "b7","stroke": false,"name": "Gabiella" },
+    { "top": "t2","bottom": "b8","stroke": false,"name": "Wardus" },
+    { "top": "t2","bottom": "b8","stroke": true,"name": "Maartentius" },
+    { "top": "t2","stroke": false,"name": "Henkillus" },
+    { "top": "t2","stroke": true,"name": "Silkim" },
+    { "top": "t3","bottom": "b2","stroke": false,"name": "Kimona" },
+    { "top": "t3","bottom": "b3","stroke": false,"name": "Amiella" },
+    { "top": "t3","bottom": "b3","stroke": true,"name": "Jeffara" },
+    { "top": "t3","bottom": "b4","stroke": false,"name": "Jeffator" },
+    { "top": "t3","bottom": "b5","stroke": false,"name": "Seppator" },
+    { "top": "t3","bottom": "b6","stroke": false,"name": "Rowissa" },
+    { "top": "t3","bottom": "b8","stroke": false,"name": "Lisetia" },
+    { "top": "t3","stroke": false,"name": "Lisara" },
+    { "top": "t3","stroke": true,"name": "Rodrigorius" },
+    { "top": "t4","bottom": "b1","stroke": false,"name": "Corellus" },
+    { "top": "t4","bottom": "b2","stroke": false,"name": "Robillus" },
+    { "top": "t4","bottom": "b2","stroke": true,"name": "Matentius" },
+    { "top": "t4","bottom": "b5","stroke": false,"name": "Michielus" },
+    { "top": "t4","bottom": "b6","stroke": false,"name": "Selmaia" },
+    { "top": "t4","bottom": "b6","stroke": true,"name": "Maroskar" },
+    { "top": "t4","bottom": "b7","stroke": false,"name": "Renellus" },
+    { "top": "t4","bottom": "b8","stroke": false,"name": "Litorius" },
+    { "top": "t4","stroke": false,"name": "Ludona" },
+    { "top": "t4","stroke": true,"name": "Martinia" },
+    { "top": "t5","bottom": "b1","stroke": false,"name": "Basius" },
+    { "top": "t5","bottom": "b1","stroke": true,"name": "Aniekellia" },
+    { "top": "t5","bottom": "b2","stroke": false,"name": "Florius" },
+    { "top": "t5","bottom": "b2","stroke": true,"name": "Ematia" },
+    { "top": "t5","bottom": "b3","stroke": false,"name": "Harliator" },
+    { "top": "t5","bottom": "b3","stroke": true,"name": "Tommentius" },
+    { "top": "t5","bottom": "b4","stroke": false,"name": "Mitchellus" },
+    { "top": "t5","bottom": "b5","stroke": false,"name": "Jolandia" },
+    { "top": "t5","bottom": "b5","stroke": true,"name": "Aurianus" },
+    { "top": "t5","bottom": "b6","stroke": false,"name": "Valius" },
+    { "top": "t5","bottom": "b7","stroke": false,"name": "Lucicus" },
+    { "top": "t5","bottom": "b7","stroke": true,"name": "Marcicus" },
+    { "top": "t5","bottom": "b8","stroke": false,"name": "Coricus" },
+    { "top": "t5","stroke": false,"name": "Silentius" },
+    { "top": "t5","stroke": true,"name": "Florator" },
+    { "top": "t6","bottom": "b1","stroke": false,"name": "Serus" },
+    { "top": "t6","bottom": "b2","stroke": false,"name": "Aurisssa" },
+    { "top": "t6","bottom": "b2","stroke": true,"name": "Valitia" },
+    { "top": "t6","bottom": "b3","stroke": false,"name": "Luciella" },
+    { "top": "t6","bottom": "b5","stroke": false,"name": "Marcialla" },
+    { "top": "t6","bottom": "b5","stroke": true,"name": "Corissa" },
+    { "top": "t6","bottom": "b6","stroke": false,"name": "Siletia" },
+    { "top": "t6","bottom": "b7","stroke": false,"name": "Florella" },
+    { "top": "t6","stroke": false,"name": "Serella" },
+    { "top": "t7","bottom": "b1","stroke": false,"name": "Aurium" },
+    { "top": "t7","bottom": "b1","stroke": true,"name": "Valius" },
+    { "top": "t7","bottom": "b2","stroke": false,"name": "Luciora" },
+    { "top": "t7","bottom": "b3","stroke": false,"name": "Maron" },
+    { "top": "t7","bottom": "b3","stroke": true,"name": "Cores" },
+    { "top": "t7","bottom": "b4","stroke": false,"name": "Siluxio" },
+    { "top": "t7","bottom": "b4","stroke": true,"name": "Florar" },
+    { "top": "t7","bottom": "b5","stroke": false,"name": "Seron" },
+    { "top": "t7","bottom": "b6","stroke": true,"name": "Valitricia" },
+    { "top": "t7","bottom": "b7","stroke": true,"name": "Rudinus" },
+    { "top": "t7","bottom": "b8","stroke": false,"name": "Ianellus" },
+    { "top": "t7","stroke": false,"name": "Lucianux" },
+    { "top": "t7","stroke": true,"name": "Ianuxia" },
+    { "top": "t8","bottom": "b1","stroke": false,"name": "Erikus" },
+    { "top": "t8","bottom": "b1","stroke": true,"name": "Erikia" },
+    { "top": "t8","bottom": "b2","stroke": true,"name": "Lucioentje" },
+    { "top": "t8","bottom": "b3","stroke": true,"name": "Rachelus" },
+    { "top": "t8","bottom": "b5","stroke": false,"name": "Rubentius" },
+    { "top": "t8","bottom": "b5","stroke": true,"name": "Rubentia" },
+    { "top": "t8","bottom": "b6","stroke": true,"name": "Merella" },
+    { "top": "t8","bottom": "b7","stroke": false,"name": "Rubenium" },
+    { "top": "t8","bottom": "b7","stroke": true,"name": "Jeffus" },
+    { "top": "t8","bottom": "b8","stroke": false,"name": "Novakoos" },
+    { "top": "t8","stroke": false,"name": "Jariella" },
+    { "top": "t8","stroke": true,"name": "Janentius" },
+    { "top": "t9","bottom": "b1","stroke": false,"name": "Janus" },
+    { "top": "t9","bottom": "b1","stroke": true,"name": "Rowiella" },
+    { "top": "t9","bottom": "b2","stroke": false,"name": "Vilarly" },
+    { "top": "t9","bottom": "b2","stroke": true,"name": "Maroes" },
+    { "top": "t9","bottom": "b3","stroke": false,"name": "Maritchel" },
+    { "top": "t9","bottom": "b3","stroke": true,"name": "Tommissa" },
+    { "top": "t9","bottom": "b4","stroke": false,"name": "Liekus" },
+    { "top": "t9","bottom": "b4","stroke": true,"name": "Marakim" },
+    { "top": "t9","bottom": "b5","stroke": false,"name": "Ludora" },
+    { "top": "t9","bottom": "b5","stroke": true,"name": "Kevius" },
+    { "top": "t9","bottom": "b6","stroke": false,"name": "Kevia" },
+    { "top": "t9","bottom": "b6","stroke": true,"name": "Xenia" },
+    { "top": "t9","bottom": "b7","stroke": true,"name": "Xeniellus" },
+    { "top": "t9","bottom": "b8","stroke": false,"name": "Puckster" },
+    { "top": "t9","bottom": "b8","stroke": true,"name": "Puckorius" },
+    { "top": "t9","stroke": false,"name": "Jolandarius" },
+    { "top": "t9","stroke": true,"name": "Patranus" },
+    { "top": "t10","bottom": "b1","stroke": false,"name": "Celagaby" },
+    { "top": "t10","bottom": "b2","stroke": false,"name": "Teresa" },
+    { "top": "t10","bottom": "b2","stroke": true,"name": "Gabriella" },
+    { "top": "t10","bottom": "b3","stroke": true,"name": "Willemorius" },
+    { "top": "t10","bottom": "b5","stroke": false,"name": "Willemton" },
+    { "top": "t10","bottom": "b7","stroke": true,"name": "Aritor" },
+    { "top": "t10","bottom": "b8","stroke": true,"name": "Arina" },
+    { "top": "t10","stroke": false,"name": "Mienora" },
+    { "top": "t10","stroke": true,"name": "Minia" },
+    { "bottom": "b1","stroke": false,"name": "Maxius" },
+    { "bottom": "b1","stroke": true,"name": "Maxia" },
+    { "bottom": "b2","stroke": false,"name": "Minius" },
+    { "bottom": "b2","stroke": true,"name": "Cassandra" },
+    { "bottom": "b3","stroke": false,"name": "Juliella" },
+    { "bottom": "b4","stroke": false,"name": "Julissa" },
+    { "bottom": "b4","stroke": true,"name": "Julianus" },
+    { "bottom": "b5","stroke": false,"name": "Patrickorius" },
+    { "bottom": "b5","stroke": true,"name": "Patranus" },
+    { "bottom": "b6","stroke": false,"name": "Loesella" },
+    { "bottom": "b6","stroke": true,"name": "Marcelicus" },
+    { "bottom": "b7","stroke": false,"name": "Larsia" },
+    { "bottom": "b7","stroke": true,"name": "Larsissa" },
+    { "bottom": "b8","stroke": false,"name": "Narcissicus" },
+    { "bottom": "b8","stroke": true,"name": "Rowiorius" },
+    { "vert": "v1","stroke": false,"name": "Seppster" },
+    { "vert": "v1","stroke": true,"name": "Seppentius" },
+    { "vert": "v2","stroke": false,"name": "Eriki" },
+    { "vert": "v2","stroke": true,"name": "Robinia" },
+    { "vert": "v3","stroke": false,"name": "Robentius" },
+    { "vert": "v3","stroke": true,"name": "Tomillus" },
+    { "vert": "v4","stroke": false,"name": "Timia" },
+    { "vert": "v5","stroke": false,"name": "Timora" },
+    { "vert": "v5","stroke": true,"name": "Timentius" },
+    { "vert": "v6","stroke": false,"name": "Vionia" },
+    { "vert": "v6","stroke": true,"name": "Silossia" },
+    { "vert": "polkadots","stroke": false,"name": "Polkadotius" },
+    { "vert": "polkadots","stroke": true,"name": "Polkadotia" },
+    { "360": "mandala","stroke": true,"name": "Mandalorius" },
+    { "360": "mandala2","stroke": true,"name": "Mandalina" },
+    { "360": "mandala3","stroke": false,"name": "Mandora" },
+    { "360": "mandala4","stroke": true,"name": "Mandentius" },
+    { "360": "mandala4","stroke": false,"name": "Mandella" }
+] as Array < textureInterface >

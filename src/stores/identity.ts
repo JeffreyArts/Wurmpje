@@ -134,7 +134,7 @@ const identity = defineStore("identity", {
             const identityId = localStorage.getItem("selectedIdentity")
             // const identity = await this.findIdentityInDatabase("id", identityId ? parseInt(identityId) : 0) as DBIdentity
             
-            if (identity) {
+            if (identityId) {
                 await this.selectIdentity(parseInt(identityId))
             } else {
                 console.warn(`Identity with id ${identityId} not found in database`)
@@ -263,6 +263,7 @@ const identity = defineStore("identity", {
                 } 
             } else {
                 console.warn(`Identity with id ${id} not found in database`)
+                return undefined
             }
 
             localStorage.setItem("selectedIdentity", identity.id.toString())
