@@ -20,15 +20,20 @@
 
 
 <script lang="ts">
-import {defineComponent} from "vue"
+import {defineComponent, type PropType} from "vue"
 import { MatterController } from "@/tamagotchi/controller"
-import useIdentityStore from "@/stores/identity"
+import useIdentityStore, { type currentIdentity} from "@/stores/identity"
 import { gsap } from "gsap"
 import _ from "lodash"
 import type Catterpillar from "@/models/catterpillar"
     
 export default defineComponent ({ 
-    props: [],
+    props: {
+        identity: {
+            type: Object as PropType<currentIdentity>,
+            required: true
+        }
+    },
     data() {
         return {
             controller: null as MatterController | null,
@@ -39,7 +44,7 @@ export default defineComponent ({
     setup() {
         const identityStore = useIdentityStore()
         return {
-            identity: identityStore
+            identityStore: identityStore
         }
     },
     watch: {
@@ -59,22 +64,12 @@ export default defineComponent ({
         }
     },
     async mounted() {
-        
-        try {
-            await this.identity.initialised
-        } catch (e) {
-            return console.error("Failed to initialise identity store:", e)
-        }
-        
-        this.controller = new MatterController(
-            this.$refs["catterpillar"] as HTMLElement,
-            {
-                identity: this.identity.origin,
-                length: 8,
-                thickness: 30
-            }
-        )
-        
+        this.controller = new MatterController( this.$refs["catterpillar"] as HTMLElement, {
+            length: this.identity.length,
+            thickness: this.identity.thickness,
+            catterpillarPos: { x: window.innerWidth / 2, y: 100}
+        })
+    
         this.toggleDevMode()
         this.toggleDevMode()
 
@@ -91,19 +86,6 @@ export default defineComponent ({
             const rendererEl = this.$el.querySelector("#matter") as HTMLCanvasElement
             gsap.to(twoEl, {duration: 0.3, opacity: this.dev ? 0 : 1})
             gsap.to(rendererEl, {duration: 0.3, opacity: this.dev ? 1 : 0})
-            // if (this.controller) {
-            //     this.controller.ref.renderer.options.showCollisions = this.dev
-            //     this.controller.catterpillar.composite.constraints.forEach(constraint => {
-            //         constraint.render.visible = this.dev
-            //     })
-            //     this.controller.ref.world.composites.forEach(composite => {
-            //         if (composite.label.startsWith("catterpillar")) {
-            //             composite.constraints.forEach(constraint => {
-            //                 constraint.render.visible = this.dev
-            //             })   
-            //         }
-            //     })
-            // }
         },
         increaseLength(amount: number) {
             if (this.controller) {
@@ -142,6 +124,10 @@ export default defineComponent ({
         right: 0;
         bottom: 0;
     }
+}
+
+#catterpillar {
+    height: 100vh;
 }
 
 .catterpillar-header {

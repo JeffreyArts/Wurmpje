@@ -34,13 +34,43 @@
                 </i>
             </footer>
         </div>
+
+        
+        
+        <Modal class="" v-if="showSuccessModel" :is-open="showSuccessModel" :auto-close="false" @close="closeSuccessModal" @submit="submitName()">
+            <template #title>
+                <h2>{{ successMessage }}</h2>
+            </template>
+            <p>
+                Wurmpje is currently invite-only. 
+                You can request an invitation by leaving your e-mailaddress below.
+                You can also try to breed your own wurmpje via a qr-code.
+            </p>
+
+            <form @submit.prevent="submitName()" class="form" id="submit-name-form">
+                <div class="row">
+                    <i class="icon">
+                        <jao-icon name="user-outline" size="large" inactive-color="transparent" activeColor="var(--bg-color)"/>
+                    </i>
+                    <input type="text" :placeholder="latinName" class="input large" v-model="newIdentity.name" />
+                </div>
+                <!-- <button class="button">submit</button> -->
+            </form>
+            
+            <template #submit-text>
+                Name Wurmpje
+            </template>
+        </Modal>
     </div>
+
+
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue"
 import useIdentityStore from "@/stores/identity"
 import matterBox from "@/components/matter-box.vue"
+import Modal from "@/components/modal.vue"
 import jaoIcon from "@/components/jao-icon.vue"
 import Identity, { type IdentityField } from "@/models/identity"
 import gsap from "gsap"
@@ -50,7 +80,7 @@ export default defineComponent({
     name: "setupPage",
     components: {
         matterBox,
-        // Modal,
+        Modal,
         jaoIcon,
     },
     props: [],
@@ -77,6 +107,7 @@ export default defineComponent({
             },
             qrScanner: null as QrScanner | null,
             lastScans: [] as Array<{timestamp: number; data: string}>,
+            showSuccessModel: false,
             
             scanStories: [
                 [
@@ -144,6 +175,7 @@ export default defineComponent({
             
             readyForNextScan: true,
             progress: 0,
+            successMessage: "",
             
             postponeLines: [
                 "Hold a QR code in front of the camera",
@@ -153,6 +185,15 @@ export default defineComponent({
             postponeIndex: 0,
             postponeTimeout: null as NodeJS.Timeout | null,
             updateTextMessageTween: null as gsap.core.Tween | null,
+            newIdentity: null as IdentityField | null,
+        }
+    },
+    computed: {
+        latinName() {
+            if (this.newIdentity) {
+                return this.identity.getLatinName(this.newIdentity.textureIndex, this.newIdentity.colorSchemeIndex)
+            }
+            return ""
         }
     },
     head: {
@@ -328,11 +369,15 @@ export default defineComponent({
             
             // Navigate to next page
             gsap.killTweensOf(".story-line-message")
-
-            const identityObject = await this.validateQR(this.lastScans[this.lastScans.length - 1].data)
+            const qrData = this.lastScans[this.lastScans.length - 1].data
+            const identityObject = await this.validateQR(qrData)
             if (identityObject) {
+                this.successMessage = this.successLines[Math.floor(Math.random() * this.successLines.length)]
+                this.updateTextMessage(this.successMessage)
+                setTimeout(() => {
+                    this.processSuccess(identityObject, qrData)
+                }, 1000)
                 console.log("Validated identity object:", identityObject, this.identity.getLatinName(identityObject.textureIndex, identityObject.colorSchemeIndex))
-                this.updateTextMessage(this.successLines[Math.floor(Math.random() * this.successLines.length)])
             } else {
                 this.processFailure()
             }
@@ -396,6 +441,44 @@ export default defineComponent({
                     })
                 },
             })
+        },
+        async processSuccess(identityObject: IdentityField, origin: string) {
+            const identity = new Identity()
+            identityObject.id = identity.stringToId(origin)
+
+            this.newIdentity = identityObject
+
+            // Check if identity already exists in database
+            const existingIdentity = await this.identity.findIdentityInDatabase('id', identityObject.id)
+            // const existingIdentity = await this.identity.findIdentityInDatabase('origin', origin)
+            console.log("Existing identity check:",identityObject.id,  existingIdentity)
+            if (existingIdentity) {
+                this.identity.selectIdentity(existingIdentity.id)
+                this.$router.push("/")
+                return
+            }
+
+            this.showSuccessModel = true
+        },
+        closeSuccessModal() {
+            alert("Closing success model")
+        },
+        submitName() {
+            if (!this.newIdentity.name) {
+                this.newIdentity.name = this.identity.getLatinName(this.newIdentity.textureIndex, this.newIdentity.colorSchemeIndex)
+            }
+
+            const characteristics = {
+                thickness: Math.floor(Math.random() * 16 + 8),
+                length: Math.floor(Math.random() * 5 + 5),
+                cooldownDays: 0,
+                selectable: true,
+                origin: origin,
+            }
+
+            this.identity.saveIdentityToDatabase(this.newIdentity, characteristics)
+            this.identity.selectIdentity(this.newIdentity.id)
+            this.$router.push("/")
         },
         updateProgress(value: number) {
             const bars = this.$el.querySelectorAll(".progressbar .bar")
@@ -650,6 +733,10 @@ export default defineComponent({
     width: 100%;
 }
 
+.scan-page .modal-content {
+    max-width: 420px;
+}
+
 .scan-page-view-finder .jao-icon {
     font-style: normal;
     font-size: 12px;
@@ -706,8 +793,5 @@ export default defineComponent({
     .progressbar {
         gap: 2px;
     }
-    /* .progressbar .bar {
-        width: 8px;
-    } */
 }
 </style>

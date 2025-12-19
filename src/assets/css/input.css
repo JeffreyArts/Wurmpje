@@ -54,3 +54,24 @@
 textarea.input {
     padding: 16px;
 }
+
+.form {
+    .row {
+        gap: 0;
+
+        .input {
+            width: 100%;
+        }
+    }
+
+    .icon {
+        display: inline-block;
+        aspect-ratio: 1;
+        height: 42px;
+        background-color: var(--contrast-color);
+        padding: 8px;
+    }
+    .icon + .input {
+        max-width: calc(100% - 40px);
+    }
+}

@@ -7,13 +7,17 @@
 
 
 <script lang="ts">
-import {defineComponent} from "vue"
+import {defineComponent, type PropType} from "vue"
 import { MatterController } from "@/tamagotchi/controller"
-import useIdentityStore from "@/stores/identity"
-import _ from "lodash"
+import { type currentIdentity } from "@/stores/identity"
     
 export default defineComponent ({ 
-    props: [],
+    props: {
+        identity: {
+            type: Object as PropType<currentIdentity>,
+            required: false
+        }
+    },
     data() {
         return {
             controller: null as MatterController | null,
@@ -21,21 +25,16 @@ export default defineComponent ({
             thickness: 0
         }
     },
-    setup() {
-        const identityStore = useIdentityStore()
-        return {
-            identity: identityStore
-        }
-    },
     watch: {
         
     },
     async mounted() {
+        if (!this.identity) {
+            throw new Error("No identity provided to Favicon component")
+        }
 
-        await this.identity.initialised
-        
-        this.length = 7
-        this.thickness = 40/this.length * 4
+        this.length = this.identity ? this.identity.length : 7
+        this.thickness = this.identity ? this.identity.thickness : 40/this.length * 4
         this.createIcon()
         
         this.createFavicon()
@@ -55,7 +54,8 @@ export default defineComponent ({
             const controller = new MatterController( target, {
                 length: length,
                 thickness: thickness,
-                catterpillarPos: { x: width/2 + (length * thickness) * .2, y: height - thickness * 2}
+                catterpillarPos: { x: width/2 + (length * thickness) * .2, y: height - thickness * 1.5},
+                offsetBottom: thickness * 1.5
             })
             controller.ref.removepointerMoveEvent("lookAtMouse")
             controller.draw.drawBG({blockSize})

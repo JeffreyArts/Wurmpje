@@ -1,7 +1,7 @@
 <template>
     <div class="home">
-        <favicon class="thumbnail-helper"/>
-        <matter-box class="matter-box"/>
+        <favicon class="thumbnail-helper" v-if="identity.current" :identity="identity.current"/>
+        <matter-box class="matter-box" v-if="identity.current" :identity="identity.current"/>
     </div>
 </template>
 
@@ -21,9 +21,7 @@ export default defineComponent ({
     props: [],
     setup() {
         try {
-
             const identityStore = useIdentityStore()
-            identityStore.init()
             
             return {
                 identity: identityStore
@@ -48,9 +46,10 @@ export default defineComponent ({
     async mounted() {
         await this.identity.initialised
 
-        if (!this.identity.origin) {
+        if (!this.identity.current) {
             console.warn("No identity found, redirecting to setup page.")
             this.$router.push({ name: "setup" })
+            return
         }
     },
     methods: {

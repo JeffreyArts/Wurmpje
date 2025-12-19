@@ -67,6 +67,15 @@ export class Identity {
         }
     }
 
+    stringToId(str: string): number {
+        let hash = 0
+        for (let i = 0; i < str.length; i++) {
+            hash = (hash * 31 + str.charCodeAt(i)) >>> 0 // 32-bit unsigned
+        }
+        // Limiteer tot 29 bits
+        return hash & 0x1FFFFFFF // 29 bits mask: 2^29 - 1
+    }
+
     // Encoding
     private validateIdentityJSON(json: IdentityField): IdentityField {
         if (typeof json !== "object" || json === null) {

@@ -5,6 +5,7 @@
 <script lang="ts">
 import { defineComponent } from "vue"
 import gsap from "gsap"
+import useIdentityStore from "@/stores/identity"
 // import { useRouter } from "vue-router"
 
 export default defineComponent({
@@ -13,6 +14,14 @@ export default defineComponent({
     },
     data() {
         return {
+        }
+    },
+    setup() {
+        const identityStore = useIdentityStore()
+        identityStore.init()
+        
+        return {
+            identityStore
         }
     },
     mounted() {

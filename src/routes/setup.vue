@@ -11,7 +11,7 @@
                 You can also try to breed your own wurmpje via a qr-code.
             </p>
 
-            <form @submit.prevent="subscribe()" id="submit-email-form">
+            <form @submit.prevent="subscribe()" class="form" id="submit-email-form">
                 <div class="row">
                     <i class="icon">
                         <jao-icon name="mail" size="large" inactive-color="transparent" activeColor="var(--bg-color)" />
@@ -50,7 +50,7 @@
             <router-link to="/scan" class="scan-qr">
                 <jaoIcon name="camera" size="large" inactive-color="transparent" activeColor="var(--contrast-color)"/>
                 <figcaption>
-                    Click on the camera and try to scan a QR code to search for a wurmpje
+                    Click on the camera search for a wurmpje in a QR code
                 </figcaption>
             </router-link>
         </section>
@@ -165,22 +165,11 @@ export default defineComponent ({
 .setup .modal-content {
     max-width: 400px;
 
-    .row {
-        gap: 0;
-    }
-
     p {
         margin-bottom: 16px;
     }
 }
 
-.icon {
-    display: inline-block;
-    aspect-ratio: 1;
-    height: 44px;
-    background-color: var(--contrast-color);
-    padding: 8px;
-}
 
 .setup .subscribed {
     display: flex;
@@ -222,9 +211,4 @@ export default defineComponent ({
     }
 }
 
-.setup {
-    .icon + .input {
-        max-width: calc(100% - 40px);
-    }
-}
 </style>

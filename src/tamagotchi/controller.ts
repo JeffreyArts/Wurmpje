@@ -31,21 +31,24 @@ export class MatterController {
         length?: number,
         thickness?: number,
         catterpillarPos?: { x: number, y: number }
+        offsetBottom?: number
     } ) {
 
         const catterpillarOptions = {} as { identity?: IdentityField, length?: number, thickness?: number }
 
-        if (options) {
-            const { identity, length, thickness } = options || {}
-            if (identity) {
-                this.identity = identity
-            }
-            if (length) {
-                catterpillarOptions.length = length
-            }
-            if (thickness) {
-                catterpillarOptions.thickness = thickness
-            }
+        if (!options) {
+            options = {}
+        }
+        
+        const { identity, length, thickness, offsetBottom } = options
+        if (identity) {
+            this.identity = identity
+        }
+        if (length) {
+            catterpillarOptions.length = length
+        }
+        if (thickness) {
+            catterpillarOptions.thickness = thickness
         }
 
         if (this.identity) {
@@ -59,7 +62,7 @@ export class MatterController {
         this.draw = new Draw(this.ref.two)
 
         
-        this.#createWalls()
+        this.#createWalls(offsetBottom)
         
         let startPosition = { x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }
         if (options?.catterpillarPos) {
@@ -109,7 +112,7 @@ export class MatterController {
         Matter.Render.setPixelRatio(this.ref.renderer, window.devicePixelRatio)
     }
 
-    #createWalls() {
+    #createWalls(offsetBottom = 50) {
         const width = this.ref.renderer.options.width
         const height = this.ref.renderer.options.height
         const wallThickness = 100
@@ -126,7 +129,7 @@ export class MatterController {
         // Bottom
         new Wall({
             x: width / 2,
-            y: height + wallThickness / 2 - 50,
+            y: height + wallThickness / 2 - offsetBottom,
             width: width * 2,
             height: wallThickness,
             id: "bottom"

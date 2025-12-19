@@ -9,7 +9,7 @@ import { createWebHistory, createRouter } from "vue-router"
 const routes = [
     {
         path: "/",
-        // name: "404 | Not found",
+        name: "home",
         component: Home,
     },
     {
@@ -18,7 +18,7 @@ const routes = [
         component: Scan,
     },
     {
-        path: "/",
+        path: "/hi",
         name: "setup",
         component: Setup,
     },
