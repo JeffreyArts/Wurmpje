@@ -68,7 +68,8 @@ export default defineComponent ({
             identity: this.identity,
             length: this.identity.length,
             thickness: this.identity.thickness,
-            catterpillarPos: { x: window.innerWidth / 2, y: 100}
+            catterpillarPos: { x: window.innerWidth / 2, y: 100},
+            offsetBottom: 128
         })
     
         this.toggleDevMode()
