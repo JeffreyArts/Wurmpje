@@ -42,9 +42,7 @@
                 <h2>{{ successMessage }}</h2>
             </template>
             <p>
-                Wurmpje is currently invite-only. 
-                You can request an invitation by leaving your e-mailaddress below.
-                You can also try to breed your own wurmpje via a qr-code.
+                You can give your Wurmpje a name, or leave it blank to use its Latin name. Close the window to scan another QR code.
             </p>
 
             <form @submit.prevent="submitName()" class="form" id="submit-name-form">
@@ -441,16 +439,14 @@ export default defineComponent({
                 },
             })
         },
-        async processSuccess(identityObject: IdentityField, origin: string) {
+        async processSuccess(identityObject: IdentityField, sourceOrigin: string) {
             const identity = new Identity()
-            identityObject.id = identity.stringToId(origin)
-
+            identityObject.id = identity.stringToId(sourceOrigin)
             this.newIdentity = identityObject
 
             // Check if identity already exists in database
             const existingIdentity = await this.identity.findIdentityInDatabase('id', identityObject.id)
-            // const existingIdentity = await this.identity.findIdentityInDatabase('origin', origin)
-            console.log("Existing identity check:",identityObject.id,  existingIdentity)
+
             if (existingIdentity) {
                 this.identity.selectIdentity(existingIdentity.id)
                 this.$router.push("/")
@@ -460,7 +456,9 @@ export default defineComponent({
             this.showSuccessModel = true
         },
         closeSuccessModal() {
-            alert("Closing success model")
+            // Cancelled naming, go back to scan
+            this.showSuccessModel = false
+            this.restartScan()
         },
         submitName() {
             
@@ -468,12 +466,14 @@ export default defineComponent({
                 this.newIdentity.name = this.identity.getLatinName(this.newIdentity.colorSchemeIndex, this.newIdentity.textureIndex)
             }
 
+            const qrData = this.lastScans[this.lastScans.length - 1].data
+        
             const characteristics = {
                 thickness: Math.floor(Math.random() * 16 + 8),
                 length: Math.floor(Math.random() * 5 + 5),
                 cooldownDays: 0,
                 selectable: true,
-                origin: origin,
+                origin: qrData
             }
 
             this.identity.saveIdentityToDatabase(this.newIdentity, characteristics)
