@@ -13,7 +13,7 @@ type DBIdentity =  {
     textureIndex: number;       // 0-1023
     colorSchemeIndex: number;   // 0-1023
     offset: number;             // 0-15
-    gender: 0 | 1;              // 0 | 1
+    gender: number;             // 0-1
     created: number;            // timestamp
     cooldown: number;           // timestamp
     selectable: boolean
@@ -26,7 +26,7 @@ type DBIdentity =  {
 export type currentIdentity = {
     id: number
     name: string
-    gender: 0 | 1 // M | F
+    gender: number // 0-1
     primaryColor: string
     secondaryColor: string
     textureIndex: number;       // 0-1023
@@ -46,7 +46,7 @@ const identity = defineStore("identity", {
         current: undefined as currentIdentity | undefined,
         id: 0,
         name: "",
-        gender: 0 as 0 | 1,
+        gender: 0 as number,
         primaryColor: "",
         secondaryColor: "",
         offset: 0,
@@ -105,7 +105,6 @@ const identity = defineStore("identity", {
         processIdentityString(identityString: string) {
             const identityModel = new Identity()
             const identity = identityModel.decode(identityString )
-            console.log("Decoded identity:", identity)
 
             this.id = identity.id
             this.name = identity.name
@@ -132,28 +131,20 @@ const identity = defineStore("identity", {
         },
         async loadIdentityFromLocalStorage() {
             const identityId = localStorage.getItem("selectedIdentity")
+            if (!identityId) {
+                console.warn("No selected identity found in local storage")
+                return
+            }
+
             // const identity = await this.findIdentityInDatabase("id", identityId ? parseInt(identityId) : 0) as DBIdentity
+            const identity = await this.selectIdentity(parseInt(identityId))
             
-            if (identityId) {
-                await this.selectIdentity(parseInt(identityId))
-            } else {
+            if (!identity) {
+                localStorage.removeItem("selectedIdentity")
                 console.warn(`Identity with id ${identityId} not found in database`)
             }
             
-            return this.current
-            // if (!identityString) {
-            //     console.warn("No identity found in local storage")
-            //     return
-            // }
-
-            // if (identityString) {
-            //     this.processIdentityString(identityString)
-            // }
-
-            const birthDate = localStorage.getItem("birthDate")
-            if (birthDate) {
-                this.age = this.calculateAgeInDays(birthDate)
-            }
+            return identity
         },
         calculateAgeInDays(birthDate: string | number): number {
             const birth = new Date(birthDate)

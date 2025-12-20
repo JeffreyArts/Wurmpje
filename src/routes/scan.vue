@@ -191,7 +191,7 @@ export default defineComponent({
     computed: {
         latinName() {
             if (this.newIdentity) {
-                return this.identity.getLatinName(this.newIdentity.textureIndex, this.newIdentity.colorSchemeIndex)
+                return this.identity.getLatinName(this.newIdentity.colorSchemeIndex,this.newIdentity.textureIndex)
             }
             return ""
         }
@@ -377,7 +377,6 @@ export default defineComponent({
                 setTimeout(() => {
                     this.processSuccess(identityObject, qrData)
                 }, 1000)
-                console.log("Validated identity object:", identityObject, this.identity.getLatinName(identityObject.textureIndex, identityObject.colorSchemeIndex))
             } else {
                 this.processFailure()
             }
@@ -464,8 +463,9 @@ export default defineComponent({
             alert("Closing success model")
         },
         submitName() {
+            
             if (!this.newIdentity.name) {
-                this.newIdentity.name = this.identity.getLatinName(this.newIdentity.textureIndex, this.newIdentity.colorSchemeIndex)
+                this.newIdentity.name = this.identity.getLatinName(this.newIdentity.colorSchemeIndex, this.newIdentity.textureIndex)
             }
 
             const characteristics = {
