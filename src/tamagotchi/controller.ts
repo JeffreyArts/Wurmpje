@@ -17,6 +17,9 @@ export class MatterController {
     catterpillar: CatterpillarModel
     mousePin: Matter.Constraint = null
     draw: Draw
+    config: {
+        offsetBottom?: number
+    } = {}
     identity: IdentityField = {
         id: 1,
         name: "Catterpillar",
@@ -56,11 +59,17 @@ export class MatterController {
         this.ref = new MatterSetup(target, {
             devMode: true
         })
+
+        if (offsetBottom) {
+            this.config.offsetBottom = offsetBottom
+        } else {
+            this.config.offsetBottom = 0
+        }
     
         this.draw = new Draw(this.ref.two)
 
         
-        this.#createWalls(offsetBottom)
+        this.#createWalls()
         
         let startPosition = { x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }
         if (options?.catterpillarPos) {
@@ -85,11 +94,10 @@ export class MatterController {
     }
     #loop() {
         if (this.catterpillar.x < 0 || this.catterpillar.x > this.ref.renderer.options.width  ||
-            this.catterpillar.y < 0 || this.catterpillar.y > this.ref.renderer.options.height ) {
+            this.catterpillar.y > this.ref.renderer.options.height ) {
             // Re-center Catterpillar
             this.catterpillar.remove()
             this.createCatterpillar({ x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }, { identity: this.identity, length: this.catterpillar.length, thickness: this.catterpillar.thickness })  
-         
         }
 
         requestAnimationFrame(this.#loop.bind(this))
@@ -110,7 +118,8 @@ export class MatterController {
         Matter.Render.setPixelRatio(this.ref.renderer, window.devicePixelRatio)
     }
 
-    #createWalls(offsetBottom = 50) {
+    #createWalls() {
+        const offsetBottom = this.config.offsetBottom 
         const width = this.ref.renderer.options.width
         const height = this.ref.renderer.options.height
         const wallThickness = 100
@@ -121,7 +130,8 @@ export class MatterController {
             y: 0 - wallThickness / 2,
             width: width * 2,
             height: wallThickness,
-            id: "top"
+            id: "top",
+            collisionGroup: 1
         }, this.ref.world)
 
         // Bottom
@@ -130,7 +140,8 @@ export class MatterController {
             y: height + wallThickness / 2 - offsetBottom,
             width: width * 2,
             height: wallThickness,
-            id: "bottom"
+            id: "bottom",
+            collisionGroup: 1
         }, this.ref.world)
 
         // Right wall
@@ -139,7 +150,8 @@ export class MatterController {
             y: height / 2,
             width: wallThickness,
             height: height * 2,
-            id: "right"
+            id: "right",
+            collisionGroup: 1
         }, this.ref.world)
 
         // Left wall
@@ -148,7 +160,8 @@ export class MatterController {
             y: height / 2,
             width: wallThickness,
             height: height * 2,
-            id: "left"
+            id: "left",
+            collisionGroup: 1
         }, this.ref.world)
     }
     

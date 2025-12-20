@@ -5,19 +5,20 @@ export class Wall {
     body: Matter.Body
     world: Matter.World
 
-    constructor({ x, y, width, height, id }: {
+    constructor({ x, y, width, height, id, collisionGroup }: {
         x: number,
         y: number,
         width: number,
         height: number,
-        id?: string
+        id?: string,
+        collisionGroup?: number
     }, 
     world: Matter.World
     ) {
         this.world = world
 
         // Set body
-        this.body = Matter.Bodies.rectangle(x, y, width, height, { isStatic: true })
+        this.body = Matter.Bodies.rectangle(x, y, width, height, { isStatic: true, collisionFilter: { group: collisionGroup }})
         this.body.label = "wall"
         if (id) {
             this.body.label += `,${id}`

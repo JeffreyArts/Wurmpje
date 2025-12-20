@@ -320,7 +320,7 @@ export class Catterpillar {
                 radius: this.thickness/2,
                 x,
                 y: this.y,
-                collisionGroup: -1 * catterpillars.length - 1,
+                collisionGroup: 1 //-1 * catterpillars.length - 1,
             }
 
             if (type) {
@@ -328,7 +328,7 @@ export class Catterpillar {
             }
 
 
-            const part = new BodyPart(bodyPartOptions)
+            const part = new BodyPart(bodyPartOptions, this.world)
             this.bodyParts.push(part)
             compositeParts.push(part.body)
 
