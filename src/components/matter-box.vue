@@ -58,7 +58,7 @@ export default defineComponent ({
             if (this.identity.age == 1) {
                 return "1 day old"
             }
-            if (this.identity.age > 2) {
+            if (this.identity.age >= 2) {
                 return `${this.identity.age} days`
             }
         }
