@@ -1,5 +1,5 @@
 <template>
-    <div v-if="isVisible" class="modal-overlay" ref="modalOverlay" @click="closeModal">
+    <div class="modal-overlay" :class="[isVisible ? '__isVisible' : '__isHidden']" ref="modalOverlay" @click="closeModal">
         <div class="modal-content" @click.stop ref="modalContent">
             <div class="modal-header">
                 <div class="modal-title">
@@ -67,9 +67,9 @@ export default defineComponent({
     },
     mounted() {
         document.addEventListener('keydown', this.handleEscape)
-
         const formEl = this.$el.querySelector("form")
-        if (formEl.id) {
+        
+        if (formEl?.id) {
             const submitButton = this.$refs.modalSubmit as HTMLButtonElement
             submitButton.setAttribute("form", formEl.id)
         }
@@ -81,16 +81,16 @@ export default defineComponent({
         openModal() {
             const modalOverlay = this.$refs.modalOverlay as HTMLElement
             const modalContent = this.$refs.modalContent as HTMLElement
+            this.isVisible = true
 
             gsap.killTweensOf(modalOverlay)
             gsap.killTweensOf(modalContent)
-
             this.$nextTick(() => {
-    
+                
                 if (!modalOverlay || !modalContent) {
                     return
                 }
-                gsap.fromTo(modalOverlay, {
+                gsap.fromTo([modalOverlay, modalContent], {
                     opacity: 0
                 },{
                     opacity: 1,
@@ -160,6 +160,15 @@ export default defineComponent({
     justify-content: center;
     align-items: center;
     z-index: 2000;
+
+    &.__isHidden {
+        pointer-events: none;
+        opacity: 0;
+    }
+
+    &.__isVisible {
+        pointer-events: auto;
+    }
 }
 
 .modal-close {

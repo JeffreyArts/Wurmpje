@@ -1,5 +1,5 @@
 <template>
-    <Modal class="request-invitation-modal" v-if="showModal" :is-open="showModal" :auto-close="false" @close="closeModal" @close-immediate="closeModalImmediate" @submit="submit">
+    <Modal class="request-invitation-modal" :is-open="showModal" :auto-close="false" @close="closeModal" @close-immediate="closeModalImmediate" @submit="submit">
         <template #title>
             <h2>Welcome</h2>
         </template>
@@ -36,7 +36,24 @@ export default defineComponent ({
         Modal,
         jaoIcon
     },
-    props: [],
+    props: {
+        isOpen: {
+            type: Boolean,
+            required: false
+        }
+    },
+    watch: {
+        isOpen: {
+            handler(val) {
+                if (val) {
+                    this.openModal()
+                } else {
+                    this.closeModal()
+                }
+            },
+            immediate: true
+        }
+    },
     data() {
         return {
             email: "",
@@ -64,6 +81,13 @@ export default defineComponent ({
         closeModal() {
             this.showModal = false
             this.$emit("close")
+        },
+        openModal() {
+            // This timeout is needed to force a reset of the modal component
+            this.showModal = false
+            setTimeout(() => {
+                this.showModal = true
+            }, 0)
         },
         submit() {
             this.error = ""

@@ -35,30 +35,7 @@
             </footer>
         </div>
 
-        
-        
-        <Modal class="" v-if="showSuccessModel" :is-open="showSuccessModel" :auto-close="false" @close="closeSuccessModal" @submit="submitName()">
-            <template #title>
-                <h2>{{ successMessage }}</h2>
-            </template>
-            <p>
-                You can give your Wurmpje a name, or leave it blank to use its Latin name. Close the window to scan another QR code.
-            </p>
-
-            <form @submit.prevent="submitName()" class="form" id="submit-name-form">
-                <div class="row">
-                    <i class="icon">
-                        <jao-icon name="user-outline" size="large" inactive-color="transparent" activeColor="var(--bg-color)"/>
-                    </i>
-                    <input type="text" :placeholder="latinName" class="input large" v-model="newIdentity.name" />
-                </div>
-                <!-- <button class="button">submit</button> -->
-            </form>
-            
-            <template #submit-text>
-                Name Wurmpje
-            </template>
-        </Modal>
+        <succesfulSetupScanModal :is-open="showSuccessModel" :newIdentity="newIdentity" @close-immediate="closeSuccessModal" @submit="submitName"></succesfulSetupScanModal>
     </div>
 
 
@@ -68,7 +45,7 @@
 import { defineComponent } from "vue"
 import useIdentityStore from "@/stores/identity"
 import matterBox from "@/components/matter-box.vue"
-import Modal from "@/components/modal.vue"
+import succesfulSetupScanModal from "@/modals/succesful-setup-scan.vue"
 import jaoIcon from "@/components/jao-icon.vue"
 import Identity, { type IdentityField } from "@/models/identity"
 import gsap from "gsap"
@@ -78,7 +55,7 @@ export default defineComponent({
     name: "setupPage",
     components: {
         matterBox,
-        Modal,
+        succesfulSetupScanModal,
         jaoIcon,
     },
     props: [],
@@ -151,13 +128,6 @@ export default defineComponent({
                     "A bit more...",
                 ],
             ] as Array<Array<string>>,
-            successLines: [
-                "🔥🔥🔥",
-                "💪🐛",
-                "Found one!",
-                "I found one!",
-                "YEAH!! I found one!",
-            ] as Array<string>,
             failureLines: [
                 "Nope",
                 "Maybe you can find a wurmpje in a different QR code?",
@@ -173,7 +143,6 @@ export default defineComponent({
             
             readyForNextScan: true,
             progress: 0,
-            successMessage: "",
             
             postponeLines: [
                 "Hold a QR code in front of the camera",
@@ -184,14 +153,6 @@ export default defineComponent({
             postponeTimeout: null as NodeJS.Timeout | null,
             updateTextMessageTween: null as gsap.core.Tween | null,
             newIdentity: null as IdentityField | null,
-        }
-    },
-    computed: {
-        latinName() {
-            if (this.newIdentity) {
-                return this.identity.getLatinName(this.newIdentity.colorSchemeIndex,this.newIdentity.textureIndex)
-            }
-            return ""
         }
     },
     head: {
@@ -212,7 +173,6 @@ export default defineComponent({
 
         setTimeout(() => {
             gsap.killTweensOf(this.$el.querySelector("#loader"))
-            // gsap.killTweensOf(this.$el.querySelector("#loader"));
             gsap.to(this.$el.querySelector("#loader"), {duration: 0.3, opacity: 0});
             gsap.to(this.$el.querySelector("#qr-scanner"), {duration: 0.3, opacity: 1});
             gsap.to(".scan-page-view-finder", {duration: 2, delay: .4, opacity: 1});
@@ -369,9 +329,9 @@ export default defineComponent({
             gsap.killTweensOf(".story-line-message")
             const qrData = this.lastScans[this.lastScans.length - 1].data
             const identityObject = await this.validateQR(qrData)
+
             if (identityObject) {
-                this.successMessage = this.successLines[Math.floor(Math.random() * this.successLines.length)]
-                this.updateTextMessage(this.successMessage)
+                this.updateTextMessage("")
                 setTimeout(() => {
                     this.processSuccess(identityObject, qrData)
                 }, 1000)

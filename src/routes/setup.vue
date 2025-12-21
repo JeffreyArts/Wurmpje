@@ -28,7 +28,7 @@
             </router-link>
         </section>
 
-        <requestInvitationModal v-if="showModal" @close-immediate="closeModalImmediate" @submit="subscribe" @close="closeModal"/>
+        <requestInvitationModal :is-open="showModal" @close-immediate="closeModalImmediate" @submit="subscribe" @close="closeModal"/>
     </div>
 </template>
 
