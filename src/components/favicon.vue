@@ -1,7 +1,9 @@
 <template>
-  <figure id="thumbnail-container" ref="favicon" style="width:128px; height:128px"></figure>
-  <figure id="thumbnail-container" ref="androidIcon" style="width:192px; height:192px"></figure>
-  <figure id="thumbnail-container" ref="appleTouchIcon" style="width:180px; height:180px"></figure>
+    <section>
+        <figure id="thumbnail-container" ref="favicon" style="width:128px; height:128px"></figure>
+        <figure id="thumbnail-container" ref="androidIcon" style="width:192px; height:192px"></figure>
+        <figure id="thumbnail-container" ref="appleTouchIcon" style="width:180px; height:180px"></figure>
+    </section>
 </template>
 
 
