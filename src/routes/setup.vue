@@ -1,32 +1,5 @@
 <template>
     <div class="setup">
-        <Modal v-if="showModal" :is-open="showModal" :auto-close="false" @close="closeModal" @close-immediate="closeModalImmediate" @submit="subscribe()">
-            
-            <template #title>
-                <h2>Welcome</h2>
-            </template>
-            <p>
-                Wurmpje is currently invite-only. 
-                You can request an invitation by leaving your e-mailaddress below.
-                You can also try to breed your own wurmpje via a qr-code.
-            </p>
-
-            <form @submit.prevent="subscribe()" class="form" id="submit-email-form">
-                <div class="row">
-                    <i class="icon">
-                        <jao-icon name="mail" size="large" inactive-color="transparent" activeColor="var(--bg-color)" />
-                    </i>
-                    <input type="email" id="email" class="input large" v-model="email" />
-                </div>
-                <!-- <button class="button">submit</button> -->
-            </form>
-
-            <template #submit-text>
-                Request invitation
-            </template>
-        </Modal>
-
-        
         <section v-if="showContent" class="site-container">
             <section v-if="!success">
                 <h1>Nothing to see here</h1>
@@ -54,6 +27,8 @@
                 </figcaption>
             </router-link>
         </section>
+
+        <requestInvitationModal v-if="showModal" @close-immediate="closeModalImmediate" @submit="subscribe" @close="closeModal"/>
     </div>
 </template>
 
@@ -63,7 +38,7 @@ import { defineComponent } from "vue"
 import useIdentityStore from "@/stores/identity"
 import matterBox from "@/components/matter-box.vue";
 import Favicon from "@/components/favicon.vue";
-import Modal from "@/components/modal.vue";
+import requestInvitationModal from "@/modals/request-invitation.vue";
 import jaoIcon from "@/components/jao-icon.vue";
 import gsap from "gsap";
 
@@ -72,7 +47,7 @@ export default defineComponent ({
     components: { 
         matterBox,
         Favicon,
-        Modal,
+        requestInvitationModal,
         jaoIcon
     },
     props: [],
@@ -113,14 +88,10 @@ export default defineComponent ({
 
     },
     methods: {
-        closeModalImmediate(fn?: () => void) {
+        closeModalImmediate() {
             this.showContent = true
             setTimeout(() => {
-                gsap.to(".site-container", {duration: 0.6, opacity: 1, onComplete: () => {
-                    if (fn) {
-                        fn()
-                    }   
-                }})
+                gsap.to(".site-container", {duration: 0.6, opacity: 1})
             })
         },
         closeModal() {
@@ -134,27 +105,6 @@ export default defineComponent ({
             }, 0)
         },
         subscribe() {
-            this.closeModalImmediate()
-            fetch(`${import.meta.env.VITE_PAYLOAD_REST_ENDPOINT}/newsletter-subscriptions`, { 
-                method: "POST",
-                headers: { 
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ 
-                    email: this.email.toLowerCase(),
-                    source: "Wurmpje"
-                })
-            }).then( response => {
-                if (!response.ok) {
-                    this.error = "Failed to subscribe cause of technical issues."
-                } else {
-                    this.email = ""
-                    this.success = "I'll do my best to send you an invitation link as soon as I can!"
-                    this.closeModal()
-                }
-            }).catch(error => {
-                this.error = "Failed to subscribe cause of technical issues."
-            })
         }
     }
 })
