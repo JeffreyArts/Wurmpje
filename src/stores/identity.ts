@@ -174,16 +174,14 @@ const identity = defineStore("identity", {
         saveIdentityToDatabase(input: IdentityField | string, options : { 
             cooldownDays?: number,
             selectable?: boolean,
-            thickness?: number,
-            length?: number,
             origin: string | [number, number] 
         } ) {
 
             const { cooldownDays = 30 } = options
             const { selectable = false } = options
             const { origin } = options
-            const { thickness = Math.floor(Math.random()* 16 + 8) } = options
-            const { length = Math.floor(Math.random()* 5 + 5) } = options
+            // const { thickness = Math.floor(Math.random()* 16 + 8) } = input
+            // const { length = Math.floor(Math.random()* 5 + 5) } = input
 
             const identityField = typeof input === "string" ? new Identity().decode(input) : input
             
@@ -198,9 +196,7 @@ const identity = defineStore("identity", {
                 cooldown: cooldownDays ? Date.now() + (cooldownDays * 24 * 60 * 60 * 1000) : 0,
                 created: Date.now(),
                 selectable,
-                origin,
-                thickness,
-                length
+                origin
             }
 
             store.put(dbIdentity)

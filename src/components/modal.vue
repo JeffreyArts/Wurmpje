@@ -203,6 +203,12 @@ export default defineComponent({
     h1, h2, h3, h4, h5, h6 {
         margin: -3px 0 -24px;
         width: calc(100% - 40px);
+        display: flex;
+        gap: 8px;
+    }
+
+    svg {
+        width: 26px;
     }
 }
 

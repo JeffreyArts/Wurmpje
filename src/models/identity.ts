@@ -56,14 +56,24 @@ export class Identity {
             }
             return val
         }
+        const textureIndex = readBits(10)      // 0-1023
+        const colorSchemeIndex = readBits(10)  // 0-1023
+        const offset = readBits(4)             // 0-15
+        const gender = readBits(1)             // 0 of 1
+        const length = readBits(4)               // 0-15
+        const thickness = readBits(5)            // 8-64
 
+
+        
         return {
             id: this.generateId(),
             name: "",
-            textureIndex: readBits(10),      // 0-1023
-            colorSchemeIndex: readBits(10),  // 0-1023
-            offset: readBits(4),             // 0-15
-            gender: readBits(1)              // 0 of 1
+            textureIndex,
+            colorSchemeIndex,
+            offset,
+            gender,
+            length: length + 3,                 // 3-18
+            thickness: thickness + 8,           // 8-39
         }
     }
 
@@ -82,7 +92,7 @@ export class Identity {
             throw new Error("Input must be a non-null object")
         }
 
-        const { id, name, textureIndex, colorSchemeIndex, offset, gender } = json
+        const { id, name, textureIndex, colorSchemeIndex, offset, gender, length, thickness } = json
 
         // Check id
         if (typeof id !== "number" || id < 0 || id > 0x1FFFFFFF) {
@@ -117,12 +127,22 @@ export class Identity {
         if (gender != 0 && gender != 1) {
             throw new Error("Invalid gender: must be 0 (male) or 1 (female)")
         }
+        
+        // Check length
+        if (typeof length !== "number" || length < 3 || length > 20) {
+            throw new Error("Invalid length: must be 3-20")
+        }
 
-        return { id, name, textureIndex, colorSchemeIndex, offset, gender }
+        // Check thickness
+        if (typeof thickness !== "number" || thickness < 8 || thickness > 64) {
+            throw new Error("Invalid thickness: must be 8-64")
+        }
+
+        return { id, name, textureIndex, colorSchemeIndex, offset, gender, length, thickness }
     }
 
     // Decoding
-    private validateIdentityString(encodedString: string): string {
+    validateIdentityString(encodedString: string): string {
         const BASE45_CHARS = Identity.BASE45_CHARS
 
         for (const c of encodedString) {
@@ -131,9 +151,9 @@ export class Identity {
             }
         }
 
-        // UPDATE: Totaal is nu 149 bits (was 147)
-        // 150 bits / 8 = 18,750 bytes → afgerond naar 19 bytes (nog steeds 19, maar krap aan!)
-        const minBytes = Math.ceil(150 / 8) // 19 bytes
+        // UPDATE: Totaal is nu 160 bits (was 147)
+        // 160 bits / 8 = 20 bytes → afgerond naar 20 bytes
+        const minBytes = Math.ceil(160 / 8) // 20 bytes
         
         const minLength = Math.ceil(minBytes * 3 / 2) 
         if (encodedString.length < minLength) {
@@ -200,6 +220,12 @@ export class Identity {
         // gender: 1 bit
         this.push(bits, identity.gender, 1)
 
+        // length: 5 bits
+        this.push(bits, identity.length, 5)
+
+        // thickness: 6 bits
+        this.push(bits, identity.thickness, 6)
+
         // Convert bits to bytes
         const bytes = new Uint8Array(Math.ceil(bits.length / 8))
         bits.forEach((bit, i) => {
@@ -257,7 +283,17 @@ export class Identity {
         const gender = result.value
         cursor = result.cursor
 
-        return { id, name, textureIndex, colorSchemeIndex, offset, gender }
+        // length: 5 bits
+        result = this.unPush(bits, cursor, 5)
+        const length = result.value
+        cursor = result.cursor
+
+        // thickness: 6 bits
+        result = this.unPush(bits, cursor, 6)
+        const thickness = result.value
+        cursor = result.cursor
+
+        return { id, name, textureIndex, colorSchemeIndex, offset, gender, length, thickness }
     }
 
     private base45Encode(bytes: Uint8Array): string {
