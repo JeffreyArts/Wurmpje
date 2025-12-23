@@ -2,8 +2,8 @@
     <div class="home">
         <favicon class="thumbnail-helper" v-if="identity.current" :identity="identity.current"/>
         <matter-box class="matter-box" v-if="identity.current" :identity="identity.current"/>
-        <invalid-parent-id-modal :is-open="invalidParentId" @close-immediate="invalidParentId = false"  @close="forwardInvalidParentId"/>
-        <invalid-unique-parent-modal :is-open="invalidUniqueParentId" @close-immediate="invalidUniqueParentId = false" @close="forwardInvalidParentId" :parent="parentIdentity"/>
+        <invalid-parent-id-modal :is-open="invalidParentId" @close-immediate="invalidParentId = false"  @close="removeQueryFromUrl"/>
+        <breeding-modal :is-open="showBreedingModal" @close="removeQueryFromUrl" :parent="breedingIdentity"/>
 
     </div>
 </template>
@@ -16,7 +16,7 @@ import Identity, {type IdentityField } from "@/models/identity";
 import matterBox from "@/components/matter-box.vue";
 import Favicon from "@/components/favicon.vue";
 import invalidParentIdModal from "@/modals/invalid-parent-id.vue";
-import invalidUniqueParentModal from "@/modals/invalid-unique-parent.vue";
+import breedingModal from "@/modals/breeding.vue";
 
 export default defineComponent ({ 
     name: "homePage",
@@ -24,7 +24,7 @@ export default defineComponent ({
         matterBox,
         Favicon,
         invalidParentIdModal,
-        invalidUniqueParentModal
+        breedingModal
     },
     props: [],
     setup() {
@@ -41,8 +41,8 @@ export default defineComponent ({
     data() {
         return {
             invalidParentId: false,
-            invalidUniqueParentId: false,
-            parentIdentity: null as IdentityField | null
+            showBreedingModal: false,
+            breedingIdentity: null as IdentityField | null
         }
     },
     head: { 
@@ -94,34 +94,35 @@ export default defineComponent ({
             
             
             const existingIdentity = await this.identity.findIdentityInDatabase("id", parentIdentity.id);
-            // Already known parent ID error
-            if (existingIdentity) {
-                this.invalidUniqueParentId = true
-                this.parentIdentity = parentIdentity
-                return
+            let storedInDB = undefined;
+            // Add identity to database if it doesn't exist
+            if (!existingIdentity) {
+                try {
+                    storedInDB = await this.identity.saveIdentityToDatabase(parentIdentity, {
+                        origin: "parent",
+                        selectable: false,
+                        cooldownDays: 0
+                    })
+                } catch (e) {
+                    console.warn("Invalid parent identity:", e)
+                    return
+                }
+            }
+            let breedingIdentity
+            if (storedInDB) {
+                breedingIdentity = storedInDB
+            } else if (existingIdentity) {
+                breedingIdentity = existingIdentity
+            } else {
+                throw new Error("Failed to retrieve or store parent identity")
             }
 
-            try {
-                const storedInDB = await this.identity.saveIdentityToDatabase(parentIdentity, {
-                    origin: "parent",
-                    selectable: false,
-                    cooldownDays: 0
-                })
-            } catch (e) {
-                console.warn("Invalid parent identity:", e)
-                this.invalidUniqueParentId = true
-                this.parentIdentity = parentIdentity
-                return
-            }
-            
 
-            // Remove the parent query parameter from the URL
-            this.$router.replace({ 
-                name: this.$route.name || "home",
-                query: {}
-            })
+            this.showBreedingModal = true
+            this.breedingIdentity = breedingIdentity
+            return
         },
-        forwardInvalidParentId() {
+        removeQueryFromUrl() {
             this.$router.replace({ 
                 name: this.$route.name || "home",
                 query: {}

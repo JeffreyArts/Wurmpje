@@ -130,6 +130,7 @@ export default defineComponent ({
 
 #catterpillar {
     height: 100vh;
+    pointer-events: none;
 }
 
 .catterpillar-header {
