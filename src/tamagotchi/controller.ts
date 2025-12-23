@@ -26,13 +26,15 @@ export class MatterController {
         textureIndex: 1,
         colorSchemeIndex: 1,
         offset: 0,
-        gender: 0
+        gender: 0,
+        thickness: 16,
+        length: 8
     }
 
     constructor(target: HTMLElement, options?: {
         identity?: IdentityField,
-        length?: number,
-        thickness?: number,
+        // length?: number,
+        // thickness?: number,
         catterpillarPos?: { x: number, y: number }
         offsetBottom?: number
     } ) {
@@ -42,8 +44,8 @@ export class MatterController {
         if (!options) {
             options = {}
         }
-        
-        const { identity, length, thickness, offsetBottom } = options
+        const { identity, offsetBottom } = options
+        const { length, thickness } = identity || {}
         if (identity) {
             this.identity = identity
         }

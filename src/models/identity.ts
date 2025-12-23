@@ -5,11 +5,13 @@ export type IdentityField = {
     colorSchemeIndex: number;   // 0-1023
     offset: number;             // 0-15
     gender: number;             // 0 | 1
+    length: number;             // 3-20
+    thickness: number;          // 8-64
 }
 
 
 // Generate and encode identity to QR-ready Base45 string of 29 + 96 + 10 + 10 + 4 = 149 bits
-export class Identity {
+class Identity {
     private static readonly BASE45_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:"
     
     // --- Generate 29-bit ID ---

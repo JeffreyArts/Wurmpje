@@ -7,7 +7,7 @@ import { openDB, type IDBPDatabase } from "idb"
 const DBNAME = "wurmpje"
 const DBVERSION = 1
 
-type DBIdentity =  {
+export type DBIdentity =  {
     id: number;                 // 29-bit: 23 bits seconds/4 + 6 bits random
     name: string;               // max 16 chars, letters A-Z/a-z + space
     textureIndex: number;       // 0-1023
@@ -44,16 +44,16 @@ const identity = defineStore("identity", {
     state: () => ({
         db: undefined as IDBPDatabase | undefined,
         current: undefined as currentIdentity | undefined,
-        id: 0,
-        name: "",
-        gender: 0 as number,
-        primaryColor: "",
-        secondaryColor: "",
-        offset: 0,
-        texture: undefined as textureInterface | undefined,
-        colorschemeIndex: 0,
-        origin: undefined as IdentityField | undefined,
-        age: 1, // In dagen
+        // id: 0,
+        // name: "",
+        // gender: 0 as number,
+        // primaryColor: "",
+        // secondaryColor: "",
+        // offset: 0,
+        // texture: undefined as textureInterface | undefined,
+        // colorschemeIndex: 0,
+        // origin: undefined as IdentityField | undefined,
+        // age: 1, // In dagen
         initialised: undefined as Promise<boolean> | undefined,
         isInitializing: false,
 
@@ -74,7 +74,7 @@ const identity = defineStore("identity", {
 
                         store.createIndex("cooldown", "cooldown")
                         store.createIndex("created", "created")
-                        store.createIndex("name", "name", { unique: true })
+                        store.createIndex("name", "name", { unique: false })
                     }
                 })
 
