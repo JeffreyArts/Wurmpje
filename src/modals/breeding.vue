@@ -7,7 +7,7 @@
         <section class="breeding-container">
             <div class="parent1">
                 <figure class="wurmpje-thumbnail-container">
-                    <wurmpjeThumbnail class="parent-wurmpje" :identityField="parentIdentity" />
+                    <wurmpjeThumbnail type="flat" class="parent-wurmpje" :identityField="parentIdentity" @ready="setParent($event, 1)"/>
                 </figure>
                 <figcaption class="parent-identity" v-if="parentIdentity">
                     <span class="parent-name">
@@ -18,12 +18,10 @@
                     </span>
                 </figcaption>
             </div>
-            <div class="divider">
-                <jao-icon name="heart" size="medium" active-color="var(--color-accent)" inactive-color="transparent"></jao-icon>
-            </div>
+
             <div class="parent2">
                 <figure class="wurmpje-thumbnail-container">
-                    <wurmpjeThumbnail class="parent-wurmpje" :identityField="parentIdentity" />
+                    <wurmpjeThumbnail type="flat" class="parent-wurmpje" :identityField="parentIdentity" @ready="setParent($event, 2)"/>
                 </figure>
                 <figcaption class="parent-identity" v-if="parentIdentity">
                     <span class="parent-name">
@@ -35,6 +33,13 @@
                 </figcaption>
             </div>
         </section>
+
+        <div class="breeding-container-cta">
+
+            <div class="divider">
+                <jao-icon name="heart" size="medium" active-color="var(--color-accent)" inactive-color="transparent"></jao-icon>
+            </div>
+        </div>
 
         <template #submit-text>
             Breed
@@ -51,6 +56,7 @@ import jaoIcon from "@/components/jao-icon.vue";
 import type { IdentityField } from "@/models/identity";
 import wurmpjeThumbnail from "@/components/wurmpje-thumbnail.vue";
 import useIdentityStore, { type DBIdentity } from "@/stores/identity";
+import type { MatterController } from "@/tamagotchi/controller";
 
 
 export default defineComponent ({ 
@@ -99,7 +105,9 @@ export default defineComponent ({
     },
     data() {
         return {
-            parentIdentity: null as DBIdentity | null
+            parentIdentity: null as DBIdentity | null,
+            parent1: null as MatterController | null,
+            parent2: null as MatterController | null,
         }
     },
     methods: {
@@ -123,6 +131,29 @@ export default defineComponent ({
             
             this.parentIdentity = await this.identityStore.findIdentityInDatabase("id", this.parent.id);
             return this.parentIdentity;
+        },
+        setParent(controller: MatterController, parentId: number) {
+            if (parentId === 1) {
+                this.parent1 = controller
+            } else {
+                this.parent2 = controller
+            }
+
+            if (this.parent1) {
+                this.parent1.catterpillar.emote("sad")
+            }
+            if (this.parent2) {
+                setTimeout(() =>{
+
+                    this.parent2.catterpillar.emote("kiss")
+                }, 2000)
+            }
+
+            if (this.parent1) {
+                setTimeout(() =>{
+                    this.parent1.catterpillar.emote("happy")
+                }, 2500)
+            }
         }
     }
 })
@@ -144,6 +175,10 @@ export default defineComponent ({
         flex-flow: column;
         align-items: center;
         width: 100%;
+    }
+
+    .parent1 canvas{
+        transform: scaleX(-1);
     }
 
     .parent-wurmpje {
@@ -176,21 +211,23 @@ export default defineComponent ({
         justify-content: center;
         gap: 16px;
         padding: 16px 0;
-
-        .divider {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            svg {
-                width: 43px;
-            }
-        }
-    }   
+    }
 
     .modal-actions {
         justify-content: center;
     }
+
+    .breeding-container-cta {
+        .divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            svg {
+                width: 80px;
+            }
+        }
+    }   
 }
 
 </style>
