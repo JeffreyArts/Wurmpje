@@ -66,8 +66,6 @@ export default defineComponent ({
     async mounted() {
         this.controller = new MatterController( this.$refs["catterpillar"] as HTMLElement, {
             identity: this.identity,
-            length: this.identity.length,
-            thickness: this.identity.thickness,
             catterpillarPos: { x: window.innerWidth / 2, y: -100},
             offsetBottom: 128
         })
@@ -89,23 +87,23 @@ export default defineComponent ({
             gsap.to(twoEl, {duration: 0.3, opacity: this.dev ? 0 : 1})
             gsap.to(rendererEl, {duration: 0.3, opacity: this.dev ? 1 : 0})
         },
-        increaseLength(amount: number) {
-            if (this.controller) {
-                this.controller.catterpillar.remove()
-                this.controller.catterpillar.length += amount
-                this.controller.catterpillar = this.controller.createCatterpillar(
-                    { x: this.controller.catterpillar.head.body.position.x, y: this.controller.catterpillar.head.body.position.y },
-                    {
-                        length: this.controller.catterpillar.length,
-                        thickness: this.controller.catterpillar.thickness
-                    }
-                )
-                this.controller.draw.objects = []
-                if (this.controller.catterpillar) {
-                    this.controller.draw.addCatterpillar(this.controller.catterpillar as Catterpillar)
-                }
-            }
-        },
+        // increaseLength(amount: number) {
+        //     if (this.controller) {
+        //         this.controller.catterpillar.remove()
+        //         this.controller.catterpillar.length += amount
+        //         this.controller.catterpillar = this.controller.createCatterpillar(
+        //             { x: this.controller.catterpillar.head.body.position.x, y: this.controller.catterpillar.head.body.position.y },
+        //             {
+        //             //    identity: catterpillar.identity,
+        //             //     thickness: this.controller.catterpillar.thickness
+        //             }
+        //         )
+        //         this.controller.draw.objects = []
+        //         if (this.controller.catterpillar) {
+        //             this.controller.draw.addCatterpillar(this.controller.catterpillar as Catterpillar)
+        //         }
+        //     }
+        // },
     }
 })
 </script>

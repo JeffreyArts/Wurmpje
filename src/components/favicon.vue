@@ -55,8 +55,6 @@ export default defineComponent ({
             }
             const controller = new MatterController( target, {
                 identity: this.identity,
-                length: length,
-                thickness: thickness,
                 catterpillarPos: { x: width/2 + (length * thickness) * .2, y: height - thickness * 1.5},
                 offsetBottom: thickness * 1.5
             })

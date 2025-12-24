@@ -39,23 +39,15 @@ export class MatterController {
         offsetBottom?: number
     } ) {
 
-        const catterpillarOptions = {} as { identity: IdentityField, length?: number, thickness?: number }
+        const catterpillarOptions = {} as { identity: IdentityField }
 
         if (!options) {
             options = {}
         }
         const { identity, offsetBottom } = options
-        const { length, thickness } = identity || {}
         if (identity) {
             this.identity = identity
         }
-        if (length) {
-            catterpillarOptions.length = length
-        }
-        if (thickness) {
-            catterpillarOptions.thickness = thickness
-        }
-
         catterpillarOptions.identity = identity
         
         this.ref = new MatterSetup(target, {
@@ -99,7 +91,7 @@ export class MatterController {
             this.catterpillar.y > this.ref.renderer.options.height ) {
             // Re-center Catterpillar
             this.catterpillar.remove()
-            this.createCatterpillar({ x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }, { identity: this.identity, length: this.catterpillar.length, thickness: this.catterpillar.thickness })  
+            this.createCatterpillar({ x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }, { identity: this.identity })  
         }
 
         requestAnimationFrame(this.#loop.bind(this))
@@ -261,9 +253,7 @@ export class MatterController {
                 new Catterpillar({
                     x: x,
                     y: y,
-                    identity: { id, name: `Catterpillar${id}`, textureIndex: 1, colorSchemeIndex: 1, offset: 0, gender: 0 },
-                    length: 14,
-                    thickness: 10
+                    identity: { id, name: `Catterpillar${id}`, textureIndex: 1, colorSchemeIndex: 1, offset: 0, gender: 0, length: 14, thickness: 10 },
                 }, this.ref.world) 
             }
         } else if (name == "standUpCatterpillar") {
@@ -295,7 +285,7 @@ export class MatterController {
         this.ref.addClickEvent(fn, name)
     }
 
-    createCatterpillar(position: { x: number, y: number }, options?: { identity?: IdentityField, length?: number, thickness?: number }) {
+    createCatterpillar(position: { x: number, y: number }, options?: { identity?: IdentityField }) {
         let { identity } = options || {}
 
         if (!identity) {
@@ -307,20 +297,17 @@ export class MatterController {
                 textureIndex: identity.textureIndex,
                 colorSchemeIndex: identity.colorSchemeIndex,
                 offset: Math.floor(Math.random() * 16),
-                gender: Math.random() > 0.5 ? 1 : 0
+                gender: Math.random() > 0.5 ? 1 : 0,
+                thickness: 16,
+                length: 6
             }
         }
         this.identity = identity
 
-        const length = options?.length ? options.length : 9
-        const thickness = options?.thickness ? options.thickness : 20
-
         this.catterpillar = new Catterpillar({
             x: position.x,
             y: position.y,
-            identity: identity as IdentityField,
-            length,
-            thickness
+            identity: identity as IdentityField
         }, this.ref.world).ref
 
         // Custom colors for the main catterpillar

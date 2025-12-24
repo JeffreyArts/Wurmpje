@@ -13,12 +13,10 @@ export class Catterpillar {
     colorScheme: ColorScheme
 
 
-    constructor({ x, y, identity, length, thickness }: {
+    constructor({ x, y, identity }: {
         x: number,
         y: number,
-        identity: IdentityField,
-        length: number,
-        thickness: number
+        identity: IdentityField
     }, world: Matter.World) {
         this.world = world
         this.identity = identity
@@ -30,8 +28,8 @@ export class Catterpillar {
             id: identity.id.toString(),
             x: x,
             y: y,
-            length: length,
-            thickness: thickness,
+            length: identity.length,
+            thickness: identity.thickness,
             primaryColor: this.colorScheme.colors[0],
             secondaryColor: this.colorScheme.colors[1],
             offset: identity.offset,

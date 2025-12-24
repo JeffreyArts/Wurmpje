@@ -407,7 +407,7 @@ export default defineComponent({
             // Check if identity already exists in database
             const existingIdentity = await this.identity.findIdentityInDatabase('id', identityObject.id)
 
-            if (existingIdentity) {
+            if (!Array.isArray(existingIdentity)) {
                 this.identity.selectIdentity(existingIdentity.id)
                 this.$router.push("/")
                 return

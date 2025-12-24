@@ -102,21 +102,19 @@ const identity = defineStore("identity", {
                 // }, 1000)
             })
         },
-        processIdentityString(identityString: string) {
-            const identityModel = new Identity()
-            const identity = identityModel.decode(identityString )
+        // async processIdentityString(identityString: string) {
 
-            this.id = identity.id
-            this.name = identity.name
-            this.texture = Textures[identity.textureIndex]
-            this.primaryColor = ColorScheme[identity.colorSchemeIndex].colors[0]
-            this.secondaryColor = ColorScheme[identity.colorSchemeIndex].colors[1]
-            this.gender = identity.gender
-            this.offset = identity.offset
-            this.origin = identity
+        //     // this.id = identity.id
+        //     // this.name = identity.name
+        //     // this.texture = Textures[identity.textureIndex]
+        //     // this.primaryColor = ColorScheme[identity.colorSchemeIndex].colors[0]
+        //     // this.secondaryColor = ColorScheme[identity.colorSchemeIndex].colors[1]
+        //     // this.gender = identity.gender
+        //     // this.offset = identity.offset
+        //     // this.origin = identity
 
-        },
-        loadIdentityFromUrlParam() {
+        // },
+        async loadIdentityFromUrlParam() {
             const urlParams = new URLSearchParams(window.location.search)
             const identityParam = urlParams.get("i")
                     
@@ -126,7 +124,20 @@ const identity = defineStore("identity", {
             }
                 
             if (identityParam) {
-                this.processIdentityString(identityParam)
+                const identityModel = new Identity()
+                const identity = identityModel.decode(identityParam)
+
+                // Load all identities from database to check for duplicates
+                const tx = this.db.transaction("identities", "readonly")
+                const store = tx.objectStore("identities")
+
+                const allIdentities = await store.getAll()
+                if (allIdentities.length > 0) {
+                    return
+                }
+                
+                this.saveIdentityToDatabase(identity, { origin: "url", selectable: true })
+                this.selectIdentity(identity.id)
             }
         },
         async loadIdentityFromLocalStorage() {

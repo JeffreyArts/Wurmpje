@@ -194,7 +194,6 @@ export default defineComponent ({
             // This timeout is needed to force a reset of the modal component
         },
         isCoolingDown(identity: DBIdentity) {
-            return false
             if (!identity?.cooldown) {
                 return false
             }
@@ -224,7 +223,7 @@ export default defineComponent ({
                 await this.identityStore.updateIdentityInDatabase(parent2.id, { cooldown: parent2.cooldown })
             }
 
-            this.identityStore.selectIdentity(babyWurmpje.id)
+            this.identityStore.selectIdentity(Number(babyWurmpje.id))
             this.closeModal()
         },
         gender(identity: DBIdentity) {
@@ -251,13 +250,13 @@ export default defineComponent ({
 
             return this.parentIdentity;
         },
-        setParent(controller: MatterController, targetIdentity: DBIdentityWithController | null) {
+        setParent(controller: MatterController, targetIdentity: DBIdentity | DBIdentityWithController | null) {
             if (!targetIdentity) {
                 return
             }
+            const ti = targetIdentity as DBIdentityWithController
+            ti.controller = controller as MatterController
             
-            targetIdentity.controller = controller as MatterController
-
             gsap.to(".parent1 .parent-wurmpje, .parent2 .select-wurmpje:first-child .parent-wurmpje", {
                 duration: 0.72,
                 opacity: 1,
