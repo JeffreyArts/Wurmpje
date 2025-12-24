@@ -328,6 +328,19 @@ export default defineComponent({
             // Navigate to next page
             gsap.killTweensOf(".story-line-message")
             const qrData = this.lastScans[this.lastScans.length - 1].data
+
+            if (qrData.includes("?parent=")) {
+                // forward to qrData page
+                const url = new URL(qrData)
+                const parentParam = url.searchParams.get("parent")
+                if (parentParam) {
+                    this.$router.push({ name: "home", query: { parent: parentParam } })
+                    // Refresh page to trigger parent processing
+                    window.location.reload()
+                    return  
+                }
+            }
+
             const identityObject = await this.validateQR(qrData)
 
             if (identityObject) {

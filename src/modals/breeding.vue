@@ -14,15 +14,20 @@
                 <figure class="wurmpje-thumbnail-container">
                     <div class="select-wurmpje-container" ref="wurmpjes-container">
                         <div class="button-container" @click="decreaseSelectedParent2Index">
-                            <jao-icon name="chevron-top" size="small" active-color="var(--color-accent)" inactive-color="transparent" :style="[disableDecreaseChevron ? 'opacity: .4' : '']"></jao-icon>
+                            <jao-icon name="chevron-top" :disabled="disableDecreaseChevron" size="small" active-color="var(--color-accent)" inactive-color="transparent" :style="[disableDecreaseChevron ? 'opacity: .4' : '']"></jao-icon>
                         </div>
                         <div class="select-wurmpje-spacer">
-                            <div class="select-wurmpje" v-for="(wurmpje,w) in optionalParents">
+                            <p  v-if="optionalParents.length <= 0 && parent">
+                                 <span v-if="parent.gender == 1">Mommy needs a daddy</span>
+                                 <span v-if="parent.gender == 0">Daddy needs a mommy</span>
+                            </p>
+
+                            <div class="select-wurmpje" v-for="(wurmpje,w) in optionalParents" v-if="optionalParents.length > 0">
                                 <!-- {{  wurmpje }} -->
                                 <wurmpjeThumbnail :id="`wurmpje-${w}`" type="flat" class="parent-wurmpje" :identityField="wurmpje" @ready="setParent($event, wurmpje)"/>
                             </div>
                         </div>
-                        <div class="button-container" @click="increaseSelectedParent2Index">
+                        <div class="button-container" :disabled="disableIncreaseChevron" @click="increaseSelectedParent2Index">
                             <jao-icon name="chevron-bottom" size="small" active-color="var(--color-accent)" inactive-color="transparent" :style="[disableIncreaseChevron ? 'opacity: .4' : '']"></jao-icon>
                         </div>
                     </div>
@@ -61,7 +66,10 @@
             </figcaption>
         </footer>
 
-        <div class="breeding-container-cta" :class="[loveIsDisabled ? '__isDisabled' : '']">
+        <div class="breeding-container-cta" v-if="optionalParents.length == 0">
+            <p>Go look for a {{ oppositeSex }} wurmpje and try again.</p>
+        </div>
+        <div class="breeding-container-cta" :class="[loveIsDisabled ? '__isDisabled' : '']" v-if="optionalParents.length > 0">
             <div class="divider" @click="submit">
                 <jao-icon name="heart" size="medium" active-color="var(--color-accent)" inactive-color="transparent"></jao-icon>
                 <button class="modal-submit" type="submit"> Make love </button>
@@ -110,12 +118,22 @@ export default defineComponent ({
         }
     },
     computed: {
+        oppositeSex(): string {
+            if (!this.parent) {
+                return ""
+            }
+            if (this.parent.gender == 1) {
+                return "male"
+            } else {
+                return "female"
+            }
+        },
         loveIsDisabled() {
             if (!this.parentIdentity) {
                 return true
             }
 
-            if (!this.optionalParents && !this.optionalParents[this.selectedParent2Index]) {
+            if (!this.optionalParents || !this.optionalParents[this.selectedParent2Index]) {
                 return true
             }
 
@@ -155,8 +173,17 @@ export default defineComponent ({
                 }
                 console.log("Found optional parents:", parents)
             })
+
+            if (this.optionalParents.length <= 1) {
+                this.disableIncreaseChevron = true
+                this.disableDecreaseChevron = true
+            }
         },
         decreaseSelectedParent2Index() {
+            if (this.optionalParents.length <= 0) {
+                return
+            }
+
             if (this.selectedParent2Index > 0) {
                 this.selectedParent2Index -= 1
             } 
@@ -171,6 +198,10 @@ export default defineComponent ({
             this.selectWurmpje(this.selectedParent2Index)
         },
         increaseSelectedParent2Index() {
+            if (this.optionalParents.length <= 0) {
+                return
+            }
+            
             if (this.selectedParent2Index < this.optionalParents.length - 1) {
                 this.selectedParent2Index += 1
             } 
@@ -426,6 +457,7 @@ export default defineComponent ({
     }
 
     .breeding-container-cta {
+        text-align: center;
         margin-top: 16px;
 
         &.__isDisabled {
