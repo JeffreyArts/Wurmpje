@@ -1,7 +1,7 @@
 <template>
     <div class="helper">
         <article class="helper-container" v-if="wurmpje">
-            <wurmpjeThumbnail type="curve" class="wurmpje" :identityField="wurmpje" :redrawKey="redrawKey"/>
+            <wurmpjeThumbnail type="curved" class="wurmpje" :identityField="wurmpje" :redrawKey="redrawKey"/>
             <form class="form" v-if="wurmpje">
                 <div class="row">
                     <label for="wurmpje-id-input">ID:</label>
