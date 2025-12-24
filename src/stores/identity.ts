@@ -163,6 +163,57 @@ const identity = defineStore("identity", {
         //     }
         //     localStorage.setItem("identity", identityString)
         // },
+        async breedWurmpje(parent1: DBIdentity, parent2: DBIdentity) {
+            if (!parent1 || !parent2) {
+                throw new Error("Both parents must be provided for breeding")
+            }
+
+            const maxLength = Math.min(parent1.length, parent2.length)
+            const maxThickness = Math.min(parent1.thickness, parent2.thickness)
+
+            const thickness = Math.floor((maxThickness - 8) * Math.random() + 8)
+            const length = Math.floor((maxLength - 3) * Math.random() + 3)
+            const coinFlip = Math.random() < 0.5
+
+            const identity = new Identity()
+            const newIdentity = {
+                id: identity.generateId(),
+                name: "temp",
+                thickness,
+                length,
+                textureIndex: coinFlip ? parent1.textureIndex : parent2.textureIndex,
+                colorSchemeIndex: coinFlip ? parent2.colorSchemeIndex : parent1.colorSchemeIndex,
+                offset: Math.floor(Math.random() * 16),
+                gender: Math.random() < 0.5 ? 0 : 1
+            } as IdentityField
+
+            newIdentity.name = this.getLatinName(newIdentity.colorSchemeIndex, newIdentity.textureIndex)
+            let origin = "parents"
+            if (parent1.gender === 1) {
+                origin = `mom:${parent2.id},dad:${parent1.id}`
+            } else {
+                origin = `mom:${parent1.id},dad:${parent2.id}`
+            }
+            
+            return await this.saveIdentityToDatabase(newIdentity, { origin, selectable: true, cooldownDays: 7 })
+        },
+        async updateIdentityInDatabase(id: number, updates: Partial<DBIdentity>) {
+            if (!this.db) {
+                throw new Error("Database not initialized") 
+            }
+
+            const tx = this.db.transaction("identities", "readwrite")
+            const store = tx.objectStore("identities")
+
+            const identity = await store.get(id)
+            if (!identity) {
+                throw new Error(`Identity with id ${id} not found in database`)
+            }
+
+            const updatedIdentity = { ...identity, ...updates }
+            store.put(updatedIdentity)
+            return tx.done
+        },
         async findIdentityInDatabase(key: string, value: string | number): Promise<DBIdentity | Array<DBIdentity> | undefined> {
             const tx = this.db.transaction("identities", "readonly")
             const store = tx.objectStore("identities")
@@ -177,7 +228,7 @@ const identity = defineStore("identity", {
             }
             return foundIdentities
         },
-        saveIdentityToDatabase(input: IdentityField | string, options : { 
+        async saveIdentityToDatabase(input: IdentityField | string, options : { 
             cooldownDays?: number,
             selectable?: boolean,
             origin: string | [number, number] 
@@ -205,8 +256,8 @@ const identity = defineStore("identity", {
                 origin
             }
 
-            store.put(dbIdentity)
-            return tx.done
+            const id = await store.put(dbIdentity)
+            return { ...dbIdentity, id }
         },
         preloadTextures() {
             const promises = [] as Promise<Response>[]

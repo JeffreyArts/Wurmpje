@@ -91,8 +91,7 @@ export default defineComponent ({
                 this.invalidParentId = true
                 return
             }
-            
-            
+                        
             const existingIdentity = await this.identity.findIdentityInDatabase("id", parentIdentity.id);
             let storedInDB = undefined;
             // Add identity to database if it doesn't exist
@@ -125,6 +124,7 @@ export default defineComponent ({
             return breedingIdentity
         },
         removeQueryFromUrl() {
+            this.showBreedingModal = false
             this.$router.replace({ 
                 name: this.$route.name || "home",
                 query: {}

@@ -1,5 +1,5 @@
 <template>
-    <Modal class="breeding-modal" :is-open="isOpen" :auto-close="false" @close-immediate="closeModalImmediate" @close="closeModal" @submit="submit()">
+    <Modal class="breeding-modal" :is-open="isOpen" :hide-submit="true" :auto-close="false" @close-immediate="closeModalImmediate" @close="closeModal" @submit="submit()">
         <template #title v-if="parent">
             <h2 v-if="parent.gender == 1">Who's your daddy? </h2>
             <h2 v-if="parent.gender == 0">Who's your mommy? </h2>
@@ -31,41 +31,48 @@
         </section>
         <footer class="breeding-container">
             <figcaption class="parent-identity" v-if="parentIdentity">
-                <span class="parent-name">
+                <span class="parent-name" v-if="!isCoolingDown(parentIdentity)">
                     {{ parentIdentity.name }}
                 </span>
-                <span class="parent-gender">
+                <span class="parent-gender" v-if="!isCoolingDown(parentIdentity)">
                     {{ gender(parentIdentity) }}
+                </span>
+                <span class="parent-cooldown" v-if="isCoolingDown(parentIdentity)">
+                    This wurmpje needs some time before it can make love again.
                 </span>
             </figcaption>
             <figcaption class="parent-identity" v-if="optionalParents[selectedParent2Index]">
-                <span class="parent-name">
+                <span class="parent-name" v-if="!isCoolingDown(optionalParents[selectedParent2Index])">
                     {{ optionalParents[selectedParent2Index].name }}
+                </span>
+                <span class="parent-gender" v-if="!isCoolingDown(optionalParents[selectedParent2Index])">
+                    {{ gender(optionalParents[selectedParent2Index]) }}
+                </span>
+                <span class="parent-cooldown" v-if="isCoolingDown(optionalParents[selectedParent2Index])">
+                    This wurmpje needs some time before it can make love again.
+                </span>
+                <span class="parent-name">
+                    
                     <!-- {{ parentIdentity.name }} -->
                 </span>
                 <span class="parent-gender">
-                    {{ gender(optionalParents[selectedParent2Index]) }}
                     <!-- {{ parentGender }} -->
                 </span>
             </figcaption>
         </footer>
 
-        <div class="breeding-container-cta">
+        <div class="breeding-container-cta" :class="[loveIsDisabled ? '__isDisabled' : '']">
             <div class="divider" @click="submit">
                 <jao-icon name="heart" size="medium" active-color="var(--color-accent)" inactive-color="transparent"></jao-icon>
+                <button class="modal-submit" type="submit"> Make love </button>
             </div>
         </div>
-
-        <template #submit-text>
-            Make love
-        </template>
-
     </Modal>
 </template>
 
 
 <script lang="ts">
-import { defineComponent, type PropType } from "vue"
+import { defineComponent, type PropType, type Ref } from "vue"
 import Modal from "@/components/modal.vue";
 import jaoIcon from "@/components/jao-icon.vue";
 import type { IdentityField } from "@/models/identity";
@@ -103,6 +110,17 @@ export default defineComponent ({
         }
     },
     computed: {
+        loveIsDisabled() {
+            if (!this.parentIdentity) {
+                return true
+            }
+
+            if (!this.optionalParents && !this.optionalParents[this.selectedParent2Index]) {
+                return true
+            }
+
+            return this.isCoolingDown(this.parentIdentity) || this.isCoolingDown(this.optionalParents[this.selectedParent2Index])
+        }
     },
     watch: {
         parent: {
@@ -175,9 +193,39 @@ export default defineComponent ({
         openModal() {
             // This timeout is needed to force a reset of the modal component
         },
-        submit() {
+        isCoolingDown(identity: DBIdentity) {
+            return false
+            if (!identity?.cooldown) {
+                return false
+            }
+            const now = Date.now()
+            return identity.cooldown > now
+        },
+        async submit() {
             this.$emit("submit")
-            console.log("Breeding submitted")
+            
+            const parent1 = this.parentIdentity
+            const parent2 = this.optionalParents[this.selectedParent2Index]
+            const babyWurmpje = await this.identityStore.breedWurmpje(parent1, parent2)
+
+            if (!babyWurmpje) {
+                return
+            }
+
+            if (parent1) {
+                // Set cooldown 7 days from now
+                parent1.cooldown = Date.now() + 7 * 24 * 60 * 60 * 1000
+                await this.identityStore.updateIdentityInDatabase(parent1.id, { cooldown: parent1.cooldown })
+            }
+
+            if (parent2) {
+                // Set cooldown 7 days from now
+                parent2.cooldown = Date.now() + 7 * 24 * 60 * 60 * 1000
+                await this.identityStore.updateIdentityInDatabase(parent2.id, { cooldown: parent2.cooldown })
+            }
+
+            this.identityStore.selectIdentity(babyWurmpje.id)
+            this.closeModal()
         },
         gender(identity: DBIdentity) {
             if (!identity) {
@@ -197,14 +245,18 @@ export default defineComponent ({
             
             const parentIdentity = await this.identityStore.findIdentityInDatabase("id", this.parent.id);
             if (parentIdentity && !Array.isArray(parentIdentity)) {
-                this.parentIdentity = parentIdentity;
+                this.parentIdentity = parentIdentity as DBIdentityWithController;
                 await this.getOptionalParents(this.parentIdentity)
             }
 
             return this.parentIdentity;
         },
-        setParent(controller: MatterController, targetIdentity: DBIdentityWithController) {
-            targetIdentity.controller = controller
+        setParent(controller: MatterController, targetIdentity: DBIdentityWithController | null) {
+            if (!targetIdentity) {
+                return
+            }
+            
+            targetIdentity.controller = controller as MatterController
 
             gsap.to(".parent1 .parent-wurmpje, .parent2 .select-wurmpje:first-child .parent-wurmpje", {
                 duration: 0.72,
@@ -312,6 +364,14 @@ export default defineComponent ({
         opacity: 0.64;
     } 
 
+    .parent-cooldown {
+        text-align: center;
+        line-height: .9;
+        font-weight: normal;
+        font-size: 14px;
+        opacity: 0.8;
+    }
+
     .wurmpje-thumbnail {
         height: 100px;
         opacity: 0;
@@ -367,11 +427,20 @@ export default defineComponent ({
     }
 
     .breeding-container-cta {
+        margin-top: 16px;
+
+        &.__isDisabled {
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
         .divider {
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-flow: column;
             width: 100%;
+            gap: 24px;
             svg {
                 width: 80px;
             }
