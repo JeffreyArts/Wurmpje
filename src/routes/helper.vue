@@ -58,6 +58,13 @@ export default defineComponent ({
     watch: {
         wurmpje: {
             handler(key) {
+                const identity = new Identity()
+                try {
+                    identity.encode(this.wurmpje)
+                } catch (e) {
+                    // console.error("Failed to encode wurmpje:", e)
+                    return
+                }
                 this.redrawKey ++;
                 // Force redraw by changing key
                 // this.wurmpje = {...this.wurmpje} as IdentityField
