@@ -3,6 +3,7 @@ import Error404 from "@/routes/error-404.vue"
 import Home from "@/routes/home.vue"
 import Setup from "@/routes/setup.vue"
 import Scan from "@/routes/scan.vue"
+import Helper from "@/routes/helper.vue"
 
 import { createWebHistory, createRouter } from "vue-router"
 
@@ -21,6 +22,11 @@ const routes = [
         path: "/hi",
         name: "setup",
         component: Setup,
+    },
+    {
+        path: "/helper",
+        name: "helper",
+        component: Helper,
     },
     {
         path: "/:pathMatch(.*)*",

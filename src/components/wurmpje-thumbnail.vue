@@ -21,31 +21,48 @@ export default defineComponent ({
             type: String as PropType<"flat" | "curved">,
             required: false,
             default: "curved"
+        },
+        redrawKey: {
+            type: [String, Number] as PropType<string | number>,
+            required: false
         }
     },
     data() {
         return {
             controller: null as MatterController | null,
-            parentIdentity: null as IdentityField | null
+            parentIdentity: null as IdentityField | null,
         }
     },
     watch: {
         identityField: {
             async handler(val) {
                 if (val) {
-                    this.$nextTick().then(() => {
-                        if (this.type === "flat") {
-                            this.createFlatCanvas(this.$el.clientWidth, this.$el.querySelector("#canvas-container"), val);
-                        } else {
-                            this.createCurvedCanvas(this.$el.clientWidth, this.$el.clientHeight, this.$el.querySelector("#canvas-container"), val);
-                        }
-                    })
+                    this.draw();
+                }
+            },
+            immediate: true,
+            // deep: true
+        },
+        redrawKey: {
+            async handler() {
+                if (this.identityField) {
+                    this.draw();
                 }
             },
             immediate: true
         }
     },
     methods: {
+        draw() {
+            this.$nextTick().then(() => {
+                this.removeOldCanvas();
+                if (this.type === "flat") {
+                    this.createFlatCanvas(this.$el.clientWidth, this.$el.querySelector("#canvas-container"), this.identityField);
+                } else {
+                    this.createCurvedCanvas(this.$el.clientWidth, this.$el.clientHeight, this.$el.querySelector("#canvas-container"), this.identityField);
+                }
+            })
+        },
         createFlatCanvas(width: number, target: HTMLElement, identity: IdentityField) {
             
             const thickness = identity.thickness;
@@ -94,6 +111,17 @@ export default defineComponent ({
             const canvas = target.querySelector("#two-js") as HTMLCanvasElement;
             this.$emit("ready", this.controller)
         },
+        removeOldCanvas() {
+            const oldTwoJSCanvas = this.$el.querySelector("#two-js") as HTMLCanvasElement;
+            const oldMatterCanvas = this.$el.querySelector("#matter") as HTMLCanvasElement;
+            if (oldTwoJSCanvas) {
+                oldTwoJSCanvas.remove();
+            }
+            if (oldMatterCanvas) {
+                oldMatterCanvas.remove();
+            }
+
+        }
     }
 })
 </script>
