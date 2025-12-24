@@ -114,8 +114,9 @@ export default defineComponent ({
             } else if (existingIdentity) {
                 breedingIdentity = existingIdentity
             } else {
-                throw new Error("Failed to retrieve or store parent identity")
+                breedingIdentity = parentIdentity
             }
+
 
 
             this.showBreedingModal = true

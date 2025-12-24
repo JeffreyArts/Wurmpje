@@ -67,6 +67,8 @@ export default defineComponent ({
             })
             this.controller.ref.removepointerMoveEvent("lookAtMouse")
             this.controller.draw.drawBG({blockSize})
+            this.controller.catterpillar.rightEye.lookLeft(2)
+            this.controller.catterpillar.leftEye.lookLeft(2)
             
             const canvas = target.querySelector("#two-js") as HTMLCanvasElement;
 

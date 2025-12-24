@@ -153,23 +153,29 @@ const identity = defineStore("identity", {
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) 
             return diffDays
         },
-        saveIdentityToLocalStorage() {
-            const identityModel = new Identity()
-            const identity = this.origin
-            const identityString = identityModel.encode(identity)
-            // Alleen birthdate toevoegen als er nog geen identity in localStorage is
-            if (!localStorage.getItem("identity")) {    
-                localStorage.setItem("birthDate", new Date().toISOString())
-            }
-            localStorage.setItem("identity", identityString)
-        },
-        findIdentityInDatabase(key: string, value: string | number): Promise<DBIdentity> {
+        // saveIdentityToLocalStorage() {
+        //     const identityModel = new Identity()
+        //     const identity = this.origin
+        //     const identityString = identityModel.encode(identity)
+        //     // Alleen birthdate toevoegen als er nog geen identity in localStorage is
+        //     if (!localStorage.getItem("identity")) {    
+        //         localStorage.setItem("birthDate", new Date().toISOString())
+        //     }
+        //     localStorage.setItem("identity", identityString)
+        // },
+        async findIdentityInDatabase(key: string, value: string | number): Promise<DBIdentity | Array<DBIdentity> | undefined> {
             const tx = this.db.transaction("identities", "readonly")
             const store = tx.objectStore("identities")
 
-            return store.getAll().then((allIdentities: DBIdentity[]) => {
-                return allIdentities.find((identity) => identity[key as keyof DBIdentity] === value)
-            })
+            const allIdentities = await store.getAll()
+            const foundIdentities = allIdentities.filter((identity) => identity[key as keyof DBIdentity] === value)
+            if (foundIdentities.length === 0) {
+                return undefined
+            }
+            if (foundIdentities.length === 1) {
+                return foundIdentities[0]
+            }
+            return foundIdentities
         },
         saveIdentityToDatabase(input: IdentityField | string, options : { 
             cooldownDays?: number,
