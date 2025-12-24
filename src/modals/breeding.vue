@@ -120,7 +120,8 @@ export default defineComponent ({
             optionalParents: [] as DBIdentityWithController[],
             selectedParent2Index: 0,
             disableDecreaseChevron: true,
-            disableIncreaseChevron: false
+            disableIncreaseChevron: false,
+            parent1Timeout: 0 as number | NodeJS.Timeout
         }
     },
     mounted() {
@@ -223,8 +224,9 @@ export default defineComponent ({
                 }, 2000)
             }
 
+            clearTimeout(this.parent1Timeout)
             if (parent1.controller) {
-                setTimeout(() =>{
+                this.parent1Timeout = setTimeout(() =>{
                     parent1.controller.catterpillar.emote("happy")
                 }, 2500)
             }
