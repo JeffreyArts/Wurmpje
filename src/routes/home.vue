@@ -57,9 +57,9 @@ export default defineComponent ({
     async mounted() {
         await this.identity.initialised
 
-        this.checkForParentInUrl()
+        const foundParent = await this.checkForParentInUrl()
 
-        if (!this.identity.current) {
+        if (!this.identity.current && !foundParent) {
             console.warn("No identity found, redirecting to setup page.")
             this.$router.push({ name: "setup" })
             return
@@ -108,6 +108,7 @@ export default defineComponent ({
                     return
                 }
             }
+
             let breedingIdentity
             if (storedInDB) {
                 breedingIdentity = storedInDB
@@ -121,7 +122,7 @@ export default defineComponent ({
 
             this.showBreedingModal = true
             this.breedingIdentity = breedingIdentity
-            return
+            return breedingIdentity
         },
         removeQueryFromUrl() {
             this.$router.replace({ 
