@@ -7,9 +7,6 @@ import { Catterpillar } from "./create/catterpillar"
 import CatterpillarModel from "@/models/catterpillar"
 import type { IdentityField } from "@/models/identity"
 
-import ColorSchemes from "@/assets/default-color-schemes"
-import Textures from "@/assets/default-textures"
-
 export class MatterController {
     ref: MatterSetup
     clickEvents: Array<Function> = []
@@ -232,7 +229,7 @@ export class MatterController {
         let fn
 
         if (name == "moveCatterpillar") {
-            fn = ({ x, y }) => {
+            fn = ({ x, /* y */ }) => {
                 if (this.catterpillar.isPointingLeft()) {
                     if (x < this.catterpillar.x) {
                         this.catterpillar.move()

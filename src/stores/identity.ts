@@ -60,7 +60,7 @@ const identity = defineStore("identity", {
     }),
     actions: {
         init() {
-            return this.initialised = new Promise(async (resolve, reject) => {
+            return this.initialised = new Promise(async (resolve) => {
                 if (this.isInitializing) {
                     return
                 }

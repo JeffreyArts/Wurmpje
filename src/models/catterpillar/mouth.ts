@@ -1,6 +1,6 @@
 // import Paper from "paper"
 import gsap from "gsap"
-import { Point, Path } from "@/models/path"
+import { Point } from "@/models/path"
 
 export type MouthOptions = {
     ref: { 

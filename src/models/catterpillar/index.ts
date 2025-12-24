@@ -311,9 +311,9 @@ export class Catterpillar {
             const x = this.x - offsetX + i * this.thickness
 
             // Select amount of catterPillars in the world
-            const catterpillars = this.world.composites.filter(comp => {
-                return comp.label.startsWith("catterpillar")
-            })
+            // const catterpillars = this.world.composites.filter(comp => {
+            //     return comp.label.startsWith("catterpillar")
+            // })
             
             const compositeParts = []
             const bodyPartOptions = {
