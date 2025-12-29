@@ -4,6 +4,7 @@ import { Mouth } from "./mouth"
 import { Eye } from "./eye"
 import { BodyPart } from "./bodypart"
 import Chroma from "chroma-js"
+import SpeechBubble from "@/models/speech-bubble"
 
 type Emote = "happy" | "sad" | "kiss" | "surprised" | "hmm"
 
@@ -40,6 +41,7 @@ export class Catterpillar {
     isMoving: boolean = false
     isScared: boolean = false
     
+    speechBubble: undefined | SpeechBubble
 
     scared:{
         timeout?: NodeJS.Timeout | number,
@@ -147,6 +149,14 @@ export class Catterpillar {
         // Update eyes offset
         this.leftEye.offset.x = offsetX * (this.thickness * 0.09) - this.leftEye.width * 1.1
         this.rightEye.offset.x = offsetX * (this.thickness * 0.09) //+ this.rightEye.width
+
+
+        // Update speech bubble position if exist
+        if (this.speechBubble) {
+            this.speechBubble.x = this.head.x
+            this.speechBubble.y = this.head.y - this.thickness * 2
+            this.speechBubble.updatePosition()
+        }
 
 
         this.#autoBlink()
@@ -796,6 +806,17 @@ export class Catterpillar {
         }
 
         await this.releaseStance()
+    }
+
+    say = async (text: string) => {
+        if (!this.speechBubble) {
+            this.speechBubble = new SpeechBubble(this.world,{
+                x: this.head.x,
+                y: this.head.y - this.thickness * 2,
+                text: text
+            })
+            this.speechBubble.updateText(text, 80)
+        }
     }
 
     pin(bodyPart: BodyPart, pinPos: { x: number, y: number, name?: string }) : Matter.Constraint {

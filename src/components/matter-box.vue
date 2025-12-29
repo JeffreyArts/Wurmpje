@@ -71,7 +71,10 @@ export default defineComponent ({
         })
     
         this.toggleDevMode()
-        this.toggleDevMode()
+        // this.toggleDevMode()
+
+
+        this.controller.catterpillar.say(`Hi! My name is: ${this.identity.name}!`, 80)
 
         this.toggleClickTo("moveCatterpillar")
     },
