@@ -71,8 +71,8 @@ export class BodyPart {
         
         this.body = Matter.Bodies.circle(this.x, this.y, this.radius, { 
             collisionFilter: { group: this.collisionGroup, category: 0, mask: -1 },
-            mass: 1,
-            density: .2,
+            mass: this.thickness*10,
+            density: 1,
             friction: 20,
             restitution: this.options.restitution,
             slop: 1,

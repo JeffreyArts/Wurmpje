@@ -515,8 +515,13 @@ export class Catterpillar {
                 onComplete: () => {
                     this.contraction.tickerFn = () => {
                         const centerIndex = this.bodyParts.length / 2
-                        const maxVelocity = .4
-
+                        let maxVelocity = .48 - (this.length * 2) / 100
+                        if (this.length >= 18) {
+                            maxVelocity = .12
+                        } else if (this.length >= 16) {
+                            maxVelocity = .16
+                        } 
+                        console.log(`Length: ${this.length}`,"maxVelocity", maxVelocity)
                         // Keep arch by setting Y velocity based on distance from center
                         this.bodyParts.forEach((bp, index) => {
                             const distanceFromCenter = centerIndex - Math.abs(index - centerIndex)

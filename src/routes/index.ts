@@ -4,6 +4,7 @@ import Home from "@/routes/home.vue"
 import Setup from "@/routes/setup.vue"
 import Scan from "@/routes/scan.vue"
 import Helper from "@/routes/helper.vue"
+import CurveFix from "@/routes/curve-fix.vue"
 
 import { createWebHistory, createRouter } from "vue-router"
 
@@ -27,6 +28,11 @@ const routes = [
         path: "/helper",
         name: "helper",
         component: Helper,
+    },
+    {
+        path: "/curve-fix",
+        name: "curve-fix",
+        component: CurveFix,
     },
     {
         path: "/:pathMatch(.*)*",
