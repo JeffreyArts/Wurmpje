@@ -47,14 +47,14 @@
                 </span>
             </figcaption>
             <figcaption class="parent-identity" v-if="optionalParents[selectedParent2Index]">
-                <span class="parent-name" v-if="!isCoolingDown(optionalParents[selectedParent2Index])">
+                <span class="parent-name" v-if="!hasError">
                     {{ optionalParents[selectedParent2Index].name }}
                 </span>
-                <span class="parent-gender" v-if="!isCoolingDown(optionalParents[selectedParent2Index])">
+                <span class="parent-gender" v-if="!hasError">
                     {{ gender(optionalParents[selectedParent2Index]) }}
                 </span>
-                <span class="parent-cooldown" v-if="isCoolingDown(optionalParents[selectedParent2Index])">
-                    This wurmpje needs some time before it can make love again.
+                <span class="parent-cooldown" v-if="hasError">
+                    {{errorMessage}}
                 </span>
                 <span class="parent-name">
                     
@@ -157,7 +157,10 @@ export default defineComponent ({
             selectedParent2Index: 0,
             disableDecreaseChevron: true,
             disableIncreaseChevron: false,
-            parent1Timeout: 0 as number | NodeJS.Timeout
+            parent1Timeout: 0 as number | NodeJS.Timeout,
+            hasError: false,
+            errorMessage: "",
+            potentialPartnersSeen: 0
         }
     },
     mounted() {
@@ -171,8 +174,8 @@ export default defineComponent ({
                 } else if (parents) {
                     this.optionalParents = [parents]
                 }
-                console.log("Found optional parents:", parents)
             })
+            
 
             if (this.optionalParents.length <= 1) {
                 this.disableIncreaseChevron = true
@@ -267,7 +270,25 @@ export default defineComponent ({
             }
             return gender
         },
+        checkPartnerValidity() {
+            const partner = this.optionalParents[this.selectedParent2Index]
+            this.hasError = false
+            this.errorMessage = ""
 
+            // Check for minimum length
+            if (partner.length < 6) {
+                this.errorMessage = "This wurmpje is not long enough to make love."
+                this.hasError = true
+                return
+            }
+            
+            // Check for age
+            if (this.isCoolingDown(partner)) {
+                this.errorMessage = "This wurmpje needs some time before it can make love again."
+                this.hasError = true
+                return
+            }
+        },
         async loadIdentity() {
             if (!this.parent) {
                 return;
@@ -279,6 +300,7 @@ export default defineComponent ({
                 await this.getOptionalParents(this.parentIdentity)
             }
 
+            this.checkPartnerValidity()
             return this.parentIdentity;
         },
         setParent(controller: MatterController, targetIdentity: DBIdentity | DBIdentityWithController | null) {
@@ -320,7 +342,21 @@ export default defineComponent ({
             const nextTarget = wurmpjesContainer.querySelector(`#wurmpje-${index + 1}`)
             const prevTarget = wurmpjesContainer.querySelector(`#wurmpje-${index - 1}`)
 
-            this.interact()
+            this.checkPartnerValidity()
+            if (!this.hasError) {
+                // Only wink to potential partners
+                this.potentialPartnersSeen = 0
+                this.interact()
+            } else {
+                if (this.potentialPartnersSeen < 3) {
+                    this.parentIdentity.controller.catterpillar.emote("happy")
+                } else if (this.potentialPartnersSeen < 5 ) {
+                    this.parentIdentity.controller.catterpillar.emote("hmm")
+                } else {
+                    this.parentIdentity.controller.catterpillar.emote("sad")
+                } 
+                this.potentialPartnersSeen += 1
+            }
 
             if (target) {
                 gsap.to(target, {

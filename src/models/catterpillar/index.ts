@@ -5,7 +5,7 @@ import { Eye } from "./eye"
 import { BodyPart } from "./bodypart"
 import Chroma from "chroma-js"
 
-type Emote = "happy" | "sad" | "kiss" | "surprised"
+type Emote = "happy" | "sad" | "kiss" | "surprised" | "hmm"
 
 export class Catterpillar {
     dev: boolean
@@ -857,6 +857,9 @@ export class Catterpillar {
             this.mouth.moveToState("😮", duration)
         } else if (state === "angry") {
             // this.mouth.moveToState("😮", duration)
+            // Mo
+        } else if (state === "hmm") {
+            this.mouth.moveToState("😐", duration)
             // Mo
         }
     }
