@@ -521,7 +521,7 @@ export class Catterpillar {
                         } else if (this.length >= 16) {
                             maxVelocity = .16
                         } 
-                        console.log(`Length: ${this.length}`,"maxVelocity", maxVelocity)
+                        
                         // Keep arch by setting Y velocity based on distance from center
                         this.bodyParts.forEach((bp, index) => {
                             const distanceFromCenter = centerIndex - Math.abs(index - centerIndex)
@@ -775,7 +775,7 @@ export class Catterpillar {
         }
         
         try {
-            await this.contractSpine(0.5, 0.8 * this.length / 10)
+            await this.contractSpine(0.5, 0.8 * this.length / 10 * this.thickness / 12)
             await this.releaseSpine(0.8 * this.length / 10)
         } catch {
             
