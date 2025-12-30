@@ -76,7 +76,7 @@ export default defineComponent ({
 
         
         setTimeout(() => {
-            this.controller.catterpillar.say(`Hi! My name is: ${this.identity.name}!`, 80)
+            this.controller.catterpillar.say(`Hi! My name is: ${this.identity.name}!`)
             setTimeout(() => {
                 this.controller.catterpillar.speechBubble.remove()
             }, 7200)

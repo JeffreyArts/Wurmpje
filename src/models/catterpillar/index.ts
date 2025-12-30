@@ -875,9 +875,6 @@ export class Catterpillar {
             }, 100)
         } else if (state === "surprised") {
             this.mouth.moveToState("😮", duration)
-        } else if (state === "angry") {
-            // this.mouth.moveToState("😮", duration)
-            // Mo
         } else if (state === "hmm") {
             this.mouth.moveToState("😐", duration)
             // Mo
