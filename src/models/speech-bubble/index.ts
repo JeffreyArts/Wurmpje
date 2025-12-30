@@ -64,9 +64,13 @@ class SpeechBubble  {
         this.size = this.domElement.clientHeight
 
         this.#createBubble(this.x, this.y)
-        setTimeout(() => {
-            this.updatePosition()
-        })
+        // setTimeout(() => {
+        //     this.updatePosition()
+        // })
+
+
+        Matter.World.add(this.world, this.composite)
+        
         this.#loop()
             
         // return new Proxy(this, {
@@ -115,7 +119,7 @@ class SpeechBubble  {
         })
 
         Matter.Composite.add(res, [centerPoint])
-        angles.each(angle => {
+        angles.forEach(angle => {
             const borderX = x + Math.cos(angle * Math.PI/180) * this.size
             const borderY = y + Math.sin(angle * Math.PI/180) * this.size
 
@@ -287,11 +291,11 @@ class SpeechBubble  {
             rightConstraint.length = this.size
         }
 
-        this.bubble.left.constraints.each(constraint => {
+        this.bubble.left.constraints.forEach(constraint => {
             constraint.length = this.size/2
         })
 
-        this.bubble.right.constraints.each(constraint => {
+        this.bubble.right.constraints.forEach(constraint => {
             constraint.length = this.size/2
         })
     }
@@ -313,6 +317,7 @@ class SpeechBubble  {
         this.#updateSize()
         // this.#updateTextPosition()
 
+        this.updatePosition()
         requestAnimationFrame(() => this.#loop())
     }
     
@@ -365,17 +370,17 @@ class SpeechBubble  {
     #updateInnerText() {
         this.domElement.innerText = this.text
 
-        const rightSide = this.bubble.right.bodies.find(b => b.label === "centerPoint")
-        if (this.size != this.domElement.clientHeight) {
-            gsap.to(this, {
-                size: this.domElement.clientHeight,
-                duration: .32
-            })
-        }
+        // const rightSide = this.bubble.right.bodies.find(b => b.label === "centerPoint")
+        // if (this.size != this.domElement.clientHeight) {
+        //     gsap.to(this, {
+        //         size: this.domElement.clientHeight,
+        //         duration: .32
+        //     })
+        // }
 
-        if (rightSide) {
-            rightSide.position.x = this.x + this.domElement.clientWidth
-        }
+        // if (rightSide) {
+        //     rightSide.position.x = this.x + this.domElement.clientWidth
+        // }
         this.updatePosition()
     }
 
@@ -398,34 +403,41 @@ class SpeechBubble  {
         const cpRight = this.bubble.right.bodies.find(b => b.label === "centerPoint")
         const anchor = this.bubble.anchor.bodies.find(b => b.label === "anchorPoint")
         if (cpLeft) {
-            gsap.to(cpLeft.position, {
+            const pos = { x: cpLeft.position.x, y: cpLeft.position.y }
+            gsap.to(pos, {
                 x: this.x + this.anchor.width,
-                y: this.y - this.anchor.height - this.size /2,
+                y: this.y - this.anchor.height - this.size/2,
                 duration: duration,
-                onComplete: () => {
-                    this.#updateInnerText()
+                onUpdate: () => {
+                    Matter.Body.setPosition(cpLeft, Matter.Vector.create(pos.x, pos.y))
                 }
             })
         }
-        
+
         if (cpRight) {
-            gsap.to(cpRight.position, {
+            const pos = { x: cpRight.position.x, y: cpRight.position.y }
+            gsap.to(pos, {
                 x: this.x + this.domElement.clientWidth + this.anchor.width,
                 y: this.y - this.anchor.height - this.size/2,
                 duration: duration,
+                onUpdate: () => {
+                    Matter.Body.setPosition(cpRight, Matter.Vector.create(pos.x, pos.y))
+                }
             })
         }
 
         if (anchor) {
+            gsap.killTweensOf(anchor.position)
             gsap.to(anchor.position, {
                 x: this.x,
                 y: this.y,
                 duration: duration,
             })
         }
-        // console.log("updating speech bubble position", this.x, this.domElement)
 
+        // Update DOM element position
         if (this.domElement) {
+            gsap.killTweensOf(this.domElement.style)
             gsap.to(this.domElement.style, {
                 left: (this.x + this.anchor.width) + "px",
                 top: (this.y - this.anchor.height - this.size / 2) + "px",

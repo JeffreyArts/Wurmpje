@@ -154,8 +154,7 @@ export class Catterpillar {
         // Update speech bubble position if exist
         if (this.speechBubble) {
             this.speechBubble.x = this.head.x
-            this.speechBubble.y = this.head.y - this.thickness * 2
-            this.speechBubble.updatePosition()
+            this.speechBubble.y = this.head.y - this.thickness
         }
 
 
@@ -812,7 +811,7 @@ export class Catterpillar {
         if (!this.speechBubble) {
             this.speechBubble = new SpeechBubble(this.world,{
                 x: this.head.x,
-                y: this.head.y - this.thickness * 2,
+                y: this.head.y - this.thickness,
                 text: text
             })
             this.speechBubble.updateText(text, 80)
