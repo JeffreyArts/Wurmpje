@@ -48,6 +48,7 @@ export class Draw {
     two: Two
     objects: Array<{ shape: Two.Shape, pos: { x: number, y: number }, updateVertices?: () => Array<{ x: number, y: number }> }> = []
     layers: Two.Group[] = []
+    catterpillars: CatterpillarModel[] = []
 
     constructor(two: Two) {
         this.two = two
@@ -56,6 +57,16 @@ export class Draw {
 
     #draw() {
         this.two.update()
+
+        this.catterpillars.forEach(catterpillar => {
+            if (catterpillar.speechBubble) {
+                const exists = this.objects.find(obj => obj.name == `speechBubble,${catterpillar.speechBubble.composite.id}`)
+                if (exists) return
+                this.#drawSpeechBubble(catterpillar.speechBubble.composite)
+            }
+        })
+
+        console.log(this.objects)
         this.objects.forEach(obj => {
             obj.shape.position.set(obj.pos.x, obj.pos.y)
 
@@ -68,7 +79,116 @@ export class Draw {
                 })
             }
         })
+
+        // Remove speech bubbles from the objects array
+        this.objects = this.objects.filter(obj => !obj.name=="speechBubble")
         requestAnimationFrame(this.#draw.bind(this))
+    }
+
+    #softenPath(anchors: Two.Anchor[], amount = 0.2) {
+        const len = anchors.length
+
+        for (let i = 0; i < len; i++) {
+            const prev = anchors[(i - 1 + len) % len]
+            const curr = anchors[i]
+            const next = anchors[(i + 1) % len]
+
+            const vx = next.x - prev.x
+            const vy = next.y - prev.y
+
+            // normaliseer
+            const dist = Math.hypot(vx, vy) || 1
+            const nx = vx / dist
+            const ny = vy / dist
+
+            // kleine handles
+            const handleLength = dist * amount
+
+            curr.controls.left.set(
+                -nx * handleLength,
+                -ny * handleLength
+            )
+
+            curr.controls.right.set(
+                nx * handleLength,
+                ny * handleLength
+            )
+        }
+    }
+
+
+    #drawSpeechBubble = (speechBubble: Matter.Composite) => {
+        // console.log(speechBubble)
+        const leftSide = speechBubble.composites.find((c) => c.label === "leftside")
+        const rightSide = speechBubble.composites.find((c) => c.label === "rightside")
+        const anchor = speechBubble.composites.find((c) => c.label === "anchor").bodies[0]
+        const leftPoints = leftSide.bodies.filter(body => body.label.startsWith("borderPoint"))
+        const rightPoints = rightSide.bodies.filter(body => body.label.startsWith("borderPoint"))
+        // console.log(leftPoints, rightPoints, anchor)
+        const points = [...new Set([...leftPoints, ...rightPoints])]
+
+        const vertices = []
+
+        for (let index = 1; index < points.length - 1; index++) {
+            const body = points[index]
+            vertices.push({ x: body.position.x, y: body.position.y })
+        }
+        
+        if (anchor) {
+            vertices.push({ x: leftPoints[0].position.x, y: leftPoints[0].position.y })
+            // vertices.push({ x: leftPoints[1].position.x, y: leftPoints[1].position.y })
+            vertices.push({ x: anchor.position.x, y: anchor.position.y })
+            // const lastIndex = vertices.length -1
+            // console.log("ANCHOR", anchor)
+            // this.paperJS.segments[0].point.x = anchor.position.x
+            // this.paperJS.segments[0].point.y = anchor.position.y
+        }
+
+        // console.log(vertices)
+        // this.paperJS.segments[lastIndex].point.x = points[0].position.x
+        // this.paperJS.segments[lastIndex].point.y = points[0].position.y
+        const anchors = vertices.map(p => new Two.Anchor(p.x, p.y))
+        const path = new Two.Path(anchors, false, false) // false = niet closed
+        
+        //
+        path.noStroke()
+        path.fill = "#f09"
+        
+        path.curved = true
+        path.closed = false
+        // this.#softenPath(anchors, .01)
+        
+
+        this.objects.push({
+            shape: path,
+            pos: { x:0, y:0 },
+            name: `speechBubble,${speechBubble.id}`,
+            updateVertices: () => {
+                const leftSide = speechBubble.composites.find((c) => c.label === "leftside")
+                const rightSide = speechBubble.composites.find((c) => c.label === "rightside")
+                const anchor = speechBubble.composites.find((c) => c.label === "anchor").bodies[0]
+                const leftPoints = leftSide.bodies.filter(body => body.label.startsWith("borderPoint"))
+                const rightPoints = rightSide.bodies.filter(body => body.label.startsWith("borderPoint"))
+                const points = [...new Set([...leftPoints, ...rightPoints])]
+
+                const vertices = []
+
+                for (let index = 1; index < points.length - 1; index++) {
+                    const body = points[index]
+                    vertices.push({ x: body.position.x, y: body.position.y })
+                }
+        
+                if (anchor) {
+                    vertices.push({ x: leftPoints[0].position.x, y: leftPoints[0].position.y })
+                    vertices.push({ x: anchor.position.x, y: anchor.position.y })
+                }
+                return vertices
+            }
+        })
+
+        // Select last layer
+        const layer = this.layers[this.layers.length -1]
+        layer.add(path)
     }
 
     drawBG = (options?: { color?: string, blockSize?: number, offset?: number }) =>{
@@ -212,6 +332,7 @@ export class Draw {
     addCatterpillar = async (catterpillar: CatterpillarModel) => {
         const texturePromises = []
         const bodyParts = catterpillar.bodyParts
+        this.catterpillars.push(catterpillar)
         for (let index = 0; index < bodyParts.length; index++) {
             const part = bodyParts[index]
             const diameter = catterpillar.thickness * 1.25

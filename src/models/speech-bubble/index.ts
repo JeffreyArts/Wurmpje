@@ -211,7 +211,10 @@ class SpeechBubble  {
             anchor: Matter.Composite.create({ label: "false" }),
             outline: []
         }
-        
+        this.bubble.left.label = "leftside"
+        this.bubble.right.label = "rightside"
+        this.bubble.anchor.label = "anchor"
+
         this.composite = Matter.Composite.create({
             composites: [this.bubble.left, this.bubble.right],
             label: "speechBubble",
