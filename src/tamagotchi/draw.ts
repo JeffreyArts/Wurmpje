@@ -62,69 +62,44 @@ export class Draw {
             if (catterpillar.speechBubble) {
                 const exists = this.objects.find(obj => obj.name == `speechBubble,${catterpillar.speechBubble.composite.id}`)
                 if (exists) return
-                this.#drawSpeechBubble(catterpillar.speechBubble.composite)
+                this.#drawSpeechBubble(catterpillar.speechBubble)
             }
         })
 
-        console.log(this.objects)
-        this.objects.forEach(obj => {
+        
+        for (let i = this.objects.length - 1; i >= 0; i--) {
+            const obj = this.objects[i]
+
             obj.shape.position.set(obj.pos.x, obj.pos.y)
 
             if (obj.updateVertices) {
                 const verts = obj.updateVertices()
+                if (!verts) {
+                    obj.shape.remove()          // 1. uit Two.js scene halen
+                    this.objects.splice(i, 1)   // 2. uit je eigen collectie halen
+                    continue
+                }
 
                 obj.shape.vertices.forEach((v, i) => {
                     v.x = verts[i].x
                     v.y = verts[i].y
                 })
             }
-        })
+        }
 
         // Remove speech bubbles from the objects array
-        this.objects = this.objects.filter(obj => !obj.name=="speechBubble")
+        // this.objects = this.objects.filter(obj => !obj.name=="speechBubble")
         requestAnimationFrame(this.#draw.bind(this))
     }
 
-    #softenPath(anchors: Two.Anchor[], amount = 0.2) {
-        const len = anchors.length
-
-        for (let i = 0; i < len; i++) {
-            const prev = anchors[(i - 1 + len) % len]
-            const curr = anchors[i]
-            const next = anchors[(i + 1) % len]
-
-            const vx = next.x - prev.x
-            const vy = next.y - prev.y
-
-            // normaliseer
-            const dist = Math.hypot(vx, vy) || 1
-            const nx = vx / dist
-            const ny = vy / dist
-
-            // kleine handles
-            const handleLength = dist * amount
-
-            curr.controls.left.set(
-                -nx * handleLength,
-                -ny * handleLength
-            )
-
-            curr.controls.right.set(
-                nx * handleLength,
-                ny * handleLength
-            )
-        }
-    }
-
-
-    #drawSpeechBubble = (speechBubble: Matter.Composite) => {
-        // console.log(speechBubble)
-        const leftSide = speechBubble.composites.find((c) => c.label === "leftside")
-        const rightSide = speechBubble.composites.find((c) => c.label === "rightside")
-        const anchor = speechBubble.composites.find((c) => c.label === "anchor").bodies[0]
+    #drawSpeechBubble = (speechBubble: SpeechBubble) => {
+        const composites = speechBubble.composite.composites
+        const leftSide = composites.find((c) => c.label === "leftside")
+        const rightSide = composites.find((c) => c.label === "rightside")
+        const anchor = composites.find((c) => c.label === "anchor").bodies[0]
         const leftPoints = leftSide.bodies.filter(body => body.label.startsWith("borderPoint"))
         const rightPoints = rightSide.bodies.filter(body => body.label.startsWith("borderPoint"))
-        // console.log(leftPoints, rightPoints, anchor)
+
         const points = [...new Set([...leftPoints, ...rightPoints])]
 
         const vertices = []
@@ -136,37 +111,32 @@ export class Draw {
         
         if (anchor) {
             vertices.push({ x: leftPoints[0].position.x, y: leftPoints[0].position.y })
-            // vertices.push({ x: leftPoints[1].position.x, y: leftPoints[1].position.y })
             vertices.push({ x: anchor.position.x, y: anchor.position.y })
-            // const lastIndex = vertices.length -1
-            // console.log("ANCHOR", anchor)
-            // this.paperJS.segments[0].point.x = anchor.position.x
-            // this.paperJS.segments[0].point.y = anchor.position.y
+            vertices.push({ x: anchor.position.x, y: anchor.position.y })
+            vertices.push({ x: rightPoints[rightPoints.length - 1].position.x, y: rightPoints[rightPoints.length - 1].position.y })
         }
 
-        // console.log(vertices)
-        // this.paperJS.segments[lastIndex].point.x = points[0].position.x
-        // this.paperJS.segments[lastIndex].point.y = points[0].position.y
         const anchors = vertices.map(p => new Two.Anchor(p.x, p.y))
         const path = new Two.Path(anchors, false, false) // false = niet closed
         
         //
         path.noStroke()
-        path.fill = "#f09"
+        path.fill = "#F8FADB"
         
         path.curved = true
-        path.closed = false
-        // this.#softenPath(anchors, .01)
-        
+        path.closed = false        
 
         this.objects.push({
             shape: path,
             pos: { x:0, y:0 },
-            name: `speechBubble,${speechBubble.id}`,
+            name: `speechBubble,${speechBubble.composite.id}`,
             updateVertices: () => {
-                const leftSide = speechBubble.composites.find((c) => c.label === "leftside")
-                const rightSide = speechBubble.composites.find((c) => c.label === "rightside")
-                const anchor = speechBubble.composites.find((c) => c.label === "anchor").bodies[0]
+                if (speechBubble.death) {
+                    return null
+                }
+                const leftSide = speechBubble.composite.composites.find((c) => c.label === "leftside")
+                const rightSide = speechBubble.composite.composites.find((c) => c.label === "rightside")
+                const anchor = speechBubble.composite.composites.find((c) => c.label === "anchor").bodies[0]
                 const leftPoints = leftSide.bodies.filter(body => body.label.startsWith("borderPoint"))
                 const rightPoints = rightSide.bodies.filter(body => body.label.startsWith("borderPoint"))
                 const points = [...new Set([...leftPoints, ...rightPoints])]
@@ -179,9 +149,12 @@ export class Draw {
                 }
         
                 if (anchor) {
+                    vertices.push({ x: rightPoints[rightPoints.length - 1].position.x, y: rightPoints[rightPoints.length - 1].position.y })
+                    vertices.push({ x: leftPoints[0].position.x, y: leftPoints[0].position.y })
                     vertices.push({ x: leftPoints[0].position.x, y: leftPoints[0].position.y })
                     vertices.push({ x: anchor.position.x, y: anchor.position.y })
                 }
+
                 return vertices
             }
         })
