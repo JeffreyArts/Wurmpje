@@ -2,7 +2,14 @@
   
   <div id="catterpillar-container">
     <header v-if="identity && identity.name" class="catterpillar-header">
-        <h1 class="catterpillar-name">{{ identity.name }}</h1>
+        <h1 class="catterpillar-name">
+            <i class="catterpillar-gender" :class="identity.gender === 0 ? '__isMale' : '__isFemale'">
+                <jao-icon :name="identity.gender === 0 ? 'male' : 'female'" size="large" active-color="currentColor" inactive-color="transparent"/>
+            </i>
+            <span>
+                {{ identity.name }}
+            </span>
+        </h1>
         <span class="catterpillar-age">{{ age }}</span>
     </header>
 
@@ -25,7 +32,7 @@ import { MatterController } from "@/tamagotchi/controller"
 import useIdentityStore, { type currentIdentity} from "@/stores/identity"
 import { gsap } from "gsap"
 import _ from "lodash"
-import type Catterpillar from "@/models/catterpillar"
+import jaoIcon from "./jao-icon.vue"
     
 export default defineComponent ({ 
     props: {
@@ -33,6 +40,9 @@ export default defineComponent ({
             type: Object as PropType<currentIdentity>,
             required: true
         }
+    },
+    components: {
+        jaoIcon
     },
     data() {
         return {
@@ -148,6 +158,7 @@ export default defineComponent ({
     max-width: 320px;
     text-align: center;
     padding-top: 16px;
+    display: inline-block;
 }
 
 .catterpillar-name {
@@ -161,6 +172,28 @@ export default defineComponent ({
     font-size: 16px;
     font-family: var(--accent-font);
     opacity: 0.4;
+}
+
+.catterpillar-gender {
+    display: inline-block;
+    &.__isMale {
+        margin-right: 8px;
+        svg {
+            translate: 0 6px;
+        }
+    }
+
+    &.__isFemale {
+        margin-right: 2px;
+        svg {
+            translate: 0 2px;
+        }
+    }
+    svg {
+        display: inline-block;
+        height: 23px;
+        width: 23px;
+    }
 }
 
 .button {
