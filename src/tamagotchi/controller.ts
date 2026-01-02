@@ -277,6 +277,8 @@ export class MatterController {
             fn = () => {
                 this.catterpillar.turnAround()
             }
+        } else if (name == "food") {
+            fn = this.createFood.bind(this)
         }
 
         this.ref.addClickEvent(fn, name)
@@ -320,6 +322,22 @@ export class MatterController {
         return this.catterpillar
     }
 
+    createFood(position: { x: number, y: number }) {
+        const size = this.catterpillar.thickness
+        const food = Matter.Bodies.rectangle(0, 0, size, size, {
+            label: "food",
+            collisionFilter: {
+                // category: 0x0002,
+                // mask: 0x0001
+            },
+            render: {
+                fillStyle: "green"
+            }
+        })
+        Matter.Body.setPosition(food, position)
+        Matter.World.add(this.ref.world, food)
+
+    }
     // document.body.addEventListener("mousedown", PhysicsService.mouseDownEvent);
     // document.body.addEventListener("touchstart", PhysicsService.mouseDownEvent);
    

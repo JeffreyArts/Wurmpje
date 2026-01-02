@@ -15,11 +15,33 @@
 
     <section id="catterpillar" ref="catterpillar"></section>
 
-    <footer class="buttons-container">
-        <!-- <button class="button" id="devmode" @click="toggleDevMode()" :class="[{'__isSelected': dev, '__isDisabled': !dev}]">
-            Dev Mode
-        </button> -->
+    <footer class="matterbox-footer" ref="matterbox-footer">
+        <div class="actions-container">
+            <header class="actions-header" :class="{'__isActive': actionActive }">
+                3x
+            </header>
+            <section>
+                <jao-icon name="chevron-left" size="small" active-color="#666666" inactive-color="transparent"/>
+                <div class="action-container" :class="{'__isActive': actionActive }" @click="actionContainerClicked">
+                    <jao-icon name="leaf" size="large" active-color="currentColor" inactive-color="transparent" />
+                </div>
+                <jao-icon name="chevron-right" size="small" active-color="#666666" inactive-color="transparent"/>
+            </section>
+            <footer class="actions-footer">
+                Food
+            </footer>
+        </div>
+        <div class="stats">
+            <div class="healthbar-row" v-if="identity">
+                <healthbar :value="identity.hunger" />
+                <span class="healthbar-name">hunger</span>
+            </div>
+            <span class="copyright">
+                A project by <a href="https://www.jeffreyarts.nl">Jeffrey Arts</a>
+            </span>
+        </div>
     </footer>
+
 
   </div>
 </template>
@@ -33,6 +55,8 @@ import useIdentityStore, { type currentIdentity} from "@/stores/identity"
 import { gsap } from "gsap"
 import _ from "lodash"
 import jaoIcon from "./jao-icon.vue"
+import { Icon } from "jao-icons"
+import healthbar from "@/components/healthbar.vue";
     
 export default defineComponent ({ 
     props: {
@@ -42,13 +66,16 @@ export default defineComponent ({
         }
     },
     components: {
-        jaoIcon
+        jaoIcon,
+        healthbar
     },
     data() {
         return {
             controller: null as MatterController | null,
             clickType: null as string | null,
-            dev: false
+            dev: false,
+            action: "food",
+            actionActive: false
         }
     },
     setup() {
@@ -61,6 +88,17 @@ export default defineComponent ({
         
     },
     computed: {
+        actionHeader(): string {
+            if (this.action === "food") {
+                const container = document.createElement("div")
+                const svgNumber = Icon("3", "medium")
+                const svgMultiplier = Icon("x", "small")
+                container.appendChild(svgNumber)
+                container.appendChild(svgMultiplier)
+                return container.innerHTML
+            }
+            return "Feed your Wurmpje"
+        },
         age(): string {
             if (!this.identity.age) {
                 return "-"
@@ -81,7 +119,7 @@ export default defineComponent ({
         })
     
         this.toggleDevMode()
-        this.toggleDevMode()
+        // this.toggleDevMode()
 
 
         
@@ -91,8 +129,6 @@ export default defineComponent ({
                 this.controller.catterpillar.speechBubble.remove()
             }, 7200)
         }, 4000)
-
-        this.toggleClickTo("moveCatterpillar")
     },
     methods: {
         toggleClickTo(type: string) {
@@ -106,23 +142,24 @@ export default defineComponent ({
             gsap.to(twoEl, {duration: 0.3, opacity: this.dev ? 0 : 1})
             gsap.to(rendererEl, {duration: 0.3, opacity: this.dev ? 1 : 0})
         },
-        // increaseLength(amount: number) {
-        //     if (this.controller) {
-        //         this.controller.catterpillar.remove()
-        //         this.controller.catterpillar.length += amount
-        //         this.controller.catterpillar = this.controller.createCatterpillar(
-        //             { x: this.controller.catterpillar.head.body.position.x, y: this.controller.catterpillar.head.body.position.y },
-        //             {
-        //             //    identity: catterpillar.identity,
-        //             //     thickness: this.controller.catterpillar.thickness
-        //             }
-        //         )
-        //         this.controller.draw.objects = []
-        //         if (this.controller.catterpillar) {
-        //             this.controller.draw.addCatterpillar(this.controller.catterpillar as Catterpillar)
-        //         }
-        //     }
-        // },
+        actionContainerClicked() {
+            
+            this.actionActive = !this.actionActive
+            if (!this.actionActive) {
+                this.toggleClickTo("none")
+                return
+            } else {
+                this.toggleClickTo("food")
+            }
+            const removeActionActive = (e) => {
+                e.preventDefault()
+                this.actionActive = false
+                homeFooter.removeEventListener("touchstart", removeActionActive)
+            }
+
+            const homeFooter = this.$refs["matterbox-footer"] as HTMLElement
+            homeFooter.addEventListener("touchstart", removeActionActive, { passive: false })
+        }
     }
 })
 </script>
@@ -262,5 +299,113 @@ export default defineComponent ({
     position: fixed;
     bottom: 16px;
     right: 16px;
+}
+
+
+.matterbox-footer {
+    position: fixed;
+    bottom: 0px;
+    left: 0;
+    right: 0;
+    height: 128px;   
+    padding: 0px 16px 12px;
+    display: grid;
+    grid-template-columns: 96px auto;
+    gap: 16px;
+    max-width: 640px;
+    margin: auto;
+    
+    a {
+        color: currentColor;
+        text-decoration: underline;
+    }
+}
+
+
+    
+.actions-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    height: 100%;
+    flex-flow: column;
+    margin: 0;
+    font-family: var(--accent-font);
+
+    section {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
+}
+
+.actions-header {
+    opacity: 0.6;
+    transition: all .32s ease;
+
+    &.__isActive {
+        opacity: 1;
+    }
+
+    svg {
+        height: 23px;
+        + svg {
+            height: 15px;
+            opacity: 0.8;
+        }
+    }
+    rect[v="0"] {
+        fill: transparent;
+    }
+}
+
+.action-container {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: 0;
+    padding: 4px;
+    transition: all .32s ease;
+
+    &.__isActive {
+        color: #f90;
+        /* border-color: currentColor; */
+    }
+
+    svg {
+        height: 100%;
+    }
+}
+actions-footer {
+    align-self: flex-end;
+}
+
+.stats {
+    display: flex;
+    justify-content: flex-end;
+    font-family: var(--accent-font);
+    font-size: 14px;
+    flex-flow: column;
+    gap: 8px;
+}
+
+.healthbar-row {
+    display: grid;
+    grid-template-columns: auto 72px;
+    text-align: right;
+}
+
+.copyright {
+    opacity: 0.4;
+    text-align: right;
+    font-family: var(--default-font);
+    letter-spacing: .2px;
+    font-size: 10px;
+    padding-top: 4px;
 }
 </style>

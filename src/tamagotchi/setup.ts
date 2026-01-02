@@ -135,7 +135,9 @@ export class MatterSetup {
 
         if (this.isClicking) {
             this.clickEvents.forEach(clickEvent => {
-                clickEvent.fn({ x, y })
+                if (typeof clickEvent.fn === "function") {
+                    clickEvent.fn({ x, y })
+                }
             })
             this.isClicking = false
         }
