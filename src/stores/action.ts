@@ -168,8 +168,9 @@ const Action = defineStore("action", {
             })
         },
         async loadAvailableFood(identity: IdentityField) {
-            let availableFood = 3
-            const lastFoodMoments = await this.loadLastActionsFromDB(identity.id, "food", 3)
+            const maxFood = 3
+            let availableFood = maxFood
+            const lastFoodMoments = await this.loadLastActionsFromDB(identity.id, "food", maxFood)
             for (const foodMoment in lastFoodMoments) {
                 // Get difference in hours between now and created
                 const now = Date.now()

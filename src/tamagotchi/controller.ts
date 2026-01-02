@@ -1,4 +1,5 @@
 import Matter from "matter-js"
+import gsap from "gsap"
 import { MatterSetup } from "./setup"
 import { Draw } from "./draw"
 
@@ -8,11 +9,13 @@ import CatterpillarModel from "@/models/catterpillar"
 import FoodModel from "@/models/food"
 import type { IdentityField } from "@/models/identity"
 
-import actionStore, { type DBAction } from "@/stores/action"
+import actionStore from "@/stores/action"
+import identityStore from "@/stores/identity"
 type Listener = { type: string; fn: (...args: any[]) => void }
 
 export class MatterController {
     private listeners: Listener[] = []
+    identityStore = identityStore()
     actionStore = actionStore()
     ref: MatterSetup
     clickEvents: Array<Function> = []
@@ -23,6 +26,7 @@ export class MatterController {
     config: {
         offsetBottom?: number
     } = {}
+    cooldown: number = 0
     identity: IdentityField = {
         id: 1,
         name: "Catterpillar",
@@ -36,7 +40,10 @@ export class MatterController {
 
     actions = {
         food: {
-            availableFood: 0
+            availableFood: 0,
+            activeFood: [],
+            turnsWithoutFood: 0,
+            foodIndex: 0,
         }
     }
 
@@ -100,6 +107,9 @@ export class MatterController {
             this.createCatterpillar({ x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }, { identity: this.identity })  
         }
 
+        // Loop throught all food items and calculate distance to catterpillar head
+        this.#foodLoop()
+
         requestAnimationFrame(this.#loop.bind(this))
     }
 
@@ -159,6 +169,96 @@ export class MatterController {
             height: height * 2,
             id: "left",
         }, this.ref.world)
+    }
+
+    #foodLoop() {
+        const head = this.catterpillar.bodyParts[0].body
+        const foods = this.actions.food.activeFood
+
+        const food = foods[this.actions.food.foodIndex]
+
+        if (food) {
+            this.catterpillar.leftEye.lookAt(food)
+            this.catterpillar.rightEye.lookAt(food)
+        } else {
+            this.actions.food.foodIndex = 0
+            this.actions.food.turnsWithoutFood = 0
+        }
+        
+        if (this.actions.food.turnsWithoutFood > 4) {
+            this.actions.food.foodIndex++
+            this.actions.food.turnsWithoutFood = 0
+        }
+
+        // Try to move towards first food
+        if (foods.length > 0 && !this.catterpillar.isMoving && !this.catterpillar.isTurning && this.cooldown <= 0) {
+            
+            if (food.x < head.position.x) {
+                if (!this.catterpillar.isPointingLeft()) {
+                    this.catterpillar.turnAround()
+                    this.actions.food.turnsWithoutFood++
+                } else {
+                    this.catterpillar.move()
+                }
+            } else {
+                if (this.catterpillar.isPointingLeft()) {
+                    this.catterpillar.turnAround()
+                    this.actions.food.turnsWithoutFood++
+                } else {
+                    this.catterpillar.move()
+                }
+            }
+            this.cooldown = 80 + Math.floor(Math.random() * 40)
+        }
+
+
+        // Loop through foods and consume if close to head
+        foods.forEach(food => {
+            const foodBody = food.composite.bodies[0]
+            const distance = Math.hypot(head.position.x - food.x, head.position.y - food.y)
+            if (distance < this.catterpillar.thickness) {
+                // Eat the food
+                // Move food into catterpillar mouth with a setVelocity and rotation
+                Matter.Body.setVelocity(foodBody, {
+                    x: 0,
+                    y: 3,
+                })
+                Matter.Body.setAngularVelocity(foodBody, 2)
+                // fade out food
+                const drawObject = this.draw.newObjects.find(o => o.id === food.composite.id)
+                if (drawObject) {
+                    for (const layer in drawObject.layers) {
+                        const svg = drawObject.layers[layer][0].svg
+                        gsap.to(svg, { 
+                            opacity: 0,
+                            duration: 1,
+                            onComplete: () => {
+                                this.draw.newObjects = this.draw.newObjects.filter(o => o.id !== food.composite.id)
+                                Matter.Composite.remove(this.ref.world, food.composite)
+ 
+                            } 
+                        })
+
+                        gsap.to(this.identityStore.current, {
+                            hunger: this.identityStore.current.hunger + 10,
+                            duration: 1,
+                            ease: "power1.out",
+                        })
+                    }
+                }
+                // Remove food from active foods
+                const index = this.actions.food.activeFood.indexOf(food)
+                if (index > -1) {
+                    this.actions.food.activeFood.splice(index, 1)
+                }
+                
+                // TODO: Catterpillar chew animation
+                
+                
+            }
+        })
+
+        this.cooldown -= 1
     }
     
     #updateWalls() {
@@ -355,7 +455,7 @@ export class MatterController {
         if (position.y > this.ref.renderer.options.height - this.config.offsetBottom) {
             return
         }
-        
+
         const size = this.catterpillar.thickness
         const food = new FoodModel({
             x: position.x,
@@ -364,28 +464,13 @@ export class MatterController {
             color: "aquamarine"
         }, this.ref.world)
 
+        this.cooldown = 120
         await this.actionStore.add(this.identity.id, "food", 10)
         this.draw.addFood(food)
+        this.actions.food.activeFood.push(food)
         this.emit("foodCreated", food)
     }
 
-    async loadAvailableFood() {
-        let newFood = 3
-        const lastFoodMoments = await this.actionStore.loadLastActionsFromDB(this.identity.id, "food", 3)
-        for (const foodMoment in lastFoodMoments) {
-            // Get difference in hours between now and created
-            const now = Date.now()
-            const created = lastFoodMoments[foodMoment].created
-            const diffInHours = (now - created) / (1000 * 60 * 60)
-
-            if (diffInHours < 16) {
-                newFood --
-            }
-            
-        }
-
-        this.actionStore.availableFood = newFood
-    }
     // document.body.addEventListener("mousedown", PhysicsService.mouseDownEvent);
     // document.body.addEventListener("touchstart", PhysicsService.mouseDownEvent);
    

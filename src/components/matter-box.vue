@@ -126,7 +126,6 @@ export default defineComponent ({
         })
 
         this.controller.on("foodCreated", (data) => {
-            console.log("Food created, remaining:", this.actionStore.availableFood)
             if (this.actionStore.availableFood <= 0) {
                 this.actionActive = false
                 this.toggleClickTo("none")

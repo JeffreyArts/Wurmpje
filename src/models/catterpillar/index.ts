@@ -38,6 +38,7 @@ export class Catterpillar {
     blinkTimeout: NodeJS.Timeout | number = 0
     
     isStanding: boolean = false
+    isTurning: boolean = false
     isMoving: boolean = false
     isScared: boolean = false
     
@@ -797,6 +798,7 @@ export class Catterpillar {
             console.warn("Catterpillar is not touching solid ground, cannot turn around now")
             return
         }
+        this.isTurning = true
         
         if (this.isPointingLeft()) {
             await this.standUp(90, 1 * this.length / 10)
@@ -805,6 +807,7 @@ export class Catterpillar {
         }
 
         await this.releaseStance()
+        this.isTurning = false
     }
 
     say = async (text: string) => {
