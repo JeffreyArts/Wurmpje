@@ -8,7 +8,12 @@ import CatterpillarModel from "@/models/catterpillar"
 import FoodModel from "@/models/food"
 import type { IdentityField } from "@/models/identity"
 
+import actionStore, { type DBAction } from "@/stores/action"
+type Listener = { type: string; fn: (...args: any[]) => void }
+
 export class MatterController {
+    private listeners: Listener[] = []
+    actionStore = actionStore()
     ref: MatterSetup
     clickEvents: Array<Function> = []
     resizeEvents: Array<Function> = []
@@ -27,6 +32,12 @@ export class MatterController {
         gender: 0,
         thickness: 16,
         length: 8
+    }
+
+    actions = {
+        food: {
+            availableFood: 0
+        }
     }
 
     constructor(target: HTMLElement, options?: {
@@ -60,25 +71,22 @@ export class MatterController {
     
         this.draw = new Draw(this.ref.two)
 
-        
-        this.#createWalls()
-        
         let startPosition = { x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }
         if (options?.catterpillarPos) {
             startPosition = options.catterpillarPos
         }
 
-        this.createCatterpillar(startPosition, catterpillarOptions)
         
-        this.draw.addCatterpillar(this.catterpillar)
+        this.createCatterpillar(startPosition, catterpillarOptions)
+        this.#createWalls()
+        
 
         window.addEventListener("resize", this.#onResize.bind(this))
 
-        
+        // this.ref.addpointerMoveEvent(this.#lookAtMouse.bind(this), "lookAtMouse")
         this.ref.addpointerDownEvent(this.#grabCatterpillar.bind(this), "grabCatterpillar")
         this.ref.addpointerUpEvent(this.#releaseCatterpillar.bind(this), "releaseCatterpillar")
         this.ref.addpointerMoveEvent(this.#dragCatterpillar.bind(this), "dragCatterpillar")
-        this.ref.addpointerMoveEvent(this.#lookAtMouse.bind(this), "lookAtMouse")
         this.ref.addResizeEvent(this.#resizeCanvas.bind(this), "resizeCanvas")
         this.ref.addResizeEvent(this.#updateWalls.bind(this), "updateWalls")
         
@@ -218,7 +226,25 @@ export class MatterController {
             this.catterpillar.rightEye.lookAt({ x: mouse.x, y: mouse.y })
         }
     }
+    on(eventName: string, callback: (...args: any[]) => void) {
+        this.listeners.push({ type: eventName, fn: callback })
+    }
 
+    // Event afvuren
+    emit(eventName: string, ...args: any[]) {
+        this.listeners
+            .filter(listener => listener.type === eventName)
+            .forEach(listener => listener.fn(...args))
+    }
+
+    // Event verwijderen (optioneel)
+    off(eventName: string, callback?: (...args: any[]) => void) {
+        this.listeners = this.listeners.filter(listener => {
+            if (listener.type !== eventName) return true
+            if (callback && listener.fn !== callback) return true
+            return false
+        })
+    }
 
 
     switchClickEvent(name: string) {
@@ -316,20 +342,49 @@ export class MatterController {
                 part.body.render.fillStyle = `hsl(128, ${Math.random() * 10 + 90}%,  ${Math.random() * 10 + 45}%)`
             }
         })
+
+        this.draw.addCatterpillar(this.catterpillar)
         return this.catterpillar
     }
 
-    createFood(position: { x: number, y: number }) {
-        console.log("Create food at", position)
+    async createFood(position: { x: number, y: number }) {
+        if (this.actionStore.availableFood <= 0) {
+            return
+        }
+
+        if (position.y > this.ref.renderer.options.height - this.config.offsetBottom) {
+            return
+        }
+        
         const size = this.catterpillar.thickness
         const food = new FoodModel({
             x: position.x,
             y: position.y,
             size: size,
-            color: "#f09"
+            color: "aquamarine"
         }, this.ref.world)
 
+        await this.actionStore.add(this.identity.id, "food", 10)
         this.draw.addFood(food)
+        this.emit("foodCreated", food)
+    }
+
+    async loadAvailableFood() {
+        let newFood = 3
+        const lastFoodMoments = await this.actionStore.loadLastActionsFromDB(this.identity.id, "food", 3)
+        for (const foodMoment in lastFoodMoments) {
+            // Get difference in hours between now and created
+            const now = Date.now()
+            const created = lastFoodMoments[foodMoment].created
+            const diffInHours = (now - created) / (1000 * 60 * 60)
+
+            if (diffInHours < 16) {
+                newFood --
+            }
+            
+        }
+
+        this.actionStore.availableFood = newFood
     }
     // document.body.addEventListener("mousedown", PhysicsService.mouseDownEvent);
     // document.body.addEventListener("touchstart", PhysicsService.mouseDownEvent);

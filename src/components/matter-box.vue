@@ -17,17 +17,17 @@
 
     <footer class="matterbox-footer" ref="matterbox-footer">
         <div class="actions-container">
-            <header class="actions-header" :class="{'__isActive': actionActive }">
-                3x
+            <header class="actions-header" :class="{'__isActive': actionActive, '__isDisabled': actionStore.availableFood <= 0 }">
+                {{availableFood}}x
             </header>
             <section>
                 <jao-icon name="chevron-left" size="small" active-color="#666666" inactive-color="transparent"/>
-                <div class="action-container" :class="{'__isActive': actionActive }" @click="actionContainerClicked">
+                <div class="action-container" :class="{'__isActive': actionActive, '__isDisabled': actionStore.availableFood <= 0  }" @click="actionContainerClicked">
                     <jao-icon name="leaf" size="large" active-color="currentColor" inactive-color="transparent" />
                 </div>
                 <jao-icon name="chevron-right" size="small" active-color="#666666" inactive-color="transparent"/>
             </section>
-            <footer class="actions-footer">
+            <footer class="actions-footer" :class="{'__isDisabled': actionStore.availableFood <= 0 }">
                 Food
             </footer>
         </div>
@@ -57,7 +57,8 @@ import _ from "lodash"
 import jaoIcon from "./jao-icon.vue"
 import { Icon } from "jao-icons"
 import healthbar from "@/components/healthbar.vue";
-    
+import useActionStore, { type actionTypes } from "@/stores/action";
+
 export default defineComponent ({ 
     props: {
         identity: {
@@ -75,19 +76,25 @@ export default defineComponent ({
             clickType: null as string | null,
             dev: false,
             action: "food",
-            actionActive: false
+            actionActive: false,
+            foodQuantity: 0
         }
     },
     setup() {
         const identityStore = useIdentityStore()
+        const actionStore = useActionStore()
         return {
-            identityStore: identityStore
+            identityStore: identityStore,
+            actionStore: actionStore
         }
     },
     watch: {
         
     },
     computed: {
+        availableFood(): number {
+            return this.actionStore.availableFood
+        },
         actionHeader(): string {
             if (this.action === "food") {
                 const container = document.createElement("div")
@@ -117,10 +124,19 @@ export default defineComponent ({
             catterpillarPos: { x: window.innerWidth / 2, y: -100},
             offsetBottom: 128
         })
+
+        this.controller.on("foodCreated", (data) => {
+            console.log("Food created, remaining:", this.actionStore.availableFood)
+            if (this.actionStore.availableFood <= 0) {
+                this.actionActive = false
+                this.toggleClickTo("none")
+            }
+        })
     
         this.toggleDevMode()
         this.toggleDevMode()
 
+        this.loadAction("food")
 
         
         setTimeout(() => {
@@ -132,9 +148,16 @@ export default defineComponent ({
     },
     methods: {
         toggleClickTo(type: string) {
+            if (type === "food") {
+                if (this.actionStore.availableFood <= 0) {
+                    return
+                }
+            }
+
             this.clickType = type
             this.controller.switchClickEvent(type)
         },
+
         toggleDevMode() {
             this.dev = !this.dev
             const twoEl = this.$el.querySelector("[id^='two-js']") as HTMLCanvasElement
@@ -142,8 +165,18 @@ export default defineComponent ({
             gsap.to(twoEl, {duration: 0.3, opacity: this.dev ? 0 : 1})
             gsap.to(rendererEl, {duration: 0.3, opacity: this.dev ? 1 : 0})
         },
+        
+        async loadAction(actionType: actionTypes) {
+            if (actionType === "food") {
+                await this.actionStore.loadAvailableFood(this.identity)
+            }
+        },
+
         actionContainerClicked() {
-            
+            if (this.actionStore.availableFood <= 0) {
+                return
+            }
+
             this.actionActive = !this.actionActive
             if (!this.actionActive) {
                 this.toggleClickTo("none")
@@ -151,6 +184,8 @@ export default defineComponent ({
             } else {
                 this.toggleClickTo("food")
             }
+
+
             const removeActionActive = (e) => {
                 e.preventDefault()
                 this.actionActive = false
@@ -348,6 +383,10 @@ export default defineComponent ({
         opacity: 1;
     }
 
+    &.__isDisabled {
+        opacity: 0.4;
+    }
+
     svg {
         height: 23px;
         + svg {
@@ -377,12 +416,20 @@ export default defineComponent ({
         /* border-color: currentColor; */
     }
 
+    &.__isDisabled {
+        opacity: 0.4;
+    }
+
     svg {
         height: 100%;
     }
 }
-actions-footer {
-    align-self: flex-end;
+
+.actions-footer {
+
+    &.__isDisabled {
+        opacity: 0.4;
+    }
 }
 
 .stats {

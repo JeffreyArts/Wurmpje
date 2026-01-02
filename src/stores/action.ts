@@ -3,7 +3,7 @@ import { iconsMap } from "jao-icons"
 import { type IDBPDatabase } from "idb"
 import type { DBIdentity } from "@/stores/identity"
 import useDatabaseStore from "@/stores/database"
-
+import  { type IdentityField } from "@/stores/identity"
 
 export type actionTypes = "food" | "joy" | "love" | undefined
 export type DBAction =  {
@@ -20,7 +20,7 @@ const Action = defineStore("action", {
         db: undefined as IDBPDatabase | undefined,
         initialised: undefined as Promise<boolean> | undefined,
         isInitializing: false,
-
+        availableFood: 3,
     }),
     actions: {
         init() {
@@ -84,6 +84,11 @@ const Action = defineStore("action", {
             const identityStore = identityTx.objectStore("identities")
             identityStore.put(wurmpje as DBIdentity)    
             
+
+            if (action === "food") {
+                await this.loadAvailableFood(wurmpje)
+            }
+            
             return tx.done
         },
         loadWurmpjeById(wurmpjeId: number): Promise<DBIdentity> {
@@ -96,8 +101,9 @@ const Action = defineStore("action", {
                 const tx = this.db.transaction("identities", "readonly")
                 const store = tx.objectStore("identities")
                 const index = store.index("id")
-                const wurmpje = await index.getAll(IDBKeyRange.only(wurmpjeId))[0]
-               
+                const wurmpjes = await index.getAll(IDBKeyRange.only(wurmpjeId))
+                const wurmpje = wurmpjes[0]
+
                 if (!wurmpje) {
                     reject(new Error("Wurmpje not found"))
                 }
@@ -140,7 +146,45 @@ const Action = defineStore("action", {
             }
 
             return svg
+        },
+        loadLastActionsFromDB(wurmpjeId: number, typeOfAction: actionTypes, quantity: number ): Promise<DBAction> {
+            return new Promise(async (resolve, reject) => {
+                if (!this.db) {
+                    return reject("Database not initialized")
+                }
+
+                const tx = this.db.transaction("actions", "readonly")
+                const store = tx.objectStore("actions")
+                const index = store.index("wurmpjeId")
+                // Load last actions for wurmpje
+                const allActions = await index.getAll()
+                const filteredActions = allActions.filter(action => action.wurmpjeId === wurmpjeId && action.action === typeOfAction)
+                // Sort by created date descending
+                filteredActions.sort((a, b) => b.created - a.created)
+                // Get the last 'quantity' actions
+                const actions = filteredActions.slice(0, quantity)
+
+                resolve(actions as unknown as DBAction)
+            })
+        },
+        async loadAvailableFood(identity: IdentityField) {
+            let availableFood = 3
+            const lastFoodMoments = await this.loadLastActionsFromDB(identity.id, "food", 3)
+            for (const foodMoment in lastFoodMoments) {
+                // Get difference in hours between now and created
+                const now = Date.now()
+                const created = lastFoodMoments[foodMoment].created
+                const diffInHours = (now - created) / (1000 * 60 * 60)
+
+                // For each 16 hours passed, add 1 food back
+                if (diffInHours < 16) {
+                    availableFood --
+                }
+            }
+
+            this.availableFood = availableFood
         }
+            
     },
     getters: {
     }

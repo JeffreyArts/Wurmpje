@@ -1,6 +1,6 @@
 // stores/database.ts
 import { defineStore } from "pinia"
-import { openDB, type IDBPDatabase } from "idb"
+import { openDB, type IDBPDatabase, type IDBPTransaction } from "idb"
 
 export const database = defineStore("database", {
     state: () => ({
@@ -19,35 +19,43 @@ export const database = defineStore("database", {
             const DBNAME = import.meta.env.VITE_DBNAME || "wurmpje"
             const DBVERSION = Number(import.meta.env.VITE_DBVERSION) || 1
 
+            const self = this
             this.initPromise = openDB(DBNAME, DBVERSION, {
-                upgrade(db) {
-
+                upgrade(db, oldVersion, newVersion, transaction) {
                     // Identities store
-                    if (!db.objectStoreNames.contains("identities")) {
-                        const identityStore = db.createObjectStore("identities", {
-                            keyPath: "id",
-                        })
-                        identityStore.createIndex("cooldown", "cooldown")
-                        identityStore.createIndex("created", "created")
-                        identityStore.createIndex("name", "name")
-                    }
+                    self.createStore(db, transaction, "identities", { keyPath: "id" }, [
+                        "id",
+                        "cooldown",
+                        "created",
+                        "name",
+                    ])
 
                     // Actions store
-                    if (!db.objectStoreNames.contains("actions")) {
-                        const actionStore = db.createObjectStore("actions", {
-                            keyPath: "id",
-                            autoIncrement: true,
-                        })
-                        actionStore.createIndex("wurmpjeId", "wurmpjeId")
-                        actionStore.createIndex("quantity", "quantity")
-                        actionStore.createIndex("action", "action")
-                    }
+                    self.createStore(db, transaction, "actions", { keyPath: "id", autoIncrement: true }, [
+                        "wurmpjeId",
+                        "quantity",
+                        "action",
+                    ])
                 },
             })
 
             this.db = await this.initPromise
             return this.db
         },
+        createStore(db: IDBPDatabase, transaction: IDBPTransaction, storeName: string, options: IDBObjectStoreParameters, indexes: Array<string>) {
+            let store
+            if (!db.objectStoreNames.contains(storeName)) {
+                store = db.createObjectStore(storeName, options)
+            } else {
+                store = transaction.objectStore(storeName)
+            }
+
+            indexes.forEach((indexName) => {
+                if (!store.indexNames.contains(indexName)) {
+                    store.createIndex(indexName, indexName)
+                }
+            })
+        }
     },
 })
 
