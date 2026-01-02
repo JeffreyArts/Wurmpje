@@ -5,6 +5,7 @@ import { Draw } from "./draw"
 import { Wall } from "./create/wall"
 import { Catterpillar } from "./create/catterpillar"
 import CatterpillarModel from "@/models/catterpillar"
+import FoodModel from "@/models/food"
 import type { IdentityField } from "@/models/identity"
 
 export class MatterController {
@@ -122,7 +123,6 @@ export class MatterController {
             width: width * 2,
             height: wallThickness,
             id: "top",
-            collisionGroup: 1
         }, this.ref.world)
 
         // Bottom
@@ -132,7 +132,6 @@ export class MatterController {
             width: width * 2,
             height: wallThickness,
             id: "bottom",
-            collisionGroup: 1
         }, this.ref.world)
 
         // Right wall
@@ -142,7 +141,6 @@ export class MatterController {
             width: wallThickness,
             height: height * 2,
             id: "right",
-            collisionGroup: 1
         }, this.ref.world)
 
         // Left wall
@@ -152,7 +150,6 @@ export class MatterController {
             width: wallThickness,
             height: height * 2,
             id: "left",
-            collisionGroup: 1
         }, this.ref.world)
     }
     
@@ -323,20 +320,16 @@ export class MatterController {
     }
 
     createFood(position: { x: number, y: number }) {
+        console.log("Create food at", position)
         const size = this.catterpillar.thickness
-        const food = Matter.Bodies.rectangle(0, 0, size, size, {
-            label: "food",
-            collisionFilter: {
-                // category: 0x0002,
-                // mask: 0x0001
-            },
-            render: {
-                fillStyle: "green"
-            }
-        })
-        Matter.Body.setPosition(food, position)
-        Matter.World.add(this.ref.world, food)
+        const food = new FoodModel({
+            x: position.x,
+            y: position.y,
+            size: size,
+            color: "#f09"
+        }, this.ref.world)
 
+        this.draw.addFood(food)
     }
     // document.body.addEventListener("mousedown", PhysicsService.mouseDownEvent);
     // document.body.addEventListener("touchstart", PhysicsService.mouseDownEvent);

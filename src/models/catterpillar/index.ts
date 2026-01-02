@@ -329,7 +329,7 @@ export class Catterpillar {
                 radius: this.thickness/2,
                 x,
                 y: this.y,
-                collisionGroup: 1 //-1 * catterpillars.length - 1,
+                // collisionGroup: 1 //-1 * catterpillars.length - 1,
             }
 
             if (type) {

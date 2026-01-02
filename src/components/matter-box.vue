@@ -119,7 +119,7 @@ export default defineComponent ({
         })
     
         this.toggleDevMode()
-        // this.toggleDevMode()
+        this.toggleDevMode()
 
 
         

@@ -1,4 +1,5 @@
 import Matter from "matter-js"
+import { collisionBodyPart } from "@/tamagotchi/collisions"
 
 export type BodyPartOptions = {
     size: number,
@@ -19,7 +20,7 @@ export class BodyPart {
         slop: number,
     }
     dev: boolean
-    collisionGroup: number
+    collisionMask: number
     type: "bodyPart" | "head" | "butt"
     world?: Matter.World
 
@@ -32,7 +33,7 @@ export class BodyPart {
             restitution?: number,
             slop?: number,
             type?: "head" | "butt",
-            collisionGroup?: number  // negative for non-colliding
+            // collisionMask?: number  // negative for non-colliding
         },
         world?: Matter.World
     ) {
@@ -67,10 +68,10 @@ export class BodyPart {
         
         const label = this.type == "bodyPart" ? "bodyPart" : `bodyPart,${this.type}`
 
-        this.collisionGroup = options?.collisionGroup ? options.collisionGroup : 0
+        // this.collisionGroup = options?.collisionGroup ? options.collisionGroup : 0
         
         this.body = Matter.Bodies.circle(this.x, this.y, this.radius, { 
-            collisionFilter: { group: this.collisionGroup, category: 0, mask: -1 },
+            collisionFilter: collisionBodyPart,
             mass: 1,
             density: .2,
             friction: 20,
@@ -92,10 +93,17 @@ export class BodyPart {
 
         if (this.world) {
             const boundaries = this.#getWorldBoundaries()
-            if (this.y < boundaries.top || this.x < boundaries.left || this.x > boundaries.right || this.y > boundaries.bottom) {
-                this.body.collisionFilter.group = -1
+            // check of body binnen de world boundaries is
+            const inside = this.y >= boundaries.top &&
+                       this.x >= boundaries.left &&
+                       this.x <= boundaries.right &&
+                       this.y <= boundaries.bottom
+
+            // update collisionFilter.mask dynamisch
+            if (inside) {
+                this.body.collisionFilter.mask = collisionBodyPart.mask // standaard mask, bv CATEGORY_WALL
             } else {
-                this.body.collisionFilter.group = this.collisionGroup
+                this.body.collisionFilter.mask = 0 // bots met niets
             }
         }
         

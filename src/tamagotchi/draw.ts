@@ -43,11 +43,22 @@ export const availableBodyPartTextures = [
     "/bodyparts/vert/v6",
     "/bodyparts/vert/polkadots",
 ]
+type objectModel = {
+    id: string,
+    type: "food" | "catterpillar" | "speechBubble",
+    model: FoodModel | CatterpillarModel | SpeechBubble,
+    layers: Layers
+}
+
+type Layers = {
+    [key: number]: Two.Shape[]; // key = laagnummer, value = array van Two.Shape
+}
 
 export class Draw {
     two: Two
     objects: Array<{ shape: Two.Shape, pos: { x: number, y: number }, updateVertices?: () => Array<{ x: number, y: number }> }> = []
     layers: Two.Group[] = []
+    newObjects: Array<objectModel> = []
     catterpillars: CatterpillarModel[] = []
 
     constructor(two: Two) {
@@ -65,6 +76,13 @@ export class Draw {
                 this.#drawSpeechBubble(catterpillar.speechBubble)
             }
         })
+
+        this.newObjects.forEach(obj => {
+            if (obj.type == "food") {
+                this.drawFood(obj)
+            }
+        })
+        // this.newObjects = []
 
         
         for (let i = this.objects.length - 1; i >= 0; i--) {
@@ -283,15 +301,16 @@ export class Draw {
     addSVG(
         pos: { x: number, y: number },
         svgItem: Two.Shape,
-        options?: { name?: string },
+        options?: { name?: string, rotation?: boolean },
         layer?: Two.Group
     ): Two.Shape {
         svgItem.position.set(pos.x, pos.y)
-        this.objects.push({ shape: svgItem, pos: pos })
+        // this.objects.push({ shape: svgItem, pos: pos })
         let { name } = options
         if (!name) {
             name = `svg-${Date.now()}`
         }
+        
 
         this.objects.push({ shape: svgItem, pos: pos, name })
 
@@ -445,6 +464,60 @@ export class Draw {
                 gsap.fromTo(child, { delay: .08, opacity: 0 }, { opacity: 1, duration: .16 })
             })
         })
+    }
+
+
+    addFood = async (food: FoodModel) => {
+        const obj = {
+            type: "food",
+            id: food.composite.id,
+            model: food,
+            layers:{ 
+                10: [{
+                    level: 0,
+                    svg: await this.#importSVGAsync(
+                        "./leaf.svg",
+                        { width: food.size, height: food.size }
+                    )
+                }]
+            }
+        }
+        
+
+        this.newObjects.push(obj)
+        this.drawFood(obj)
+        // addSVG(
+        //     { x: food.x, y: food.y },
+        //     await this.#importSVGAsync(
+        //         "./leaf.svg",
+        //         { width: food.size, height: food.size }
+        //     ),
+        //     { name: `food-${food.composite.id}` }
+        // )
+    }
+
+    drawFood = (food: objectModel) => {
+
+        food.layers[10][0].svg.position.set(food.model.x, food.model.y)
+        food.layers[10][0].svg.rotation = food.model.rotation
+
+        // for (const layerIndex in food.layers) {
+        //     const layerNumber = parseInt(layerIndex)
+        //     let layer = this.layers.find(l => l.name == `layer-${layerNumber}`)
+        //     if (!layer) {
+        //         layer = this.two.makeGroup() as Two.Group
+        //         layer.name = `layer-${layerNumber}`
+        //         this.layers.push(layer)
+        //     }
+        //     food.layers[layerNumber].forEach(part => {
+        //         this.addSVG(
+        //             { x: food.model.x, y: food.model.y },
+        //             part.svg,
+        //             { name: `food-${food.model.composite.id}` },
+        //             layer
+        //         )
+        //     })
+        // }
     }
 
     addMouth(

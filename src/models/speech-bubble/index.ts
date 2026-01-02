@@ -1,4 +1,5 @@
 import Matter from "matter-js"
+import { collisionBorderPoint } from "@/tamagotchi/collisions"
 import gsap from "gsap"
 
 export type SpeechBubbleOptions = {
@@ -130,11 +131,7 @@ class SpeechBubble  {
                 {
                     label: `borderPoint-${angle}`,
                     isStatic: false,
-                    collisionFilter: {
-                        group: -1,
-                        category: 1,
-                        mask: 0
-                    }
+                    collisionFilter: collisionBorderPoint
                 }
             )
 
