@@ -20,8 +20,8 @@
                 </footer>
             </div>
             <div class="stats">
-                <div class="healthbar-row">
-                    <healthbar :value="60" />
+                <div class="healthbar-row" v-if="identity.current">
+                    <healthbar :value="identity.current.hunger" />
                     <span class="healthbar-name">hunger</span>
                 </div>
                 <span class="copyright">
@@ -31,7 +31,7 @@
         </footer>
 
         <invalid-parent-id-modal :is-open="invalidParentId" @close-immediate="invalidParentId = false"  @close="removeQueryFromUrl"/>
-        <breeding-modal :is-open="showBreedingModal" @close="removeQueryFromUrl" :parent="breedingIdentity"/>
+        <breeding-modal :is-open="showBreedingModal" @close="removeQueryFromUrl" :parent="breedingIdentity" v-if="breedingIdentity"/>
 
     </div>
 </template>

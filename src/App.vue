@@ -5,7 +5,9 @@
 <script lang="ts">
 import { defineComponent } from "vue"
 import gsap from "gsap"
+import useDatabaseStore from "@/stores/database"
 import useIdentityStore from "@/stores/identity"
+import useActionStore from "@/stores/action"
 // import { useRouter } from "vue-router"
 
 export default defineComponent({
@@ -18,10 +20,14 @@ export default defineComponent({
     },
     setup() {
         const identityStore = useIdentityStore()
+        const actionStore = useActionStore()
+
+        actionStore.init()
         identityStore.init()
         
         return {
-            identityStore
+            identityStore,
+            actionStore
         }
     },
     mounted() {

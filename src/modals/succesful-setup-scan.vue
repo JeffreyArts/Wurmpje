@@ -10,7 +10,7 @@
         <form @submit.prevent="submit()" class="form" id="submit-name-form">
             <div class="row" v-if="newIdentity">
                 <i class="icon">
-                    <jao-icon name="user-outline" size="large" inactive-color="transparent" activeColor="var(--bg-color)"/>
+                    <jao-icon :name="newIdentity.gender === 0 ? 'male' : 'female'" size="large" inactive-color="transparent" activeColor="var(--bg-color)"/>
                 </i>
                 <input type="text" :placeholder="latinName" class="input large" v-model="newIdentity.name" />
             </div>

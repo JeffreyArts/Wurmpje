@@ -3,9 +3,7 @@ import ColorScheme from "@/assets/default-color-schemes"
 import Identity, { type IdentityField } from "@/models/identity"
 import Textures, { type textureInterface } from "@/assets/default-textures"
 import { openDB, type IDBPDatabase } from "idb"
-
-const DBNAME = "wurmpje"
-const DBVERSION = 1
+import useDatabaseStore from "@/stores/database"
 
 export type DBIdentity =  {
     id: number;                 // 29-bit: 23 bits seconds/4 + 6 bits random
@@ -18,8 +16,11 @@ export type DBIdentity =  {
     cooldown: number;           // timestamp
     selectable: boolean
     origin: string | [number, number]  // qr code or wurmpjes id
-    thickness: number          // 8-64
-    length: number             // 5-18
+    thickness: number           // 8-64
+    length: number              // 5-18
+    hunger?: number             // 0-100
+    joy?: number                // 0-100
+    love?: number               // 0-100
 }
 
 
@@ -38,82 +39,39 @@ export type currentIdentity = {
     length: number
     thickness: number
     cooldown: number
+    hunger: number
+    joy: number
+    love: number
 }
 
 const identity = defineStore("identity", {
     state: () => ({
         db: undefined as IDBPDatabase | undefined,
         current: undefined as currentIdentity | undefined,
-        // id: 0,
-        // name: "",
-        // gender: 0 as number,
-        // primaryColor: "",
-        // secondaryColor: "",
-        // offset: 0,
-        // texture: undefined as textureInterface | undefined,
-        // colorschemeIndex: 0,
-        // origin: undefined as IdentityField | undefined,
-        // age: 1, // In dagen
         initialised: undefined as Promise<boolean> | undefined,
         isInitializing: false,
 
     }),
     actions: {
         init() {
+
             return this.initialised = new Promise(async (resolve) => {
                 if (this.isInitializing) {
                     return
                 }
                 this.isInitializing = true
-
-                this.db = await openDB(DBNAME, DBVERSION, {
-                    upgrade(db) {
-                        const store = db.createObjectStore("identities", {
-                            keyPath: "id",
-                        })
-
-                        store.createIndex("cooldown", "cooldown")
-                        store.createIndex("created", "created")
-                        store.createIndex("name", "name", { unique: false })
-                    }
-                })
+                
+                const databaseStore = useDatabaseStore()
+                this.db = await databaseStore.init()
 
                 console.log("Identity database initialized")
-
-                // if (window.location.search.includes("i=")) {
-                //     this.loadIdentityFromUrlParam()
-                // } 
                 
+                // Try to load identity from local storage                
                 await this.loadIdentityFromLocalStorage()
 
-                // true
                 resolve(true)
-
-                // try {
-                //     else {
-                //     }
-                    
-                //     resolve(true)
-                // } catch (error) {
-                //     console.error("Error during identity initialization:", error)
-                //     reject()
-                // }
-                // setTimeout(() => {
-                // }, 1000)
             })
         },
-        // async processIdentityString(identityString: string) {
-
-        //     // this.id = identity.id
-        //     // this.name = identity.name
-        //     // this.texture = Textures[identity.textureIndex]
-        //     // this.primaryColor = ColorScheme[identity.colorSchemeIndex].colors[0]
-        //     // this.secondaryColor = ColorScheme[identity.colorSchemeIndex].colors[1]
-        //     // this.gender = identity.gender
-        //     // this.offset = identity.offset
-        //     // this.origin = identity
-
-        // },
         async loadIdentityFromUrlParam() {
             const urlParams = new URLSearchParams(window.location.search)
             const identityParam = urlParams.get("i")
@@ -264,7 +222,10 @@ const identity = defineStore("identity", {
                 cooldown: cooldownDays ? Date.now() + (cooldownDays * 24 * 60 * 60 * 1000) : 0,
                 created: Date.now(),
                 selectable,
-                origin
+                origin,
+                hunger: 80,
+                joy: 80,
+                love: 80,
             }
 
             const id = await store.put(dbIdentity)
@@ -314,7 +275,10 @@ const identity = defineStore("identity", {
                     textureIndex: identity.textureIndex,
                     colorSchemeIndex: identity.colorSchemeIndex,
                     length: identity.length,
-                    thickness: identity.thickness
+                    thickness: identity.thickness,
+                    hunger: identity.hunger,
+                    joy: identity.joy,
+                    love: identity.love,
                 } 
             } else {
                 console.warn(`Identity with id ${id} not found in database`)
