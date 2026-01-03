@@ -1,6 +1,7 @@
 <template>
   
   <div id="catterpillar-container">
+      <!-- Name tag -->
     <header v-if="identity && identity.name" class="catterpillar-header">
         <h1 class="catterpillar-name">
             <i class="catterpillar-gender" :class="identity.gender === 0 ? '__isMale' : '__isFemale'">
@@ -13,8 +14,11 @@
         <span class="catterpillar-age">{{ age }}</span>
     </header>
 
+    <!-- Matter container -->
     <section id="catterpillar" ref="catterpillar"></section>
 
+
+    <!-- Footer -->
     <footer class="matterbox-footer" ref="matterbox-footer">
         <div class="actions-container">
             <header class="actions-header" :class="{'__isActive': actionActive, '__isDisabled': actionStore.availableFood <= 0 }">
@@ -41,8 +45,6 @@
             </span>
         </div>
     </footer>
-
-
   </div>
 </template>
 
@@ -90,8 +92,12 @@ export default defineComponent ({
     },
     watch: {
         "identity.defaultState"(newVal, oldVal) {
-            console.log("DEFAULT STATE CHANGED:", newVal, oldVal)
             this.controller.catterpillar.emote(newVal)
+        },
+        "identity.death"(newVal, oldVal) {
+            if (newVal) {
+                this.setDeathState()
+            }
         }
     },
     computed: {
@@ -122,6 +128,24 @@ export default defineComponent ({
         }
     },
     async mounted() {
+
+        if (this.identity?.death) {
+            const classes = [".catterpillar-name",
+                            ".catterpillar-age",
+                            ".speech-bubble",
+                            ".matterbox-footer",
+                            ".actions-container",
+                            ".healthbar-row",
+                            "canvas",
+                            "#two-js"
+                        ]
+           
+            gsap.set(classes.map(c => `#catterpillar-container ${c}`), 
+                { opacity: 0}
+            )
+            return
+        }
+
         this.controller = new MatterController( this.$refs["catterpillar"] as HTMLElement, {
             identity: this.identity,
             catterpillarPos: { x: window.innerWidth / 2, y: -100},
@@ -201,14 +225,29 @@ export default defineComponent ({
 
             const homeFooter = this.$refs["matterbox-footer"] as HTMLElement
             homeFooter.addEventListener("touchstart", removeActionActive, { passive: false })
+        },
+        setDeathState() {
+            const el = this.$el
+            
+            gsap.to(el.querySelectorAll("canvas, #two-js"), 
+                { duration: 1, filter: "grayscale(100%) blur(2px)", opacity: 0}
+            )
+
+            gsap.killTweensOf(".speech-bubble")
+            gsap.to(".speech-bubble", { duration: 1, opacity: 0, ease: "power2.out" })
+
+            gsap.to(el.querySelectorAll(".catterpillar-name, .catterpillar-age, .matterbox-footer, .actions-container, .healthbar-row"), 
+                { duration: 1, opacity: 0, stagger: 0.5, ease: "power2.out" }
+            )
+            // catterpillar-name
+
         }
     }
 })
 </script>
 
 
-<style> 
-
+<style scoped> 
 #catterpillar-container {
     position: relative;
     width: 100%;

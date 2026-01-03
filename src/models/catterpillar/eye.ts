@@ -13,8 +13,6 @@ export type EyeOptions = {
     }
     width?: number,
     height?: number,
-    autoBlink?: boolean,
-    blinkInterval?: number 
 }
 
 export class Eye  {

@@ -33,7 +33,7 @@ export const database = defineStore("database", {
                     // Actions store
                     self.createStore(db, transaction, "actions", { keyPath: "id", autoIncrement: true }, [
                         "wurmpjeId",
-                        "quantity",
+                        "value",
                         "action",
                     ])
                 },

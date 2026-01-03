@@ -22,6 +22,11 @@ export default defineComponent ({
             required: false,
             default: "curved"
         },
+        drawBg: {
+            type: Boolean,
+            required: false,
+            default: true
+        },
         redrawKey: {
             type: [String, Number] as PropType<string | number>,
             required: false
@@ -82,8 +87,12 @@ export default defineComponent ({
                 catterpillarPos: { x: width/2 + thickness/2, y: identity.thickness * 2},
                 offsetBottom: (thickness*5)/2 - thickness/2
             })
+            
+            if (this.drawBg) {
+                this.controller.draw.drawBG({blockSize})
+            }
+
             this.controller.ref.removepointerMoveEvent("lookAtMouse")
-            this.controller.draw.drawBG({blockSize})
             this.controller.catterpillar.rightEye.lookLeft(2)
             this.controller.catterpillar.leftEye.lookLeft(2)
             
@@ -104,8 +113,12 @@ export default defineComponent ({
                 catterpillarPos: { x: width/2 + (length * thickness) * .16, y: height - thickness * 1.5},
                 offsetBottom: thickness * 1.5
             })
+            
+            if (this.drawBg) {
+                this.controller.draw.drawBG({blockSize})
+            }
+            
             this.controller.ref.removepointerMoveEvent("lookAtMouse")
-            this.controller.draw.drawBG({blockSize})
             setTimeout(() => this.controller.catterpillar.contractSpine(0.75, .4), 10)
 
             const canvas = target.querySelector("#two-js") as HTMLCanvasElement;

@@ -36,6 +36,7 @@ export class Catterpillar {
     secondaryColor: string = "#007700"
     texture: { top?: string, "360"?: string, bottom?: string, vert?: string, stroke?: boolean } = {}
     blinkTimeout: NodeJS.Timeout | number = 0
+    autoBlink: boolean = true
     
     isStanding: boolean = false
     isTurning: boolean = false
@@ -158,8 +159,9 @@ export class Catterpillar {
             this.speechBubble.y = this.head.y - this.thickness
         }
 
-
-        this.#autoBlink()
+        if (this.autoBlink) {
+            this.#autoBlink()
+        }
         this.#autoCheckScared()
         
         requestAnimationFrame(this.#loop.bind(this))

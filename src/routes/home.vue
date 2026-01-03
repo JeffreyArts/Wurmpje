@@ -2,6 +2,7 @@
     <div class="home">
         <favicon class="thumbnail-helper" v-if="identity.current" :identity="identity.current"/>
         <matter-box class="matter-box" v-if="identity.current" :identity="identity.current" />
+        <deadWurmpje v-if="identity.current?.death" :identity="identity.current" :animate="true" />
 
         <invalid-parent-id-modal :is-open="invalidParentId" @close-immediate="invalidParentId = false"  @close="removeQueryFromUrl"/>
         <breeding-modal :is-open="showBreedingModal" @close="removeQueryFromUrl" :parent="breedingIdentity" v-if="breedingIdentity"/>
@@ -18,6 +19,7 @@ import matterBox from "@/components/matter-box.vue";
 import Favicon from "@/components/favicon.vue";
 import invalidParentIdModal from "@/modals/invalid-parent-id.vue";
 import breedingModal from "@/modals/breeding.vue";
+import deadWurmpje from "@/components/dead-wurmpje.vue";
 
 export default defineComponent ({ 
     name: "homePage",
@@ -26,6 +28,7 @@ export default defineComponent ({
         Favicon,
         invalidParentIdModal,
         breedingModal,
+        deadWurmpje
     },
     props: [],
     setup() {
@@ -139,7 +142,7 @@ export default defineComponent ({
 <style>
 .matter-box {
     width: 100%;
-    height: calc(100vh - 80px);
+    height: 100vh;
 }
 
 </style>

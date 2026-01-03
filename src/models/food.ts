@@ -23,7 +23,6 @@ export class Food {
         this.size = options.size ? options.size : 16
         this.color = options.color ? options.color : "#00ff00"
         
-        console.log("Creating food", this.x, this.y)
         // Create composite
         this.composite = Matter.Composite.create({ label: `food,${options.id}` })
         

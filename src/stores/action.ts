@@ -1,16 +1,16 @@
 import { defineStore } from "pinia"
 import { iconsMap } from "jao-icons"
 import { type IDBPDatabase } from "idb"
+import { type IdentityField } from "@/models/identity"
 import type { DBIdentity } from "@/stores/identity"
 import useDatabaseStore from "@/stores/database"
-import  { type IdentityField } from "@/stores/identity"
 
 export type actionTypes = "food" | "joy" | "love" | "hungerLoss" | undefined
 export type DBAction =  {
     id: number;                 
     created: number;            // timestamp
     wurmpjeId: number;          // id of the wurmpje
-    quantity: number;           // amount of food
+    value: number;           // amount of food
     action: actionTypes;        // type of action
 }
 
@@ -34,11 +34,11 @@ const Action = defineStore("action", {
                 this.db = await databaseStore.init()
                 
                 console.log("Action database initialized")
-                
+
                 resolve(true)
             })
         },
-        async add(wurmpjeId: number, action: actionTypes, quantity: number) {
+        async add(wurmpjeId: number, action: actionTypes, value: number) {
             if (!this.db) {
                 throw new Error("Database not initialized")
             }
@@ -57,7 +57,7 @@ const Action = defineStore("action", {
                 created: timestamp,
                 wurmpjeId,
                 action,
-                quantity,
+                value,
             }
             store.add(dbAction)
 
@@ -66,17 +66,17 @@ const Action = defineStore("action", {
                 if (typeof wurmpje.hunger !== "number") {
                     wurmpje.hunger = 80
                 }
-                wurmpje.hunger += quantity
+                wurmpje.hunger += value
             } else if (action === "joy") {
                 if (typeof wurmpje.joy !== "number") {
                     wurmpje.joy = 80
                 }
-                wurmpje.joy += quantity
+                wurmpje.joy += value
             } else if (action === "love") {
                 if (typeof wurmpje.love !== "number") {
                     wurmpje.love = 80
                 }
-                wurmpje.love += quantity
+                wurmpje.love += value
             }
 
             // Update new wurmpje state
@@ -147,7 +147,7 @@ const Action = defineStore("action", {
 
             return svg
         },
-        loadLastActionsFromDB(wurmpjeId: number, typeOfAction: actionTypes, quantity: number ): Promise<DBAction> {
+        loadLastActionsFromDB(wurmpjeId: number, typeOfAction: actionTypes, value: number ): Promise<DBAction> {
             return new Promise(async (resolve, reject) => {
                 if (!this.db) {
                     return reject("Database not initialized")
@@ -161,8 +161,8 @@ const Action = defineStore("action", {
                 const filteredActions = allActions.filter(action => action.wurmpjeId === wurmpjeId && action.action === typeOfAction)
                 // Sort by created date descending
                 filteredActions.sort((a, b) => b.created - a.created)
-                // Get the last 'quantity' actions
-                const actions = filteredActions.slice(0, quantity)
+                // Get the last 'value' actions
+                const actions = filteredActions.slice(0, value)
 
                 resolve(actions as unknown as DBAction)
             })
@@ -224,7 +224,7 @@ const Action = defineStore("action", {
                     created: timestamp,
                     wurmpjeId,
                     action: "hungerLoss" as actionTypes,
-                    quantity: hungerSubtraction,
+                    value: hungerSubtraction,
                 }
                 actionStore.add(dbAction)
 

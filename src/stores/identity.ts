@@ -14,6 +14,7 @@ export type DBIdentity =  {
     gender: number;             // 0-1
     created: number;            // timestamp
     cooldown: number;           // timestamp
+    death: number | undefined    // timestamp of death
     selectable: boolean
     origin: string | [number, number]  // qr code or wurmpjes id
     thickness: number           // 8-64
@@ -36,6 +37,7 @@ export type currentIdentity = {
     texture: textureInterface
     origin: string | [number, number]
     age: number,
+    death: number | undefined
     length: number
     thickness: number
     cooldown: number
@@ -118,10 +120,13 @@ const identity = defineStore("identity", {
             
             return identity
         },
-        calculateAgeInDays(birthDate: string | number): number {
+        calculateAgeInDays(birthDate: string | number, deathDate: string | number | null): number {
             const birth = new Date(birthDate)
-            const now = new Date()
-            const diffTime = Math.abs(now.getTime() - birth.getTime())
+            let lastDay = new Date()
+            if (deathDate) {
+                lastDay = new Date(deathDate)
+            }
+            const diffTime = Math.abs(lastDay.getTime() - birth.getTime())
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) 
             return diffDays
         },
@@ -150,9 +155,20 @@ const identity = defineStore("identity", {
                     return 
                 }
                 
+                if (newValue <= 0) {
+                    // emit custom event
+                    const event = new CustomEvent("wurmpje-died", { detail: { identity: this.current }})
+                    this.died(this.current)
+
+                    window.dispatchEvent(event)
+                }
                 
                 this.setDefaultEmotionalState()
             })
+        },
+        died(identity: currentIdentity) {
+            identity.death = Date.now()
+            this.updateIdentityInDatabase(identity.id, { death: identity.death })
         },
         // saveIdentityToLocalStorage() {
         //     const identityModel = new Identity()
@@ -255,6 +271,7 @@ const identity = defineStore("identity", {
                 created: Date.now(),
                 selectable,
                 origin,
+                death: undefined,
                 hunger: 80,
                 joy: 80,
                 love: 80,
@@ -302,7 +319,8 @@ const identity = defineStore("identity", {
                     offset: identity.offset,
                     texture: Textures[identity.textureIndex],
                     origin: identity.origin,
-                    age: this.calculateAgeInDays(identity.created),
+                    age: this.calculateAgeInDays(identity.created, identity.death),
+                    death: identity.death,
                     cooldown: identity.cooldown,
                     textureIndex: identity.textureIndex,
                     colorSchemeIndex: identity.colorSchemeIndex,
