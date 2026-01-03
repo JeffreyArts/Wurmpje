@@ -6,11 +6,11 @@ export type IdentityField = {
     offset: number;             // 0-15
     gender: number;             // 0 | 1
     length: number;             // 3-20
-    thickness: number;          // 8-64
+    thickness: number;          // 8-32
 }
 
 
-// Generate and encode identity to QR-ready Base45 string of 29 + 96 + 10 + 10 + 4 = 149 bits
+// Generate and encode identity to QR-ready Base45 string of 29 + 96 + 10 + 10 + 4 + 5 + 5 + 1 = 160 bits
 class Identity {
     private static readonly BASE45_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:"
     
@@ -63,7 +63,7 @@ class Identity {
         const offset = readBits(4)             // 0-15
         const gender = readBits(1)             // 0 of 1
         const length = readBits(4)               // 0-15
-        const thickness = readBits(5)            // 8-64
+        const thickness = readBits(4)            // 0-32
 
 
         
@@ -74,10 +74,11 @@ class Identity {
             colorSchemeIndex,
             offset,
             gender,
-            length: length + 3,                 // 3-18
-            thickness: thickness + 8,           // 8-39
+            length: length + 3,                      // 3-18
+            thickness: Math.min(thickness + 8, 32),  // 8-32
         }
     }
+
 
     stringToId(str: string): number {
         let hash = 0
@@ -136,8 +137,8 @@ class Identity {
         }
 
         // Check thickness
-        if (typeof thickness !== "number" || thickness < 8 || thickness > 64) {
-            throw new Error("Invalid thickness: must be 8-64")
+        if (typeof thickness !== "number" || thickness < 8 || thickness > 32) {
+            throw new Error("Invalid thickness: must be 8-32")
         }
 
         return { id, name, textureIndex, colorSchemeIndex, offset, gender, length, thickness }
@@ -225,8 +226,8 @@ class Identity {
         // length: 5 bits
         this.push(bits, identity.length, 5)
 
-        // thickness: 6 bits
-        this.push(bits, identity.thickness, 6)
+        // thickness: 5 bits
+        this.push(bits, identity.thickness, 5)
 
         // Convert bits to bytes
         const bytes = new Uint8Array(Math.ceil(bits.length / 8))
@@ -290,8 +291,8 @@ class Identity {
         const length = result.value
         cursor = result.cursor
 
-        // thickness: 6 bits
-        result = this.unPush(bits, cursor, 6)
+        // thickness: 5 bits
+        result = this.unPush(bits, cursor, 5)
         const thickness = result.value
         cursor = result.cursor
 
