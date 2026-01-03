@@ -119,6 +119,7 @@ export default defineComponent ({
     methods: {
        parseThumbnail(controller: MatterController) {
             controller.catterpillar.autoBlink = false
+            controller.catterpillar.emote("hmm")
             controller.ref.removepointerDownEvent("grabCatterpillar")
             controller.ref.removepointerUpEvent("releaseCatterpillar")
             controller.ref.removepointerMoveEvent("dragCatterpillar")

@@ -4,6 +4,7 @@ import Identity, { type IdentityField } from "@/models/identity"
 import Textures, { type textureInterface } from "@/assets/default-textures"
 import { openDB, type IDBPDatabase } from "idb"
 import useDatabaseStore from "@/stores/database"
+import type { DebuggerEvent } from "vue"
 
 export type DBIdentity =  {
     id: number;                 // 29-bit: 23 bits seconds/4 + 6 bits random
@@ -71,8 +72,8 @@ const identity = defineStore("identity", {
                 
                 // Try to load identity from local storage                
                 await this.loadIdentityFromLocalStorage()
-
-                this.watchForHungerStateChange()
+                this.watchForStateChanges()
+                this.checkDeathConditions()
 
                 resolve(true)
             })
@@ -130,43 +131,38 @@ const identity = defineStore("identity", {
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) 
             return diffDays
         },
-        watchForHungerStateChange() {
-            this.$subscribe((mutation, state) => {
-                const events = mutation.events
-                let oldValue, newValue
+        watchForStateChanges() {
+            this.$subscribe(({ events }) => {
+                
+                const stateTypes = ["hunger", "joy", "love"]
                 if (Array.isArray(events)) {
                     for (const event of events) {
-                        if (event.key === "hunger") {
-                            oldValue = event.oldValue
-                            newValue = event.newValue
+                        if (stateTypes.includes(event.key)) {
+                            this.checkDeathConditions()
                         }
                     }
                 } else {
-                    if (events.key === "hunger") {
-                        oldValue = events.oldValue
-                        newValue = events.newValue
+                    if (stateTypes.includes(events.key)) {
+                        this.checkDeathConditions()
                     }
-                }
-
-                if (!events ||
-                    !this.current || 
-                    oldValue === newValue
-                ) {
-                    return 
-                }
-                
-                if (newValue <= 0) {
-                    // emit custom event
-                    const event = new CustomEvent("wurmpje-died", { detail: { identity: this.current }})
-                    this.died(this.current)
-
-                    window.dispatchEvent(event)
                 }
                 
                 this.setDefaultEmotionalState()
             })
         },
+        checkDeathConditions() {
+            if (!this.current) {
+                return
+            }
+
+            if (this.current.hunger <= 0 || this.current.love <= 0) {
+                this.died(this.current)
+            }
+        },
         died(identity: currentIdentity) {
+            const event = new CustomEvent("wurmpje-died", { detail: { identity: this.current }})
+            window.dispatchEvent(event)
+            
             identity.death = Date.now()
             this.updateIdentityInDatabase(identity.id, { death: identity.death })
         },

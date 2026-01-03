@@ -1,4 +1,4 @@
-import Matter from "matter-js"
+import Matter, { type IEventCollision, type Body } from "matter-js"
 import gsap from "gsap"
 import { MatterSetup } from "./setup"
 import { Draw } from "./draw"
@@ -69,6 +69,7 @@ export class MatterController {
         this.ref = new MatterSetup(target, {
             devMode: true
         })
+        
 
         if (offsetBottom) {
             this.config.offsetBottom = offsetBottom
@@ -86,6 +87,7 @@ export class MatterController {
         
         this.createCatterpillar(startPosition, catterpillarOptions)
         this.#createWalls()
+        this.#collisionEventListener()
 
         window.addEventListener("resize", this.#onResize.bind(this))
 
@@ -325,6 +327,36 @@ export class MatterController {
             this.catterpillar.rightEye.lookAt({ x: mouse.x, y: mouse.y })
         }
     }
+
+    #collisionEventListener() {
+        Matter.Events.on(this.ref.engine, "collisionStart", (event: IEventCollision<Body>) => {
+            event.pairs.forEach((pair) => {
+                // Check of dit pair je head bevat
+                const head = this.catterpillar.head.body
+                if (pair.bodyA === head || pair.bodyB === head) {
+                    // Bepaal welke body de head is en welke de ander
+                    const other = (pair.bodyA === head) ? pair.bodyB : pair.bodyA
+                    const normal = pair.collision.normal
+
+                    // Relatieve snelheid langs normaal
+                    const relVel = {
+                        x: other.velocity.x - head.velocity.x,
+                        y: other.velocity.y - head.velocity.y
+                    }
+                    const vRelAlongNormal = relVel.x * normal.x + relVel.y * normal.y
+
+                    const impactScore = Math.abs(vRelAlongNormal)
+
+                    if (impactScore > 24) {
+                        this.actionStore.add(this.identity.id, "love", -2)
+                        this.identityStore.current.love -= 2
+                    }
+                }
+            })
+        })
+
+    }
+
     on(eventName: string, callback: (...args: any[]) => void) {
         this.listeners.push({ type: eventName, fn: callback })
     }
@@ -344,7 +376,6 @@ export class MatterController {
             return false
         })
     }
-
 
     switchClickEvent(name: string) {
         this.ref.clickEvents = []
@@ -470,6 +501,7 @@ export class MatterController {
         this.emit("foodCreated", food)
     }
 
+    
     // document.body.addEventListener("mousedown", PhysicsService.mouseDownEvent);
     // document.body.addEventListener("touchstart", PhysicsService.mouseDownEvent);
    

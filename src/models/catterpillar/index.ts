@@ -42,6 +42,7 @@ export class Catterpillar {
     isTurning: boolean = false
     isMoving: boolean = false
     isScared: boolean = false
+    isDead: boolean = false
     
     speechBubble: undefined | SpeechBubble
 
@@ -813,6 +814,10 @@ export class Catterpillar {
     }
 
     say = async (text: string) => {
+        if (this.isDead) {
+            return
+        }
+
         if (!this.speechBubble) {
             this.speechBubble = new SpeechBubble(this.world,{
                 x: this.head.x,

@@ -37,6 +37,10 @@
         </div>
         <div class="stats">
             <div class="healthbar-row" v-if="identity">
+                <healthbar :value="identity.love" />
+                <span class="healthbar-name">love</span>
+            </div>
+            <div class="healthbar-row" v-if="identity">
                 <healthbar :value="identity.hunger" />
                 <span class="healthbar-name">hunger</span>
             </div>
@@ -97,6 +101,20 @@ export default defineComponent ({
         "identity.death"(newVal, oldVal) {
             if (newVal) {
                 this.setDeathState()
+            } else {
+                const classes = [".catterpillar-name",
+                            ".catterpillar-age",
+                            ".speech-bubble",
+                            ".matterbox-footer",
+                            ".actions-container",
+                            ".healthbar-row",
+                            "canvas",
+                            "#two-js"
+                        ]
+           
+                gsap.set(classes.map(c => `#catterpillar-container ${c}`), 
+                    { opacity: 1}
+                )
             }
         }
     },
@@ -228,6 +246,8 @@ export default defineComponent ({
         },
         setDeathState() {
             const el = this.$el
+
+            this.controller.catterpillar.isDead = true
             
             gsap.to(el.querySelectorAll("canvas, #two-js"), 
                 { duration: 1, filter: "grayscale(100%) blur(2px)", opacity: 0}
