@@ -122,7 +122,7 @@ export default defineComponent({
                 onComplete: () => {
                     this.isVisible = false
                     this.$emit('close')
-                    modalOverlay.style.pointerEvents = "auto"
+                    modalOverlay.style.pointerEvents = undefined
                 }
             })
             gsap.to(modalContent, {

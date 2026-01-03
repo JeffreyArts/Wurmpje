@@ -124,13 +124,15 @@ export default defineComponent ({
             controller.ref.removepointerMoveEvent("dragCatterpillar")
         },
         fadeIn() {
-            const skull = this.$refs.skull.$el as HTMLElement;
+            const skullRef = this.$refs.skull as typeof jaoIcon 
+            const portraitRef = this.$refs.portrait as typeof WurmpjeThumbnail 
+            const skull = skullRef.$el
+            const portrait = portraitRef.$el
             const titleSvg = this.$refs.titleSvg as SVGSVGElement;
             const namePart1 = titleSvg.querySelector("#namePart1") as SVGTextElement;
             const namePart2 = titleSvg.querySelector("#namePart2") as SVGTextElement
             const ageDays = this.$refs["age-days"] as HTMLElement;
             const ageDate = this.$refs["age-date"] as HTMLElement;
-            const portrait = this.$refs.portrait.$el as HTMLElement;
             const deathText = this.$refs.deathText as HTMLElement;
             const deathTextSplit = SplitText.create(deathText, {type:"chars"});
 
