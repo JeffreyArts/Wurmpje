@@ -175,6 +175,9 @@ export default defineComponent ({
                     this.optionalParents = [parents]
                 }
             })
+
+            // Remove all dead wurmpjes from the optional parents list
+            this.optionalParents = this.optionalParents.filter((identity) => !identity.death)
             
 
             if (this.optionalParents.length <= 1) {
