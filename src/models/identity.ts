@@ -62,8 +62,8 @@ class Identity {
         const colorSchemeIndex = readBits(10)  // 0-1023
         const offset = readBits(4)             // 0-15
         const gender = readBits(1)             // 0 of 1
-        const length = readBits(4)               // 0-15
-        const thickness = readBits(4)            // 0-32
+        const length = readBits(3)             // 0-7
+        const thickness = readBits(4)          // 0-32
 
 
         
@@ -74,7 +74,7 @@ class Identity {
             colorSchemeIndex,
             offset,
             gender,
-            length: length + 3,                      // 3-18
+            length: length + 3,                      // 3-10
             thickness: Math.min(thickness + 8, 32),  // 8-32
         }
     }
