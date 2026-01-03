@@ -9,8 +9,12 @@ a {
     &:visited {
         color: currentColor;
     }
-    &:hover {
+    &:hover,
+    &:focus {
         text-decoration: none;
+    }
+    &:focus {
+        box-shadow: none;
     }
 }
 

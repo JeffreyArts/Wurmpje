@@ -89,7 +89,10 @@ export default defineComponent ({
         }
     },
     watch: {
-        
+        "identity.defaultState"(newVal, oldVal) {
+            console.log("DEFAULT STATE CHANGED:", newVal, oldVal)
+            this.controller.catterpillar.emote(newVal)
+        }
     },
     computed: {
         availableFood(): number {
@@ -131,6 +134,11 @@ export default defineComponent ({
                 this.toggleClickTo("none")
             }
         })
+
+
+        
+        this.actionStore.procesStartingHunger(this.identity.id)
+
     
         this.toggleDevMode()
         this.toggleDevMode()

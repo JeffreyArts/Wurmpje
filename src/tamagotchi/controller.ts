@@ -86,7 +86,6 @@ export class MatterController {
         
         this.createCatterpillar(startPosition, catterpillarOptions)
         this.#createWalls()
-        
 
         window.addEventListener("resize", this.#onResize.bind(this))
 
@@ -260,7 +259,7 @@ export class MatterController {
 
         this.cooldown -= 1
     }
-    
+
     #updateWalls() {
         // Get Walls
         Matter.Composite.allBodies(this.ref.world).forEach(body => {

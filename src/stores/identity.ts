@@ -42,6 +42,7 @@ export type currentIdentity = {
     hunger: number
     joy: number
     love: number
+    defaultState?: "happy" | "sad" | "hmm"
 }
 
 const identity = defineStore("identity", {
@@ -68,6 +69,8 @@ const identity = defineStore("identity", {
                 
                 // Try to load identity from local storage                
                 await this.loadIdentityFromLocalStorage()
+
+                this.watchForHungerStateChange()
 
                 resolve(true)
             })
@@ -121,6 +124,35 @@ const identity = defineStore("identity", {
             const diffTime = Math.abs(now.getTime() - birth.getTime())
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) 
             return diffDays
+        },
+        watchForHungerStateChange() {
+            this.$subscribe((mutation, state) => {
+                const events = mutation.events
+                let oldValue, newValue
+                if (Array.isArray(events)) {
+                    for (const event of events) {
+                        if (event.key === "hunger") {
+                            oldValue = event.oldValue
+                            newValue = event.newValue
+                        }
+                    }
+                } else {
+                    if (events.key === "hunger") {
+                        oldValue = events.oldValue
+                        newValue = events.newValue
+                    }
+                }
+
+                if (!events ||
+                    !this.current || 
+                    oldValue === newValue
+                ) {
+                    return 
+                }
+                
+                
+                this.setDefaultEmotionalState()
+            })
         },
         // saveIdentityToLocalStorage() {
         //     const identityModel = new Identity()
@@ -288,6 +320,20 @@ const identity = defineStore("identity", {
             localStorage.setItem("selectedIdentity", identity.id.toString())
 
             return this.current
+        },
+        setDefaultEmotionalState() {
+            if (!this.current) {
+                return
+            }
+            this.current.defaultState = "happy"
+
+            if (this.current.hunger < 40) {
+                this.current.defaultState = "hmm"
+            }
+
+            if (this.current.hunger < 20) {
+                this.current.defaultState = "sad"
+            }
         },
         totalColorSchemes() {
             return ColorScheme.length

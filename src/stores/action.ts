@@ -5,7 +5,7 @@ import type { DBIdentity } from "@/stores/identity"
 import useDatabaseStore from "@/stores/database"
 import  { type IdentityField } from "@/stores/identity"
 
-export type actionTypes = "food" | "joy" | "love" | undefined
+export type actionTypes = "food" | "joy" | "love" | "hungerLoss" | undefined
 export type DBAction =  {
     id: number;                 
     created: number;            // timestamp
@@ -184,8 +184,55 @@ const Action = defineStore("action", {
             }
 
             this.availableFood = availableFood
-        }
+        },
+        async procesStartingHunger(wurmpjeId: number) {
+            let amountOfHoursWithoutFood = 0
+
+            const lastActions = await this.loadLastActionsFromDB(wurmpjeId, "hungerLoss", 1)
+            const lastAction = lastActions[0]
+            const wurmpje = await this.loadWurmpjeById(wurmpjeId)
+
+            if (!wurmpje) {
+                console.error(new Error("Wurmpje not found"))
+            }
             
+            if (lastAction && lastAction.created) {
+                const now = Date.now()
+                const created = lastAction.created
+                amountOfHoursWithoutFood = (now - created) / (1000 * 60 * 60)
+            }
+            
+            const hungerSubtraction = Math.round(amountOfHoursWithoutFood * .75)
+            wurmpje.hunger -= hungerSubtraction
+            
+            // No need to add action if no hunger was lost
+            if (hungerSubtraction == 0) {
+                return
+            }
+
+            if (this.db) {
+                // Update new wurmpje state
+                const identityTx = this.db.transaction("identities", "readwrite")
+                const identityStore = identityTx.objectStore("identities")
+                identityStore.put(wurmpje as DBIdentity)    
+
+                // Add new hungerLoss action to db
+                const actionTx = this.db.transaction("actions", "readwrite")
+                const actionStore = actionTx.objectStore("actions")
+                const timestamp = Date.now()
+                const dbAction = {
+                    created: timestamp,
+                    wurmpjeId,
+                    action: "hungerLoss" as actionTypes,
+                    quantity: hungerSubtraction,
+                }
+                actionStore.add(dbAction)
+
+                await identityTx.done
+                await actionTx.done
+            }
+            
+        }
     },
     getters: {
     }
