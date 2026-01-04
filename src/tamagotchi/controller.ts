@@ -1,4 +1,4 @@
-import Matter, { type IEventCollision, type Body } from "matter-js"
+import Matter from "matter-js"
 import gsap from "gsap"
 import { MatterSetup } from "./setup"
 import { Draw } from "./draw"
@@ -330,7 +330,7 @@ export class MatterController {
     }
 
     #collisionEventListener() {
-        Matter.Events.on(this.ref.engine, "collisionStart", (event: IEventCollision<Body>) => {
+        Matter.Events.on(this.ref.engine, "collisionStart", (event) => {
             event.pairs.forEach((pair) => {
                 // Check of dit pair je head bevat
                 const head = this.catterpillar.head.body
