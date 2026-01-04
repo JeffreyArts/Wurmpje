@@ -2,7 +2,6 @@ import { MatterController } from "@/tamagotchi/controller"
 import IdentityStore from "@/stores/identity"
 import ActionStore from "@/stores/action"
 import StoryStore from "@/stores/story"
-import type { activeStory } from "@/stores/story"
 
 class Story {
     controller: MatterController

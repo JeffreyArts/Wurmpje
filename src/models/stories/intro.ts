@@ -24,10 +24,6 @@ class IntroStory extends Story {
 
         // Watch for selecting the food action
         watch(() => this.actionStore.activeAction, (newAction) => {
-            if (this.storyIndex != 5) {
-                return
-            }
-
             if (newAction === "food") {
                 this.storyIndex = 5
                 this.moveToNextStoryLine()

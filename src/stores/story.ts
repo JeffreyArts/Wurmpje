@@ -69,6 +69,7 @@ const story = defineStore("story", {
         async setActiveStory(name: string) {
             const story = this.all.find(s => s.name === name)
             const wurmpjeId = this.identity?.id
+            let skip = false
 
             if (!story) {
                 throw new Error(`Story with name ${name} not found`)
@@ -87,15 +88,22 @@ const story = defineStore("story", {
             const store = tx.objectStore("stories")
             const index = store.index("wurmpjeId")
             const stories = await index.getAll(IDBKeyRange.only(wurmpjeId))
-            let storyDB = stories.find(s => s.name === name)
-            
-            if (storyDB?.cooldown) {
-                const cooldownDate = new Date(storyDB.created + storyDB.cooldown)
-                const now = new Date()
-                if (now < cooldownDate) {
-                    console.warn(`Story ${name} is on cooldown until ${cooldownDate.toISOString()}`)
-                    return null
+            let storyDB = stories.find(s => {
+                if (s.name === name) {
+                    const cooldownDate = new Date(s.created + s.cooldown)
+                    const now = new Date()
+                    if (now < cooldownDate) {
+                        console.warn(`Story ${name} is on cooldown until ${cooldownDate.toISOString()}`)
+                        skip = true
+                        return null
+                    }
+                    return s
                 }
+                return null
+            })
+
+            if (skip) {
+                return null
             }
             
             if (!storyDB) { 
