@@ -73,6 +73,7 @@ const identity = defineStore("identity", {
                 // Try to load identity from local storage                
                 await this.loadIdentityFromLocalStorage()
                 this.watchForStateChanges()
+                this.setDefaultEmotionalState()
                 this.checkDeathConditions()
 
                 resolve(true)
@@ -139,15 +140,16 @@ const identity = defineStore("identity", {
                     for (const event of events) {
                         if (stateTypes.includes(event.key)) {
                             this.checkDeathConditions()
+                            this.setDefaultEmotionalState()
                         }
                     }
                 } else {
                     if (stateTypes.includes(events.key)) {
                         this.checkDeathConditions()
+                        this.setDefaultEmotionalState()
                     }
                 }
                 
-                this.setDefaultEmotionalState()
             })
         },
         checkDeathConditions() {
@@ -346,13 +348,14 @@ const identity = defineStore("identity", {
             if (!this.current) {
                 return
             }
+            console.log("this.curren",this.current)
             this.current.defaultState = "happy"
 
-            if (this.current.hunger < 40) {
+            if (this.current.hunger <= 40 || this.current.love <= 40) {
                 this.current.defaultState = "hmm"
             }
 
-            if (this.current.hunger < 20) {
+            if (this.current.hunger <= 20 || this.current.love <= 20) {
                 this.current.defaultState = "sad"
             }
         },

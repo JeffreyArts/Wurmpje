@@ -37,6 +37,7 @@ export class Catterpillar {
     texture: { top?: string, "360"?: string, bottom?: string, vert?: string, stroke?: boolean } = {}
     blinkTimeout: NodeJS.Timeout | number = 0
     autoBlink: boolean = true
+    defaultState: Emote = "happy"
     
     isStanding: boolean = false
     isTurning: boolean = false
@@ -246,13 +247,14 @@ export class Catterpillar {
             this.scared.timeout = setTimeout(() => {
                 this.scared.timeout = 0
                 this.scared.timeoutAction = setTimeout(() => {
-                    // this.eye.left.blink()
-                    // this.eye.right.blink()
-                    this.mouth.moveToState("🙂", 2.4)
+                    if (this.defaultState == "happy") {
+                        this.mouth.moveToState("🙂", 2.4)
+                    } else if (this.defaultState == "hmm") { 
+                        this.mouth.moveToState("😐", 2.4)
+                    } else if (this.defaultState == "sad") {
+                        this.mouth.moveToState("🙁", 2.4)
+                    }
                     this.isScared = false
-                    // this.mouthRecovering = false
-                    // this.eye.left.autoBlink = true
-                    // this.eye.right.autoBlink = true
                 }, 1600)
 
             }, 200)
