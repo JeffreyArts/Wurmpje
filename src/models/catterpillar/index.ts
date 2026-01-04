@@ -44,6 +44,8 @@ export class Catterpillar {
     isMoving: boolean = false
     isScared: boolean = false
     isDead: boolean = false
+    isTalking: boolean = false
+    isOnSolidGround: boolean = false
     
     speechBubble: undefined | SpeechBubble
 
@@ -85,6 +87,12 @@ export class Catterpillar {
             this.stroke = this.thickness * 0.05
         }
         
+
+        document.onkeydown = (e) => {
+            this.#inTouchWithEarth()
+        }
+
+
         // Create composite
         this.composite = Matter.Composite.create({ label: `catterpillar,${options.id}` })
         
@@ -130,8 +138,9 @@ export class Catterpillar {
     }
 
     #inTouchWithEarth() {
-        const headCollisions = Matter.Query.collides(this.head.body, this.world.bodies)
-        const buttCollisions = Matter.Query.collides(this.butt.body, this.world.bodies)
+        const headCollisions = Matter.Query.collides(this.head.body, this.world.bodies.filter(b => b.label.indexOf("bottom" ) !== -1))
+        const buttCollisions = Matter.Query.collides(this.butt.body, this.world.bodies.filter(b => b.label.indexOf("bottom" ) !== -1))
+        
         return (headCollisions.length > 0 && buttCollisions.length > 0) 
     }
 
@@ -142,6 +151,8 @@ export class Catterpillar {
         this.x = this.bodyParts[centerIndex].body.position.x
         this.y = this.bodyParts[centerIndex].body.position.y
 
+        // Set isOnSolidGround
+        this.isOnSolidGround = this.#inTouchWithEarth()
 
 
         // SETTING OFFSETS
@@ -617,7 +628,7 @@ export class Catterpillar {
     // speed: amount of seconds to reach the standing angle
     standUp = (angle = 0, speed = 2) => {
         return new Promise(async (resolve, reject) => {
-            if (!this.#inTouchWithEarth()) {
+            if (!this.isOnSolidGround) {
                 console.warn("Catterpillar is not touching solid ground, cannot stand up now")
                 return reject()
             }
@@ -783,7 +794,7 @@ export class Catterpillar {
     move = async () => {
         this.isMoving = true
 
-        if (!this.#inTouchWithEarth()) {
+        if (!this.isOnSolidGround) {
             console.warn("Catterpillar is not touching solid ground, cannot move now")
             this.isMoving = false
             return
@@ -799,7 +810,7 @@ export class Catterpillar {
     }
 
     turnAround = async () => {
-        if (!this.#inTouchWithEarth()) {
+        if (!this.isOnSolidGround) {
             console.warn("Catterpillar is not touching solid ground, cannot turn around now")
             return
         }
@@ -819,6 +830,13 @@ export class Catterpillar {
         if (this.isDead) {
             return
         }
+        this.isTalking = true
+
+        if (this.speechBubble) {
+            this.speechBubble.remove()
+            this.speechBubble = undefined
+        }
+
 
         if (!this.speechBubble) {
             this.speechBubble = new SpeechBubble(this.world,{
@@ -826,7 +844,10 @@ export class Catterpillar {
                 y: this.head.y - this.thickness,
                 text: text
             })
-            this.speechBubble.updateText(text, 80)
+
+            this.speechBubble.updateText(text, 80).then(() => {
+                this.isTalking = false
+            })
         }
     }
 

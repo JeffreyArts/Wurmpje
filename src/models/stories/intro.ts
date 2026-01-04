@@ -1,0 +1,109 @@
+import { watch } from "vue"
+import Story from "@/models/story"
+
+class IntroStory extends Story {
+    hasIntroducedItself = false
+    touchingGroundCounter = 0
+    storyIndex = 0
+    isTalking = false
+    cooldown = 60 * 24 * 365 * 100 // 100 years
+    score = 10
+    storyLines = [
+        `Hi! My name is: ${this.identityStore.current?.name}!`,
+        "I am a wurmpje, a little caterpillar-like creature.",
+        "Tap anywhere to continue my story.",
+        "I can move around, eat leaves, and grow bigger over time.",
+        "Click on the leaf icon at the bottom of the screen to make it orange.",
+        "Now tap on the screen to drop some leaves.",
+        "Yummy!!!",
+        "If you'll take good care of me, I hope that I will grow as tall as you one day!",
+    ]
+    storyLineTimeout = undefined as undefined | ReturnType<typeof setTimeout>
+    start() {
+        console.log("Intro story started", this.identityStore)
+
+        // Watch for selecting the food action
+        watch(() => this.actionStore.activeAction, (newAction) => {
+            if (this.storyIndex != 5) {
+                return
+            }
+
+            if (newAction === "food") {
+                this.moveToNextStoryLine()
+            }
+        })
+
+        // Watch for the first food to be dropped
+        watch(() => this.actionStore.availableFood, (newFood, oldFood) => {
+            if (this.storyIndex != 6) {
+                return
+            }
+
+            if (newFood < oldFood) {
+                this.moveToNextStoryLine()
+            }
+        })
+        
+        document.addEventListener("pointerdown", () => {
+            Promise.resolve().then(() => {
+                if (this.touchingGroundCounter < 80) {
+                    return
+                }
+
+                // if (this.controller?.catterpillar.isTalking) {
+                //     return
+                // }
+
+
+                if (this.storyIndex == 5 || this.storyIndex == 6) {
+                    return
+                }
+            
+                this.moveToNextStoryLine()
+            })
+        })
+        
+    }
+
+    loop() {
+        // console.log(this.touchingGroundCounter)
+        if (this.controller.catterpillar.isOnSolidGround) {
+            this.touchingGroundCounter++
+        }
+        
+        // console.log("Touching ground counter:", this.touchingGroundCounter)
+        if (this.touchingGroundCounter > 80 && !this.hasIntroducedItself) {
+            this.hasIntroducedItself = true
+            this.moveToNextStoryLine()
+        }
+    }
+    
+    moveToNextStoryLine() {
+        clearTimeout(this.storyLineTimeout)
+        if (!this.storyLines[this.storyIndex]) {
+            this.controller.catterpillar.speechBubble?.remove()
+            return
+        }
+        
+        if (this.storyIndex == 2) {
+            setTimeout(() => {
+                this.controller.catterpillar.move()
+            }, 2000)
+        }
+
+        if (this.storyIndex == 3) {
+            setTimeout(() => {
+                this.controller.catterpillar.turnAround()
+            }, 3000)
+        }
+        
+
+        this.controller.catterpillar.say(this.storyLines[this.storyIndex])
+        this.storyIndex++
+        this.storyLineTimeout = setTimeout(() => {
+            this.moveToNextStoryLine() 
+        }, 12000)
+    }
+}
+
+export default IntroStory

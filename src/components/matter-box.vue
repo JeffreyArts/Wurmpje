@@ -187,14 +187,6 @@ export default defineComponent ({
         this.toggleDevMode()
 
         this.loadAction("food")
-
-        
-        setTimeout(() => {
-            this.controller.catterpillar.say(`Hi! My name is: ${this.identity.name}!`)
-            setTimeout(() => {
-                this.controller.catterpillar.speechBubble.remove()
-            }, 7200)
-        }, 4000)
     },
     methods: {
         toggleClickTo(type: string) {
@@ -227,11 +219,14 @@ export default defineComponent ({
                 return
             }
 
+            
             this.actionActive = !this.actionActive
             if (!this.actionActive) {
+                this.actionStore.activeAction = ""
                 this.toggleClickTo("none")
                 return
             } else {
+                this.actionStore.activeAction = "food"
                 this.toggleClickTo("food")
             }
 

@@ -10,6 +10,7 @@ export type SpeechBubbleOptions = {
 } 
 
 class SpeechBubble  {
+    id: number
     anchor: {
         width: number,
         height: number
@@ -38,6 +39,7 @@ class SpeechBubble  {
             y: 122,
             text: "..."
         } as SpeechBubbleOptions) {
+        this.id = Date.now()
         this.death = false
         this.world = world
         this.text = options.text ? options.text : "..."
@@ -97,6 +99,7 @@ class SpeechBubble  {
             this.parentElement.appendChild(domElement)
         }
         domElement.classList.add("speech-bubble")
+        domElement.id = "speech-bubble-" + this.id.toString()
         domElement.innerText = text
         domElement.style.position = "absolute"
         domElement.style.transform = "translateY(-50%)"
@@ -391,6 +394,12 @@ class SpeechBubble  {
         }
         this.animatedText = text
         this.#animateTextLoop(speed)
+
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve(true)
+            }, text.length * speed + 500)
+        })
     }
 
     updatePosition(instant = false) {
@@ -451,6 +460,10 @@ class SpeechBubble  {
         this.death = true
         Matter.Composite.remove(this.world, this.composite)
         this.domElement.remove()
+        const el = document.getElementById("speech-bubble-" + this.id.toString())
+        if (el) {
+            el.remove()
+        }
     }
 
 }

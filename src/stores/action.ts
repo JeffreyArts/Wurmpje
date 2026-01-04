@@ -21,6 +21,7 @@ const Action = defineStore("action", {
         initialised: undefined as Promise<boolean> | undefined,
         isInitializing: false,
         availableFood: 3,
+        activeAction: "" as actionTypes | "",
     }),
     actions: {
         init() {

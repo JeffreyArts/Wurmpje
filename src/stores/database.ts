@@ -35,6 +35,13 @@ export const database = defineStore("database", {
                         "value",
                         "action",
                     ])
+
+                    // Stories store
+                    this.createStore(db, transaction, "stories", { keyPath: "id", autoIncrement: true }, [
+                        "wurmpjeId",
+                        "name",
+                        "details",
+                    ])
                 },
             })
 

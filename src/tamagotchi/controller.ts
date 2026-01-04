@@ -10,6 +10,7 @@ import FoodModel from "@/models/food"
 import type { IdentityField } from "@/models/identity"
 
 import actionStore from "@/stores/action"
+import storyStore from "@/stores/story"
 import identityStore from "@/stores/identity"
 type Listener = { type: string; fn: (...args: any[]) => void }
 
@@ -17,6 +18,7 @@ export class MatterController {
     private listeners: Listener[] = []
     identityStore = identityStore()
     actionStore = actionStore()
+    storyStore = storyStore()
     ref: MatterSetup
     // resizeEvents: Array<Function> = []
     catterpillar: CatterpillarModel
@@ -69,25 +71,29 @@ export class MatterController {
             devMode: true
         })
         
-
+        
         if (offsetBottom) {
             this.config.offsetBottom = offsetBottom
         } else {
             this.config.offsetBottom = 0
         }
-    
+        
         this.draw = new Draw(this.ref.two)
-
+        
         let startPosition = { x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }
         if (options?.catterpillarPos) {
             startPosition = options.catterpillarPos
         }
-
+        
         
         this.createCatterpillar(startPosition, catterpillarOptions)
         this.#createWalls()
         this.#collisionEventListener()
-
+        this.storyStore.initialised.then(() => {
+            this.storyStore.setController(this)
+            this.storyStore.setActiveStory("intro")
+        })
+        
         // this.ref.addpointerMoveEvent(this.#lookAtMouse.bind(this), "lookAtMouse")
         this.ref.addpointerDownEvent(this.#grabCatterpillar.bind(this), "grabCatterpillar")
         this.ref.addpointerUpEvent(this.#releaseCatterpillar.bind(this), "releaseCatterpillar")

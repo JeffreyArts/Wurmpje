@@ -7,6 +7,7 @@ import { defineComponent } from "vue"
 import gsap from "gsap"
 import useIdentityStore from "@/stores/identity"
 import useActionStore from "@/stores/action"
+import useStoryStore from "@/stores/story"
 
 export default defineComponent({
     name: "appComponent",
@@ -19,7 +20,9 @@ export default defineComponent({
     setup() {
         const identityStore = useIdentityStore()
         const actionStore = useActionStore()
+        const storyStore = useStoryStore()
 
+        storyStore.init()
         actionStore.init()
         identityStore.init()
         
