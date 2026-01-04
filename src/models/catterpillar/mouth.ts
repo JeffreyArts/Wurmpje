@@ -586,7 +586,7 @@ export class Mouth  {
     }
 
     chew = async (amount = 5, isFirst = true) => {
-        console.log("Chewing", amount, isFirst)
+
         if (this.#inTransition) {
             return
         }

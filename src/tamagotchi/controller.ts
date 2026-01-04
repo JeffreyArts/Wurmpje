@@ -497,7 +497,6 @@ export class MatterController {
 
  
     destroy() {
-        console.log("Destroy MatterController", this.ref)
         this.ref.world.bodies.length = 0
         this.ref.world.composites.length = 0
         this.ref.world.constraints.length = 0

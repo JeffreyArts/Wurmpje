@@ -348,7 +348,7 @@ const identity = defineStore("identity", {
             if (!this.current) {
                 return
             }
-            console.log("this.curren",this.current)
+
             this.current.defaultState = "happy"
 
             if (this.current.hunger <= 40 || this.current.love <= 40) {

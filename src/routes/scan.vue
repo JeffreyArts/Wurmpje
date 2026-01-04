@@ -509,7 +509,6 @@ export default defineComponent({
                 duration: 0.32,
                 opacity: 0,
                 onComplete: () => {
-                    console.log("Updating text message fade in:", text)
                     this.message.text = text
                     this.updateTextMessageTween = gsap.to(".story-line-message", {
                         duration: 0.6,
