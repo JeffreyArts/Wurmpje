@@ -64,6 +64,10 @@ export default defineComponent ({
 
             const canvas = target.querySelector("#two-js") as HTMLCanvasElement;
 
+            setTimeout(() => {
+                controller.destroy()
+            }, 3000);
+
             // wacht tot het canvas is gerenderd
             return new Promise<string>(resolve => {
                 setTimeout(() => {

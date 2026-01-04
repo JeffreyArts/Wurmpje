@@ -504,7 +504,22 @@ export class MatterController {
         this.emit("foodCreated", food)
     }
 
-    
+ 
+    destroy() {
+        console.log("Destroy MatterController", this.ref)
+        this.ref.world.bodies.length = 0
+        this.ref.world.composites.length = 0
+        this.ref.world.constraints.length = 0
+        
+        Matter.Render.stop(this.ref.renderer)
+
+        this.ref.renderer.canvas.remove()
+        this.listeners = []
+
+        this.draw.two.clear()
+        this.draw.two.remove()
+        this.draw.two.renderer.domElement.remove()
+    }   
     // document.body.addEventListener("mousedown", PhysicsService.mouseDownEvent);
     // document.body.addEventListener("touchstart", PhysicsService.mouseDownEvent);
    
