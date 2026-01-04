@@ -2,9 +2,8 @@ import { defineStore } from "pinia"
 import ColorScheme from "@/assets/default-color-schemes"
 import Identity, { type IdentityField } from "@/models/identity"
 import Textures, { type textureInterface } from "@/assets/default-textures"
-import { openDB, type IDBPDatabase } from "idb"
+import { type IDBPDatabase } from "idb"
 import useDatabaseStore from "@/stores/database"
-import type { DebuggerEvent } from "vue"
 
 export type DBIdentity =  {
     id: number;                 // 29-bit: 23 bits seconds/4 + 6 bits random

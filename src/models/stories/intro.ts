@@ -4,9 +4,9 @@ import Story from "@/models/story"
 class IntroStory extends Story {
     hasIntroducedItself = false
     touchingGroundCounter = 0
-    storyIndex = 0
+    storyIndex: number = 0
     isTalking = false
-    cooldown = 60 * 24 * 365 * 100 // 100 years
+    cooldown = 360 * 24 * 365 * 100 * 1000 // 100 years
     score = 10
     storyLines = [
         `Hi! My name is: ${this.identityStore.current?.name}!`,
@@ -29,6 +29,7 @@ class IntroStory extends Story {
             }
 
             if (newAction === "food") {
+                this.storyIndex = 5
                 this.moveToNextStoryLine()
             }
         })
@@ -45,23 +46,22 @@ class IntroStory extends Story {
         })
         
         document.addEventListener("pointerdown", () => {
-            Promise.resolve().then(() => {
-                if (this.touchingGroundCounter < 80) {
-                    return
-                }
+            if (this.touchingGroundCounter < 80) {
+                return
+            }
 
-                // if (this.controller?.catterpillar.isTalking) {
-                //     return
-                // }
+            // if (this.controller?.catterpillar.isTalking) {
+            //     return
+            // }
 
 
-                if (this.storyIndex == 5 || this.storyIndex == 6) {
-                    return
-                }
+            if (this.storyIndex == 5 || this.storyIndex == 6) {
+                return
+            }
             
-                this.moveToNextStoryLine()
-            })
+            this.moveToNextStoryLine()
         })
+
         
     }
 
@@ -82,6 +82,8 @@ class IntroStory extends Story {
         clearTimeout(this.storyLineTimeout)
         if (!this.storyLines[this.storyIndex]) {
             this.controller.catterpillar.speechBubble?.remove()
+            // Set story as completed
+            this.storyStore.completeStory("intro")
             return
         }
         
@@ -100,6 +102,7 @@ class IntroStory extends Story {
 
         this.controller.catterpillar.say(this.storyLines[this.storyIndex])
         this.storyIndex++
+        this.storyStore.updateStoryDetails("intro", { storyIndex: this.storyIndex })
         this.storyLineTimeout = setTimeout(() => {
             this.moveToNextStoryLine() 
         }, 12000)

@@ -91,6 +91,7 @@ export class MatterController {
         this.#collisionEventListener()
         this.storyStore.initialised.then(() => {
             this.storyStore.setController(this)
+            this.storyStore.setIdentity(this.identity)
             this.storyStore.setActiveStory("intro")
         })
         

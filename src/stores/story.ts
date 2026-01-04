@@ -1,11 +1,28 @@
 import { defineStore } from "pinia"
 import introStory from "@/models/stories/intro"
 import { MatterController } from "@/tamagotchi/controller"
+import { type IDBPDatabase } from "idb"
+import useDatabaseStore from "@/stores/database"
+import type Story from "@/models/story"
+import { type IdentityField } from "@/models/identity"
+
 
 export type DBStory =  {
     id: number;
     wurmpjeId: number;
     name: string;
+    created: number; // timestamp
+    cooldown: number | undefined; // in hours
+    details: { [key: string]: string | number | boolean | object | undefined | Array< string | number | boolean | object | undefined > };
+}
+
+export type activeStory = {
+    id: number;
+    name: string;
+    wurmpjeId: number;
+    instance: Story | InstanceType<typeof Story>;
+    created: number; // timestamp
+    cooldown: number | undefined; // in hours
     details: { [key: string]: string | number | boolean | object | undefined | Array< string | number | boolean | object | undefined > };
 }
 
@@ -13,8 +30,10 @@ const story = defineStore("story", {
     state: () => ({
         all: [],
         controller: undefined as MatterController | undefined,
-        activeStories: [],
+        identity: undefined as IdentityField | undefined,
+        activeStories: [] as activeStory[],
         availableStories: [],
+        db: undefined as IDBPDatabase | undefined,
         initialised: undefined as Promise<boolean> | undefined,
         isInitializing: false,
 
@@ -26,6 +45,8 @@ const story = defineStore("story", {
                     return
                 }
                 this.isInitializing = true
+                const databaseStore = useDatabaseStore()
+                this.db = await databaseStore.init()
 
                 this.addStory("intro", introStory)
 
@@ -34,16 +55,143 @@ const story = defineStore("story", {
         },
         addStory(name, storyInstance) {
             this.all.push({ name, instance: storyInstance })
+            // Add story to dbs
+            if (!this.db) {
+                throw new Error("Database not initialized")
+            }
         },
         setController(controller: MatterController) {
             this.controller = controller
         },
-        setActiveStory(name: string) {
+        setIdentity(identity: IdentityField) {
+            this.identity = identity
+        },
+        async setActiveStory(name: string) {
             const story = this.all.find(s => s.name === name)
+            const wurmpjeId = this.identity?.id
+
             if (!story) {
                 throw new Error(`Story with name ${name} not found`)
             }
-            this.activeStories.push(new story.instance(this.controller))
+
+            if (!this.db) {
+                throw new Error("Database not initialized")
+            }
+            
+            if (!wurmpjeId) {
+                throw new Error("No wurmpjeId set in identity store")
+            }
+
+            // Load story details from dbs (based on wurmpjeId and name)
+            const tx = this.db.transaction("stories", "readwrite")
+            const store = tx.objectStore("stories")
+            const index = store.index("wurmpjeId")
+            const stories = await index.getAll(IDBKeyRange.only(wurmpjeId))
+            let storyDB = stories.find(s => s.name === name)
+            
+            if (storyDB?.cooldown) {
+                const cooldownDate = new Date(storyDB.created + storyDB.cooldown)
+                const now = new Date()
+                if (now < cooldownDate) {
+                    console.warn(`Story ${name} is on cooldown until ${cooldownDate.toISOString()}`)
+                    return null
+                }
+            }
+            
+            if (!storyDB) { 
+                // Add new story to db
+                storyDB = {
+                    wurmpjeId,
+                    created: Date.now(),
+                    cooldown: undefined,
+                    name,
+                    details: {},
+                }
+                store.add(storyDB)
+                await tx.done
+            } 
+
+            // First add object to activeStories array, so the instance has access to it during construction 
+            const newStory = {
+                id: storyDB.id,
+                created: storyDB.created,
+                cooldown: storyDB.cooldown,
+                name: storyDB.name,
+                wurmpjeId: storyDB.wurmpjeId,
+                details: storyDB.details,
+            } as activeStory
+            this.activeStories.push(newStory)
+            newStory.instance = new story.instance(this.controller)
+            
+            
+            return newStory
+
+        },
+        getActiveStory(name: string) {
+            const wurmpjeId = this.identity?.id
+
+            if (!wurmpjeId) {
+                throw new Error("No wurmpjeId set in identity store")
+            }
+
+            return this.activeStories.find(s => s.name === name && s.wurmpjeId === wurmpjeId)
+        },
+        updateStoryDetails(name: string, details: { [key: string]: string | number | boolean | object | undefined | Array< string | number | boolean | object | undefined > }) {
+            const wurmpjeId = this.identity?.id
+
+            if (!this.db) {
+                throw new Error("Database not initialized")
+            }
+
+            if (!wurmpjeId) {
+                throw new Error("No wurmpjeId set in identity store")
+            }
+            
+            const tx = this.db.transaction("stories", "readwrite")
+            const store = tx.objectStore("stories")
+            const index = store.index("wurmpjeId")
+            index.getAll(IDBKeyRange.only(wurmpjeId)).then((stories) => {
+                const storyDB = stories.find(s => s.name === name)
+                if (storyDB) {
+                    storyDB.details = details
+                    store.put(storyDB)
+                }
+            })
+            return tx.done
+        },
+        updateStoryCooldown(name: string) {
+            const wurmpjeId = this.identity?.id
+
+            if (!this.db) {
+                throw new Error("Database not initialized")
+            }
+
+            if (!wurmpjeId) {
+                throw new Error("No wurmpjeId set in identity store")
+            }
+            const activeStory = this.getActiveStory(name)
+            
+            const tx = this.db.transaction("stories", "readwrite")
+            const store = tx.objectStore("stories")
+            const index = store.index("wurmpjeId")
+            index.getAll(IDBKeyRange.only(wurmpjeId)).then((stories) => {
+                const storyDB = stories.find(s => s.name === name)
+                if (storyDB) {
+                    storyDB.cooldown = activeStory.instance.cooldown
+                    store.put(storyDB)
+                }
+            })
+            return tx.done
+        },
+        completeStory(name: string) {
+            const activeStory = this.getActiveStory(name)
+            if (activeStory) {
+                this.updateStoryCooldown(name)
+
+                // activeStory.instance.destroy()
+                // this.activeStories = this.activeStories.filter(s => s.name !== name || s.wurmpjeId !== activeStory.wurmpjeId)
+            }
+            
         }
     },
     getters: {
