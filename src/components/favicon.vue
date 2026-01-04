@@ -10,7 +10,7 @@
 
 <script lang="ts">
 import {defineComponent, type PropType} from "vue"
-import { MatterController } from "@/tamagotchi/controller"
+import { ThumbnailController } from "@/tamagotchi/thumbnail-controller"
 import { type currentIdentity } from "@/stores/identity"
     
 export default defineComponent ({ 
@@ -22,7 +22,7 @@ export default defineComponent ({
     },
     data() {
         return {
-            controller: null as MatterController | null,
+            controller: null as ThumbnailController | null,
             length: 0,
             thickness: 0
         }
@@ -53,7 +53,7 @@ export default defineComponent ({
             if (width < 128) {
                 blockSize = 4;
             }
-            const controller = new MatterController( target, {
+            const controller = new ThumbnailController( target, {
                 identity: this.identity,
                 catterpillarPos: { x: width/2 + (length * thickness) * .2, y: height - thickness * 1.5},
                 offsetBottom: thickness * 1.5
@@ -113,7 +113,7 @@ export default defineComponent ({
             document.head.appendChild(meta);
         },
         async createFavicon() {
-            // 1. Maak de MatterController aan
+            // 1. Maak de ThumbnailController aan
             const faviconDataUrl = await this.createCanvas(128, 128, this.$refs.favicon as HTMLElement);
 
             // 2. Zet de juiste attributen
@@ -128,7 +128,7 @@ export default defineComponent ({
         },
         
         async createAppleTouchIcon() {
-            // 1. Maak de MatterController aan
+            // 1. Maak de ThumbnailController aan
             const faviconDataUrl = await this.createCanvas(180, 180, this.$refs.appleTouchIcon as HTMLElement);
 
             // 2. Zet de juiste attributen
@@ -156,7 +156,7 @@ export default defineComponent ({
         },
         
         async createAndroidIcon() {
-            // 1. Maak de MatterController aan
+            // 1. Maak de ThumbnailController aan
             const faviconDataUrl = await this.createCanvas(192, 192, this.$refs.appleTouchIcon as HTMLElement);
 
             // 2. Zet de juiste attributen

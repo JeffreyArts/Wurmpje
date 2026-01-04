@@ -8,7 +8,7 @@
 
 <script lang="ts">
 import {defineComponent, type PropType} from "vue"
-import { MatterController } from "@/tamagotchi/controller"
+import { ThumbnailController } from "@/tamagotchi/thumbnail-controller"
 import { type IdentityField } from "@/models/identity"
         
 export default defineComponent ({ 
@@ -34,7 +34,7 @@ export default defineComponent ({
     },
     data() {
         return {
-            controller: null as MatterController | null,
+            controller: null as ThumbnailController | null,
             parentIdentity: null as IdentityField | null,
         }
     },
@@ -82,7 +82,7 @@ export default defineComponent ({
             if (width < 128) {
                 blockSize = 4;
             }
-            this.controller = new MatterController( target, {
+            this.controller = new ThumbnailController( target, {
                 identity: identity,
                 catterpillarPos: { x: width/2 + thickness/2, y: identity.thickness * 2},
                 offsetBottom: (thickness*5)/2 - thickness/2
@@ -108,7 +108,7 @@ export default defineComponent ({
             if (width < 128) {
                 blockSize = 4;
             }
-            this.controller = new MatterController( target, {
+            this.controller = new ThumbnailController( target, {
                 identity: identity,
                 catterpillarPos: { x: width/2 + (length * thickness) * .16, y: height - thickness * 1.5},
                 offsetBottom: thickness * 1.5
