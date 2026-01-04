@@ -433,7 +433,7 @@ export default defineComponent({
             this.showSuccessModel = false
             this.restartScan()
         },
-        submitName() {
+        async submitName() {
             
             if (!this.newIdentity.name) {
                 this.newIdentity.name = this.identity.getLatinName(this.newIdentity.colorSchemeIndex, this.newIdentity.textureIndex)
@@ -449,8 +449,8 @@ export default defineComponent({
                 origin: qrData
             }
 
-            this.identity.saveIdentityToDatabase(this.newIdentity, characteristics)
-            this.identity.selectIdentity(this.newIdentity.id)
+            await this.identity.saveIdentityToDatabase(this.newIdentity, characteristics)
+            await this.identity.selectIdentity(this.newIdentity.id)
             this.$router.push("/")
         },
         updateProgress(value: number) {

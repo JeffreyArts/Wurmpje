@@ -303,7 +303,14 @@ const identity = defineStore("identity", {
             return Promise.all(promises)
         },
         async selectIdentity(id: number) {
-            const identity = await this.findIdentityInDatabase("id", id) as DBIdentity
+            let identity: DBIdentity | undefined
+            try {
+                identity = await this.findIdentityInDatabase("id", id) as DBIdentity
+            } catch (error) {
+                console.error("Error selecting identity:", error)
+                return undefined
+            }
+
             this.current = undefined
             if (identity) {
                 this.current = {
