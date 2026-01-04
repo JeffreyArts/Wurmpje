@@ -219,6 +219,9 @@ export class MatterController {
             const distance = Math.hypot(head.position.x - food.x, head.position.y - food.y)
             if (distance < this.catterpillar.thickness) {
                 // Eat the food
+
+                this.catterpillar.mouth.chew(5)
+
                 // Move food into catterpillar mouth with a setVelocity and rotation
                 Matter.Body.setVelocity(foodBody, {
                     x: 0,
