@@ -18,8 +18,7 @@ export class MatterController {
     identityStore = identityStore()
     actionStore = actionStore()
     ref: MatterSetup
-    clickEvents: Array<Function> = []
-    resizeEvents: Array<Function> = []
+    // resizeEvents: Array<Function> = []
     catterpillar: CatterpillarModel
     mousePin: Matter.Constraint = null
     draw: Draw
@@ -89,8 +88,6 @@ export class MatterController {
         this.#createWalls()
         this.#collisionEventListener()
 
-        window.addEventListener("resize", this.#onResize.bind(this))
-
         // this.ref.addpointerMoveEvent(this.#lookAtMouse.bind(this), "lookAtMouse")
         this.ref.addpointerDownEvent(this.#grabCatterpillar.bind(this), "grabCatterpillar")
         this.ref.addpointerUpEvent(this.#releaseCatterpillar.bind(this), "releaseCatterpillar")
@@ -112,12 +109,6 @@ export class MatterController {
         this.#foodLoop()
 
         requestAnimationFrame(this.#loop.bind(this))
-    }
-
-    #onResize() {
-        this.resizeEvents.forEach(fn => {
-            fn()
-        })
     }
 
     #resizeCanvas() {
