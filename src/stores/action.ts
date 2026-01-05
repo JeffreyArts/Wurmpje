@@ -173,7 +173,7 @@ const Action = defineStore("action", {
             })
         },
         async loadAvailableFood(wurmpjeId: number) {
-            const maxFood = 300
+            const maxFood = 3
             let availableFood = maxFood
             const lastFoodMoments = await this.loadLastActionsFromDB(wurmpjeId, "food", maxFood)
             for (const foodMoment in lastFoodMoments) {
