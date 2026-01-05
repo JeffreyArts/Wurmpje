@@ -16,15 +16,15 @@ class IntroStory extends Story {
         "Click on the leaf icon at the bottom of the screen to make it orange.",
         "Now tap on the screen to drop some leaves.",
         "Yummy!!!",
-        "If you'll take good care of me, I hope that I will grow as tall as you one day!",
+        "If you'll take good care of me, I will grow as tall as you one day!",
     ]
     storyLineTimeout = undefined as undefined | ReturnType<typeof setTimeout>
     start() {
-        console.log("Intro story started", this.identityStore)
+        console.info("Intro story started", this.identityStore)
 
         // Watch for selecting the food action
-        watch(() => this.actionStore.activeAction, (newAction) => {
-            if (newAction === "food") {
+        watch(() => this.actionStore.isSelected, (isSelected) => {
+            if (isSelected && this.actionStore.activeAction == "food") {
                 this.storyIndex = 5
                 this.moveToNextStoryLine()
             }

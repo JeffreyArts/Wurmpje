@@ -21,17 +21,17 @@
     <!-- Footer -->
     <footer class="matterbox-footer" ref="matterbox-footer">
         <div class="actions-container">
-            <header class="actions-header" :class="{'__isActive': actionActive, '__isDisabled': actionStore.availableFood <= 0 }">
+            <header class="actions-header" :class="{'__isActive': actionStore.isSelected, '__isDisabled': availableFood <= 0 }">
                 {{availableFood}}x
             </header>
             <section>
                 <jao-icon name="chevron-left" size="small" active-color="#666666" inactive-color="transparent"/>
-                <div class="action-container" :class="{'__isActive': actionActive, '__isDisabled': actionStore.availableFood <= 0  }" @click="actionContainerClicked">
+                <div class="action-container" :class="{'__isActive': actionStore.isSelected, '__isDisabled': availableFood <= 0  }" @click="actionContainerClicked">
                     <jao-icon name="leaf" size="large" active-color="currentColor" inactive-color="transparent" />
                 </div>
                 <jao-icon name="chevron-right" size="small" active-color="#666666" inactive-color="transparent"/>
             </section>
-            <footer class="actions-footer" :class="{'__isDisabled': actionStore.availableFood <= 0 }">
+            <footer class="actions-footer" :class="{'__isDisabled': availableFood <= 0 }">
                 Food
             </footer>
         </div>
@@ -64,6 +64,7 @@ import jaoIcon from "./jao-icon.vue"
 import { Icon } from "jao-icons"
 import healthbar from "@/components/healthbar.vue";
 import useActionStore, { type actionTypes } from "@/stores/action";
+import useStoryStore from "@/stores/story";
 
 export default defineComponent ({ 
     props: {
@@ -79,19 +80,21 @@ export default defineComponent ({
     data() {
         return {
             controller: null as MatterController | null,
-            clickType: null as string | null,
+            // clickType: null as string | null,
             dev: false,
             action: "food",
-            actionActive: false,
+            // actionActive: false,
             foodQuantity: 0
         }
     },
     setup() {
         const identityStore = useIdentityStore()
         const actionStore = useActionStore()
+        const storyStore = useStoryStore()
         return {
             identityStore: identityStore,
-            actionStore: actionStore
+            actionStore: actionStore,
+            storyStore: storyStore
         }
     },
     watch: {
@@ -122,17 +125,6 @@ export default defineComponent ({
     computed: {
         availableFood(): number {
             return this.actionStore.availableFood
-        },
-        actionHeader(): string {
-            if (this.action === "food") {
-                const container = document.createElement("div")
-                const svgNumber = Icon("3", "medium")
-                const svgMultiplier = Icon("x", "small")
-                container.appendChild(svgNumber)
-                container.appendChild(svgMultiplier)
-                return container.innerHTML
-            }
-            return "Feed your Wurmpje"
         },
         age(): string {
             if (!this.identity.age) {
@@ -171,12 +163,8 @@ export default defineComponent ({
             offsetBottom: 128
         })
 
-        this.controller.on("foodCreated", (data) => {
-            if (this.actionStore.availableFood <= 0) {
-                this.actionActive = false
-                this.toggleClickTo("none")
-            }
-        })
+        // this.controller.on("foodCreated", (data) => {
+        // })
 
 
         
@@ -189,17 +177,6 @@ export default defineComponent ({
         this.loadAction("food")
     },
     methods: {
-        toggleClickTo(type: string) {
-            if (type === "food") {
-                if (this.actionStore.availableFood <= 0) {
-                    return
-                }
-            }
-
-            this.clickType = type
-            this.controller.switchClickEvent(type)
-        },
-
         toggleDevMode() {
             this.dev = !this.dev
             const twoEl = this.$el.querySelector("[id^='two-js']") as HTMLCanvasElement
@@ -210,35 +187,43 @@ export default defineComponent ({
         
         async loadAction(actionType: actionTypes) {
             if (actionType === "food") {
-                await this.actionStore.loadAvailableFood(this.identity)
+                await this.actionStore.loadAvailableFood(this.identity.id)
             }
         },
 
         actionContainerClicked() {
-            if (this.actionStore.availableFood <= 0) {
+            if (this.actionStore.availableFood <= 0 && this.actionStore.activeAction == "food") {
                 return
             }
 
-            
-            this.actionActive = !this.actionActive
-            if (!this.actionActive) {
-                this.actionStore.activeAction = ""
-                this.toggleClickTo("none")
-                return
-            } else {
-                this.actionStore.activeAction = "food"
-                this.toggleClickTo("food")
-            }
+            this.actionStore.toggleSelected()
 
+            // Clicking anywhere outside the action container will deselect the action
+            const checkParentHasClass = (el, className) => {
+                if (el.classList && el.classList.contains(className)) {
+                    return true
+                }
+                if (el.parentElement) {
+                    return checkParentHasClass(el.parentElement, className)
+                }
+                return false
+            }
 
             const removeActionActive = (e) => {
+                // Check if any parent element has the class .action-container
+                if (checkParentHasClass(e.target, "action-container")) {
+                    return
+                }
+
+
                 e.preventDefault()
-                this.actionActive = false
-                homeFooter.removeEventListener("touchstart", removeActionActive)
+                this.actionStore.isSelected = false
+                homeFooter.removeEventListener("click", removeActionActive)
             }
 
             const homeFooter = this.$refs["matterbox-footer"] as HTMLElement
-            homeFooter.addEventListener("touchstart", removeActionActive, { passive: false })
+            homeFooter.addEventListener("click", removeActionActive, { passive: false })
+
         },
         setDeathState() {
             const el = this.$el

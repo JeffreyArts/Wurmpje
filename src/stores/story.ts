@@ -1,10 +1,11 @@
 import { defineStore } from "pinia"
-import introStory from "@/models/stories/intro"
 import { MatterController } from "@/tamagotchi/controller"
 import { type IDBPDatabase } from "idb"
-import useDatabaseStore from "@/stores/database"
 import type Story from "@/models/story"
+import introStory from "@/models/stories/intro"
+import eatStory from "@/models/stories/eat"
 import { type IdentityField } from "@/models/identity"
+import useDatabaseStore from "@/stores/database"
 
 
 export type DBStory =  {
@@ -49,9 +50,23 @@ const story = defineStore("story", {
                 this.db = await databaseStore.init()
 
                 this.addStory("intro", introStory)
+                this.addStory("eat", eatStory)
 
                 resolve(true)
             })
+        },
+        killStory(name: string) {
+            const wurmpjeId = this.identity?.id
+
+            if (!wurmpjeId) {
+                throw new Error("No wurmpjeId set in identity store")
+            }
+
+            const activeStory = this.activeStories.find(s => s.name === name && s.wurmpjeId === wurmpjeId)
+            if (activeStory) {
+                activeStory.instance.destroy()
+                this.activeStories = this.activeStories.filter(s => s.name !== name || s.wurmpjeId !== wurmpjeId)
+            }
         },
         addStory(name, storyInstance) {
             this.all.push({ name, instance: storyInstance })

@@ -10,6 +10,7 @@ class Story {
     storyStore: ReturnType<typeof StoryStore>
     cooldown: number // in hours
     score: number = 0 // Number between 0 and 10, higher score equals higher priority
+    destroyed: boolean = false
 
     constructor(controller: MatterController) {
         this.controller = controller
@@ -26,6 +27,10 @@ class Story {
     }
 
     #loop() {
+        if (this.destroyed) {
+            return
+        }
+
         this.loop()
         requestAnimationFrame(() => {
             this.#loop()
@@ -41,8 +46,9 @@ class Story {
 
     start() {
     }
-    destroy() {
 
+    destroy() {
+        this.destroyed = true
     }
 }
 

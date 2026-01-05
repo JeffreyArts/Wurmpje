@@ -1,8 +1,8 @@
 import { defineStore } from "pinia"
 import { iconsMap } from "jao-icons"
 import { type IDBPDatabase } from "idb"
-import { type IdentityField } from "@/models/identity"
 import type { DBIdentity } from "@/stores/identity"
+import useStoryStore from "@/stores/story"
 import useDatabaseStore from "@/stores/database"
 
 export type actionTypes = "food" | "joy" | "love" | "hungerLoss" | undefined
@@ -21,20 +21,24 @@ const Action = defineStore("action", {
         initialised: undefined as Promise<boolean> | undefined,
         isInitializing: false,
         availableFood: 3,
-        activeAction: "" as actionTypes | "",
+        isSelected: false,
+        storyStore: undefined as ReturnType<typeof useStoryStore> | undefined,
+        activeAction: "food" as actionTypes | "",
     }),
     actions: {
         init() {
-            return this.initialised = new Promise(async (resolve, reject) => {
+            return this.initialised = new Promise(async (resolve) => {
                 if (this.isInitializing) {
                     return
                 }
                 this.isInitializing = true
 
+                this.storyStore = useStoryStore()
                 const databaseStore = useDatabaseStore()
                 this.db = await databaseStore.init()
                 
-                console.log("Action database initialized")
+                // Load
+                console.info("Action database initialized")
 
                 resolve(true)
             })
@@ -168,18 +172,18 @@ const Action = defineStore("action", {
                 resolve(actions as unknown as DBAction)
             })
         },
-        async loadAvailableFood(identity: IdentityField) {
-            const maxFood = 3
+        async loadAvailableFood(wurmpjeId: number) {
+            const maxFood = 300
             let availableFood = maxFood
-            const lastFoodMoments = await this.loadLastActionsFromDB(identity.id, "food", maxFood)
+            const lastFoodMoments = await this.loadLastActionsFromDB(wurmpjeId, "food", maxFood)
             for (const foodMoment in lastFoodMoments) {
                 // Get difference in hours between now and created
                 const now = Date.now()
                 const created = lastFoodMoments[foodMoment].created
                 const diffInHours = (now - created) / (1000 * 60 * 60)
 
-                // For each 16 hours passed, add 1 food back
-                if (diffInHours < 16) {
+                // For each 8 hours passed, add 1 food back
+                if (diffInHours < 8) {
                     availableFood --
                 }
             }
@@ -233,6 +237,16 @@ const Action = defineStore("action", {
                 await actionTx.done
             }
             
+        },
+        toggleSelected() {
+            this.isSelected = !this.isSelected
+
+            // Start eat story when food action is selected
+            if (this.isSelected && this.activeAction === "food") {
+                if (!this.storyStore.getActiveStory("eat") ) {
+                    this.storyStore.setActiveStory("eat")
+                }
+            }
         }
     },
     getters: {

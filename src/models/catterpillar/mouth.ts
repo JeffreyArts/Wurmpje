@@ -234,18 +234,18 @@ export class Mouth  {
         
             this.#animation = gsap.to(gsapFrom
                 , {
-                    "topLip.left.x": to.topLip.left.x,
-                    "topLip.left.y": to.topLip.left.y,
-                    "topLip.center.x": to.topLip.center.x,
-                    "topLip.center.y": to.topLip.center.y,
-                    "topLip.right.x": to.topLip.right.x,
-                    "topLip.right.y": to.topLip.right.y,
-                    "bottomLip.left.x": to.bottomLip.left.x,
-                    "bottomLip.left.y": to.bottomLip.left.y,
-                    "bottomLip.center.x": to.bottomLip.center.x,
-                    "bottomLip.center.y": to.bottomLip.center.y,
-                    "bottomLip.right.x": to.bottomLip.right.x,
-                    "bottomLip.right.y": to.bottomLip.right.y,
+                    "topLip.left.x": to.topLip.left.x * this.scale,
+                    "topLip.left.y": to.topLip.left.y * this.scale,
+                    "topLip.center.x": to.topLip.center.x * this.scale,
+                    "topLip.center.y": to.topLip.center.y * this.scale,
+                    "topLip.right.x": to.topLip.right.x * this.scale,
+                    "topLip.right.y": to.topLip.right.y * this.scale,
+                    "bottomLip.left.x": to.bottomLip.left.x * this.scale,
+                    "bottomLip.left.y": to.bottomLip.left.y * this.scale,
+                    "bottomLip.center.x": to.bottomLip.center.x * this.scale,
+                    "bottomLip.center.y": to.bottomLip.center.y * this.scale,
+                    "bottomLip.right.x": to.bottomLip.right.x * this.scale,
+                    "bottomLip.right.y": to.bottomLip.right.y * this.scale,
                     duration: options.duration,
                     ease: options.ease,
                     delay: options.delay,
@@ -256,30 +256,30 @@ export class Mouth  {
                         this.#updateState({
                             topLip: {
                                 left: {
-                                    x: gsapFrom["topLip.left.x"] * this.scale,
-                                    y: gsapFrom["topLip.left.y"] * this.scale,
+                                    x: gsapFrom["topLip.left.x"],
+                                    y: gsapFrom["topLip.left.y"],
                                 },
                                 center: {
-                                    x: gsapFrom["topLip.center.x"] * this.scale,
-                                    y: gsapFrom["topLip.center.y"] * this.scale,
+                                    x: gsapFrom["topLip.center.x"],
+                                    y: gsapFrom["topLip.center.y"],
                                 },
                                 right: {
-                                    x: gsapFrom["topLip.right.x"] * this.scale,
-                                    y: gsapFrom["topLip.right.y"] * this.scale,
+                                    x: gsapFrom["topLip.right.x"],
+                                    y: gsapFrom["topLip.right.y"],
                                 }
                             },
                             bottomLip: {
                                 left: {
-                                    x: gsapFrom["bottomLip.left.x"] * this.scale,
-                                    y: gsapFrom["bottomLip.left.y"] * this.scale,
+                                    x: gsapFrom["bottomLip.left.x"],
+                                    y: gsapFrom["bottomLip.left.y"],
                                 },
                                 center: {
-                                    x: gsapFrom["bottomLip.center.x"] * this.scale,
-                                    y: gsapFrom["bottomLip.center.y"] * this.scale,
+                                    x: gsapFrom["bottomLip.center.x"],
+                                    y: gsapFrom["bottomLip.center.y"],
                                 },
                                 right: {
-                                    x: gsapFrom["bottomLip.right.x"] * this.scale,
-                                    y: gsapFrom["bottomLip.right.y"] * this.scale,
+                                    x: gsapFrom["bottomLip.right.x"],
+                                    y: gsapFrom["bottomLip.right.y"],
                                 }
                             }
                         })

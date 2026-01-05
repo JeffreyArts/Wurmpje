@@ -67,7 +67,7 @@ const identity = defineStore("identity", {
                 const databaseStore = useDatabaseStore()
                 this.db = await databaseStore.init()
 
-                console.log("Identity database initialized")
+                console.info("Identity database initialized")
                 
                 // Try to load identity from local storage                
                 await this.loadIdentityFromLocalStorage()

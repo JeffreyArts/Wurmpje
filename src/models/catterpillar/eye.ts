@@ -99,8 +99,11 @@ export class Eye  {
     // angle in degrees
     // distance in pixels
     // duration in seconds
-    look(angle: number, distance: number, duration?: number) {
+    look(angle: number, distance?: number, duration?: number) {
         // Make sure distance does not exceed width/height limits
+        if (!distance) {
+            distance = Math.min(this.width / 4, this.height / 4) - 1
+        }
         distance = Math.min(distance, Math.min(this.width / 4, this.height / 4)) - 1
 
         const rad = angle * (Math.PI / 180)
@@ -118,20 +121,20 @@ export class Eye  {
         })
     }
     
-    lookLeft(distance: number) {
-        this.look(180, distance)
+    lookLeft(distance?: number, duration?: number) {
+        this.look(180, distance, duration)
     }
 
-    lookRight(distance: number) {
-        this.look(0, distance)
+    lookRight(distance?: number, duration?: number) {
+        this.look(0, distance, duration)
     }
 
-    lookUp(distance: number) {
-        this.look(270, distance)
+    lookUp(distance?: number, duration?: number) {
+        this.look(270, distance, duration)
     }
 
-    lookDown(distance: number) {
-        this.look(90, distance)
+    lookDown(distance?: number, duration?: number) {
+        this.look(90, distance, duration)
     }
 
     close(duration = .4) {
