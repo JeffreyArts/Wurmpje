@@ -5,13 +5,14 @@ import type { DBIdentity } from "@/stores/identity"
 import useStoryStore from "@/stores/story"
 import useDatabaseStore from "@/stores/database"
 
-export type actionTypes = "food" | "joy" | "love" | "hungerLoss" | undefined
+export type actionStates = "food" | "joy" | "love" | "hungerLoss"
+export type actionTypes = "Food" | "Words of affirmation" | undefined
 export type DBAction =  {
     id: number;                 
     created: number;            // timestamp
     wurmpjeId: number;          // id of the wurmpje
     value: number;           // amount of food
-    action: actionTypes;        // type of action
+    action: actionStates;        // type of action
 }
 
 
@@ -23,7 +24,8 @@ const Action = defineStore("action", {
         availableFood: 3,
         isSelected: false,
         storyStore: undefined as ReturnType<typeof useStoryStore> | undefined,
-        activeAction: "food" as actionTypes | "",
+        activeAction: "food" as actionStates | "",
+        possibleActions: ["Food", "Words of affirmation"],
     }),
     actions: {
         init() {
@@ -43,7 +45,7 @@ const Action = defineStore("action", {
                 resolve(true)
             })
         },
-        async add(wurmpjeId: number, action: actionTypes, value: number) {
+        async add(wurmpjeId: number, actionState: actionStates, value: number) {
             if (!this.db) {
                 throw new Error("Database not initialized")
             }
@@ -61,23 +63,23 @@ const Action = defineStore("action", {
             const dbAction = {
                 created: timestamp,
                 wurmpjeId,
-                action,
+                action: actionState,
                 value,
             }
             store.add(dbAction)
 
             // Update wurmpje based on action
-            if (action === "food") {
+            if (actionState === "food") {
                 if (typeof wurmpje.hunger !== "number") {
                     wurmpje.hunger = 80
                 }
                 wurmpje.hunger += value
-            } else if (action === "joy") {
+            } else if (actionState === "joy") {
                 if (typeof wurmpje.joy !== "number") {
                     wurmpje.joy = 80
                 }
                 wurmpje.joy += value
-            } else if (action === "love") {
+            } else if (actionState === "love") {
                 if (typeof wurmpje.love !== "number") {
                     wurmpje.love = 80
                 }
@@ -90,8 +92,8 @@ const Action = defineStore("action", {
             identityStore.put(wurmpje as DBIdentity)    
             
 
-            if (action === "food") {
-                await this.loadAvailableFood(wurmpje)
+            if (actionState === "food") {
+                await this.loadAvailableFood(wurmpje.id)
             }
             
             return tx.done
@@ -117,11 +119,9 @@ const Action = defineStore("action", {
         },
         svgIcon(typeOfAction: actionTypes, asString: boolean) {
             let iconName = ""
-            if (typeOfAction === "food") { 
+            if (typeOfAction === "Food") { 
                 iconName = "leaf"
-            } else if (typeOfAction === "joy") {
-                iconName = "smile"
-            } else if (typeOfAction === "love") {
+            } else if (typeOfAction === "Words of affirmation") {
                 iconName = "heart"
             }
 
@@ -152,7 +152,7 @@ const Action = defineStore("action", {
 
             return svg
         },
-        loadLastActionsFromDB(wurmpjeId: number, typeOfAction: actionTypes, value: number ): Promise<DBAction> {
+        loadLastActionsFromDB(wurmpjeId: number, typeOfAction: actionStates, value: number ): Promise<DBAction> {
             return new Promise(async (resolve, reject) => {
                 if (!this.db) {
                     return reject("Database not initialized")

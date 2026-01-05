@@ -32,7 +32,7 @@
                 <jao-icon name="chevron-right" size="small" active-color="#666666" inactive-color="transparent"/>
             </section>
             <footer class="actions-footer" :class="{'__isDisabled': availableFood <= 0 }">
-                Food
+                {{actionStore.activeAction}}
             </footer>
         </div>
         <div class="stats">
@@ -174,7 +174,7 @@ export default defineComponent ({
         this.toggleDevMode()
         this.toggleDevMode()
 
-        this.loadAction("food")
+        this.loadAction("Food")
     },
     methods: {
         toggleDevMode() {
@@ -186,7 +186,7 @@ export default defineComponent ({
         },
         
         async loadAction(actionType: actionTypes) {
-            if (actionType === "food") {
+            if (actionType === "Food") {
                 await this.actionStore.loadAvailableFood(this.identity.id)
             }
         },

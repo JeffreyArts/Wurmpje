@@ -1,4 +1,3 @@
-import { watch } from "vue"
 import Matter from "matter-js"
 import Story from "@/models/story"
 import type Catterpillar from "../catterpillar"
@@ -131,7 +130,8 @@ class EatStory extends Story {
                 y: 3,
             })
             Matter.Body.setAngularVelocity(foodBody, 2)
-        }, 200)
+        }, 240)
+        
         // fade out food
         const drawObject = this.draw.newObjects.find(o => o.id.toString() === food.composite.id.toString())
         if (drawObject) {
