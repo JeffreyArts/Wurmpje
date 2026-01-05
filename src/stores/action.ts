@@ -5,8 +5,8 @@ import type { DBIdentity } from "@/stores/identity"
 import useStoryStore from "@/stores/story"
 import useDatabaseStore from "@/stores/database"
 
-export type actionStates = "food" | "joy" | "love" | "hungerLoss"
-export type actionTypes = "Food" | "Words of affirmation" | undefined
+export type actionStates = "food" | "joy" | "love" | "hungerLoss" | "wof"
+export type actionTypes = "Food" | "Words of affirmation"
 export type DBAction =  {
     id: number;                 
     created: number;            // timestamp
@@ -21,11 +21,11 @@ const Action = defineStore("action", {
         db: undefined as IDBPDatabase | undefined,
         initialised: undefined as Promise<boolean> | undefined,
         isInitializing: false,
-        availableFood: 3,
+        availableActions: 3,
         isSelected: false,
         storyStore: undefined as ReturnType<typeof useStoryStore> | undefined,
-        activeAction: "food" as actionStates | "",
-        possibleActions: ["Food", "Words of affirmation"],
+        activeAction: "Food" as actionTypes,
+        possibleActions: ["Food", "Words of affirmation"] as actionTypes[],
     }),
     actions: {
         init() {
@@ -188,7 +188,25 @@ const Action = defineStore("action", {
                 }
             }
 
-            this.availableFood = availableFood
+            this.availableActions = availableFood
+        },
+        async loadAvailableWOFtries(wurmpjeId: number) {
+            const maxTries = 5
+            let availableTries = maxTries
+            const lastTries = await this.loadLastActionsFromDB(wurmpjeId, "wof", maxTries)
+            for (const lastTry in lastTries) {
+                // Get difference in hours between now and created
+                const now = Date.now()
+                const created = lastTries[lastTry].created
+                const diffInHours = (now - created) / (1000 * 60 * 60)
+
+                // For each 6 hours passed, give back another try
+                if (diffInHours < 6) {
+                    availableTries --
+                }
+            }
+
+            this.availableActions = availableTries
         },
         async procesStartingHunger(wurmpjeId: number) {
             let amountOfHoursWithoutFood = 0
@@ -242,7 +260,7 @@ const Action = defineStore("action", {
             this.isSelected = !this.isSelected
 
             // Start eat story when food action is selected
-            if (this.isSelected && this.activeAction === "food") {
+            if (this.isSelected && this.activeAction === "Food") {
                 if (!this.storyStore.getActiveStory("eat") ) {
                     this.storyStore.setActiveStory("eat")
                 }

@@ -10,7 +10,6 @@ class EatStory extends Story {
     movementCooldown = 0
     cooldown = 1000 // 1 second
     score = 1
-    // availableFood = this.actionStore.availableFood
     activeFood = []
     turnsWithoutFood = 0
     foodIndex = 0
@@ -30,7 +29,7 @@ class EatStory extends Story {
             return
         }
         
-        if (this.actionStore.availableFood <= 0) {
+        if (this.actionStore.availableActions <= 0) {
             this.storyStore.killStory("eat")
             return
         }
@@ -53,7 +52,7 @@ class EatStory extends Story {
         this.draw.addFood(food)
         this.activeFood.push(food)
 
-        if (this.actionStore.availableFood <= 0) {
+        if (this.actionStore.availableActions <= 0) {
             // This meot nog ff gefixed worden. Is om de matter-box te laten weten dat er geen food meer is
             // this.actionActive = false
             this.actionStore.isSelected = false

@@ -21,17 +21,17 @@
     <!-- Footer -->
     <footer class="matterbox-footer" ref="matterbox-footer">
         <div class="actions-container">
-            <header class="actions-header" :class="{'__isActive': actionStore.isSelected, '__isDisabled': availableFood <= 0 }">
-                {{availableFood}}x
+            <header class="actions-header" :class="{'__isActive': actionStore.isSelected, '__isDisabled': availableActions <= 0 }">
+                {{availableActions}}x
             </header>
             <section>
-                <jao-icon name="chevron-left" size="small" active-color="#666666" inactive-color="transparent"/>
-                <div class="action-container" :class="{'__isActive': actionStore.isSelected, '__isDisabled': availableFood <= 0  }" @click="actionContainerClicked">
-                    <jao-icon name="leaf" size="large" active-color="currentColor" inactive-color="transparent" />
+                <jao-icon name="chevron-left" size="small" active-color="#666666" inactive-color="#fafafa" @click="prevAction"/>
+                <div class="action-container" :class="{'__isActive': actionStore.isSelected, '__isDisabled': availableActions <= 0  }" @click="actionContainerClicked">
+                    <jao-icon :name="actionIcon" size="large" active-color="currentColor" inactive-color="#fafafa" :transit-effect="iconTransitEffect"/>
                 </div>
-                <jao-icon name="chevron-right" size="small" active-color="#666666" inactive-color="transparent"/>
+                <jao-icon name="chevron-right" size="small" active-color="#666666" inactive-color="#fafafa" @click="nextAction"/>
             </section>
-            <footer class="actions-footer" :class="{'__isDisabled': availableFood <= 0 }">
+            <footer class="actions-footer" :class="{'__isDisabled': availableActions <= 0 }">
                 {{actionStore.activeAction}}
             </footer>
         </div>
@@ -84,7 +84,13 @@ export default defineComponent ({
             dev: false,
             action: "food",
             // actionActive: false,
-            foodQuantity: 0
+            foodQuantity: 0,
+            iconTransitEffect: {
+                effect: "right-to-left" as "left-to-right" | "right-to-left" | "top-to-bottom" | "bottom-to-top" | "shuffle",
+                duration: 2,
+                ease: "elastic.out(1,0.5)"
+
+            }
         }
     },
     setup() {
@@ -123,8 +129,8 @@ export default defineComponent ({
         }
     },
     computed: {
-        availableFood(): number {
-            return this.actionStore.availableFood
+        availableActions(): number {
+            return this.actionStore.availableActions
         },
         age(): string {
             if (!this.identity.age) {
@@ -135,6 +141,16 @@ export default defineComponent ({
             }
             if (this.identity.age >= 2) {
                 return `${this.identity.age} days`
+            }
+        },
+        actionIcon(): string {
+            switch (this.actionStore.activeAction) {
+                case "Food":
+                    return "leaf"
+                case "Words of affirmation":
+                    return "thoughts"
+                default:
+                    return "question-mark"
             }
         }
     },
@@ -174,9 +190,23 @@ export default defineComponent ({
         this.toggleDevMode()
         this.toggleDevMode()
 
-        this.loadAction("Food")
+        this.loadAction(this.actionStore.activeAction)
     },
     methods: {
+        nextAction() {
+            this.iconTransitEffect.effect = "right-to-left"
+            const index = this.actionStore.possibleActions.indexOf(this.actionStore.activeAction)
+            const nextIndex = (index + 1) % this.actionStore.possibleActions.length
+            this.actionStore.activeAction = this.actionStore.possibleActions[nextIndex]
+            this.loadAction(this.actionStore.activeAction)
+        },
+        prevAction() {
+            this.iconTransitEffect.effect = "left-to-right"
+            const index = this.actionStore.possibleActions.indexOf(this.actionStore.activeAction)
+            const prevIndex = index - 1 < 0 ? this.actionStore.possibleActions.length -1 : index - 1
+            this.actionStore.activeAction = this.actionStore.possibleActions[prevIndex]
+            this.loadAction(this.actionStore.activeAction)
+        },
         toggleDevMode() {
             this.dev = !this.dev
             const twoEl = this.$el.querySelector("[id^='two-js']") as HTMLCanvasElement
@@ -188,11 +218,14 @@ export default defineComponent ({
         async loadAction(actionType: actionTypes) {
             if (actionType === "Food") {
                 await this.actionStore.loadAvailableFood(this.identity.id)
+            } else if (actionType == "Words of affirmation") {
+                await this.actionStore.loadAvailableWOFtries(this.identity.id)
+                // alert("Love ya")
             }
         },
 
         actionContainerClicked() {
-            if (this.actionStore.availableFood <= 0 && this.actionStore.activeAction == "food") {
+            if (this.actionStore.availableActions <= 0 && this.actionStore.activeAction == "Food") {
                 return
             }
 
@@ -473,6 +506,8 @@ export default defineComponent ({
 }
 
 .actions-footer {
+    text-align: center;
+    height: 40px;
 
     &.__isDisabled {
         opacity: 0.4;
@@ -486,6 +521,7 @@ export default defineComponent ({
     font-size: 14px;
     flex-flow: column;
     gap: 8px;
+    padding-bottom: 4px;
 }
 
 .healthbar-row {

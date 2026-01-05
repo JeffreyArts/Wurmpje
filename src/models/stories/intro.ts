@@ -24,14 +24,14 @@ class IntroStory extends Story {
 
         // Watch for selecting the food action
         watch(() => this.actionStore.isSelected, (isSelected) => {
-            if (isSelected && this.actionStore.activeAction == "food") {
+            if (isSelected && this.actionStore.activeAction == "Food") {
                 this.storyIndex = 5
                 this.moveToNextStoryLine()
             }
         })
 
         // Watch for the first food to be dropped
-        watch(() => this.actionStore.availableFood, (newFood, oldFood) => {
+        watch(() => this.actionStore.availableActions, (newFood, oldFood) => {
             if (this.storyIndex != 6) {
                 return
             }
