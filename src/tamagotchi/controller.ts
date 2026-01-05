@@ -28,6 +28,7 @@ export class MatterController {
         offsetBottom?: number
     } = {}
     cooldown: number = 0
+    disableDragging: boolean = false
     identity: IdentityField = {
         id: 1,
         name: "Catterpillar",
@@ -169,6 +170,9 @@ export class MatterController {
     }
 
     #grabCatterpillar({ x, y }: { x: number, y: number }) {
+        if (this.disableDragging) {
+            return
+        }
         // Check if x & y Match a body part
         this.catterpillar.bodyParts.forEach(bodyPart => {
             const bounds = bodyPart.body.bounds
@@ -190,6 +194,10 @@ export class MatterController {
     }
 
     #dragCatterpillar(mouse: { x: number, y: number }) {
+        if (this.disableDragging) {
+            return
+        }
+
         let x = mouse.x
         let y = mouse.y
         

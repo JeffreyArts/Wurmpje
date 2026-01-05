@@ -24,7 +24,7 @@ const Action = defineStore("action", {
         availableActions: 3,
         isSelected: false,
         storyStore: undefined as ReturnType<typeof useStoryStore> | undefined,
-        activeAction: "Food" as actionTypes,
+        activeAction: "Words of affirmation" as actionTypes,
         possibleActions: ["Food", "Words of affirmation"] as actionTypes[],
     }),
     actions: {
@@ -263,6 +263,10 @@ const Action = defineStore("action", {
             if (this.isSelected && this.activeAction === "Food") {
                 if (!this.storyStore.getActiveStory("eat") ) {
                     this.storyStore.setActiveStory("eat")
+                }
+            } else if (this.isSelected && this.activeAction === "Words of affirmation") {
+                if (!this.storyStore.getActiveStory("wof") ) {
+                    this.storyStore.setActiveStory("wof")
                 }
             }
         }

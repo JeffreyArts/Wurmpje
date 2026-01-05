@@ -220,7 +220,6 @@ export default defineComponent ({
                 await this.actionStore.loadAvailableFood(this.identity.id)
             } else if (actionType == "Words of affirmation") {
                 await this.actionStore.loadAvailableWOFtries(this.identity.id)
-                // alert("Love ya")
             }
         },
 
@@ -423,7 +422,7 @@ export default defineComponent ({
     left: 0;
     right: 0;
     height: 128px;   
-    padding: 0px 16px 12px;
+    padding: 0px 16px 8px;
     display: grid;
     grid-template-columns: 96px auto;
     gap: 16px;
@@ -507,7 +506,8 @@ export default defineComponent ({
 
 .actions-footer {
     text-align: center;
-    height: 40px;
+    height: 32px;
+    line-height: 1em;
 
     &.__isDisabled {
         opacity: 0.4;
@@ -521,7 +521,6 @@ export default defineComponent ({
     font-size: 14px;
     flex-flow: column;
     gap: 8px;
-    padding-bottom: 4px;
 }
 
 .healthbar-row {

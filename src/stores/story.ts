@@ -4,6 +4,7 @@ import { type IDBPDatabase } from "idb"
 import type Story from "@/models/story"
 import introStory from "@/models/stories/intro"
 import eatStory from "@/models/stories/eat"
+import wofStory from "@/models/stories/word-of-affirmation"
 import { type IdentityField } from "@/models/identity"
 import useDatabaseStore from "@/stores/database"
 
@@ -51,6 +52,7 @@ const story = defineStore("story", {
 
                 this.addStory("intro", introStory)
                 this.addStory("eat", eatStory)
+                this.addStory("wof", wofStory)
 
                 resolve(true)
             })

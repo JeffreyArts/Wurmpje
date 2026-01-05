@@ -15,7 +15,7 @@
 
 <script lang="ts">
 import { defineComponent, type PropType } from "vue"
-import _ from "lodash"
+import {sortBy, reverse, shuffle, find} from "lodash"
 import gsap from "gsap"
 import { iconsMap } from "jao-icons"
 
@@ -124,7 +124,7 @@ export default defineComponent ({
                     this.originalGrid = []
                     const activeColor =  this.activeColor ? this.activeColor : window.getComputedStyle(this.$el).color
                     const inactiveColor = this.inactiveColor ? this.inactiveColor : "rgba(153,153,153,.16)"
-                    _.each(this.custom, (val) => {
+                    this.custom.forEach((val) => {
                         const data = {
                             x: val.x,
                             y: val.y,
@@ -170,8 +170,8 @@ export default defineComponent ({
                 this.customGridToIcon()
             }
 
-            _.each(this.icon, (row,y) => {
-                _.each(row, (val,x) => {
+            this.icon.forEach((row,y) => {
+                row.forEach((val,x) => {
                     const data = {
                         x,
                         y,
@@ -185,7 +185,7 @@ export default defineComponent ({
 
             if (this.displayGrid.length !== this.originalGrid.length) {
                 this.displayGrid = []
-                _.each(this.originalGrid,(grid) => {
+                this.originalGrid.forEach((grid) => {
                     this.displayGrid.push({ 
                         x:grid.x,
                         y:grid.y,
@@ -194,6 +194,8 @@ export default defineComponent ({
                     })
                 })
             }
+
+            console.log(this.transitEffect)
                     
             this.transit(this.transitEffect)
         },
@@ -202,7 +204,7 @@ export default defineComponent ({
                 console.warn("No custom grid to be transform to icon")
                 return []
             }
-            _.each(_.sortBy(this.custom, ["y", "x"]), point => {
+            sortBy(this.custom, ["y", "x"]).forEach( point => {
                 if (!this.icon[point.y]) {
                     this.icon.push([])
                 }
@@ -217,36 +219,37 @@ export default defineComponent ({
         } as transitEffect) {
 
             if (this.transitions.length > 0) {
-                _.each(this.transitions, t => {t.kill()})
+                this.transitions.forEach(t => {t.kill()})
                 this.transitions = []
             }
 
-            let effect = _.isString(opts.effect) ? opts.effect : "fade-in"
-            let ease = _.isString(opts.ease) ? opts.ease : "linear"
-            let duration = _.isNumber(opts.duration) ? opts.duration : .4
-            let delay = _.isNumber(opts.delay) ? opts.delay : 0
+            let effect = typeof opts.effect === "string" ? opts.effect : "fade-in"
+            let ease = typeof opts.ease === "string" ? opts.ease : "linear"
+            let duration = typeof opts.duration === "number" ? opts.duration : .4
+            let delay = typeof opts.delay === "number" ? opts.delay : 0
 
             let collection = this.originalGrid
             if (effect == "shuffle") {
-                collection = _.shuffle(this.originalGrid)
+                collection = shuffle(this.originalGrid)
                 if (!delay)  { delay = duration/2 / collection.length }
             } else if (effect == "top-to-bottom") {
                 collection = this.originalGrid
                 if (!delay)  { delay = duration/2 / collection.length }
             } else if (effect == "bottom-to-top") {
-                collection = _.reverse(this.originalGrid)
+                collection = reverse(this.originalGrid)
                 if (!delay)  { delay = duration/2 / collection.length }
             } else if (effect == "left-to-right") {
-                collection = _.sortBy(this.originalGrid, "x")
+                collection = sortBy(this.originalGrid, "x")
                 if (!delay)  { delay = duration/2 / collection.length }
             } else if (effect == "right-to-left") {
-                collection = _.reverse(_.sortBy(this.originalGrid, "x"))
+                collection = reverse(sortBy(this.originalGrid, "x"))
                 if (!delay)  { delay = duration/2 / collection.length }
             } 
 
             
-            _.each(collection, (grid, index) => {
-                const cell = _.find(this.displayGrid, { x:grid.x, y:grid.y })
+            this.originalGrid.forEach((grid, index) => {
+                const cell = find(this.displayGrid, { x:grid.x, y:grid.y })
+                console.log(duration)
                 if (cell) {
                     this.transitions.push(gsap.to(cell, {
                         color: grid.color,
