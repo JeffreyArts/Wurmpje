@@ -5,7 +5,7 @@ import type { DBIdentity } from "@/stores/identity"
 import useStoryStore from "@/stores/story"
 import useDatabaseStore from "@/stores/database"
 
-export type actionStates = "food" | "joy" | "love" | "hungerLoss" | "wof"
+export type actionStates = "food" | "joy" | "love" | "hungerLoss" | "wof" | "wof-score"
 export type actionTypes = "Food" | "Words of affirmation"
 export type DBAction =  {
     id: number;                 
@@ -50,11 +50,16 @@ const Action = defineStore("action", {
                 throw new Error("Database not initialized")
             }
 
-            const wurmpje = await this.loadWurmpjeById(wurmpjeId)
-
-            if (!wurmpje) {
-                throw new Error("Wurmpje not found")
+            let wurmpje: DBIdentity | null = null
+            try {
+                wurmpje = await this.loadWurmpjeById(wurmpjeId)
+            } catch (error) {
+                console.warn("Error loading wurmpje:", error)
             }
+
+            // if (!wurmpje) {
+            //     throw new Error("Wurmpje not found")
+            // }
 
             // Add action to db
             const tx = this.db.transaction("actions", "readwrite")
@@ -69,6 +74,10 @@ const Action = defineStore("action", {
             store.add(dbAction)
 
             // Update wurmpje based on action
+            if (!wurmpje) {
+                return tx.done
+            }
+
             if (actionState === "food") {
                 if (typeof wurmpje.hunger !== "number") {
                     wurmpje.hunger = 80
@@ -152,10 +161,13 @@ const Action = defineStore("action", {
 
             return svg
         },
-        loadLastActionsFromDB(wurmpjeId: number, typeOfAction: actionStates, value: number ): Promise<DBAction> {
+        loadLastActionsFromDB(wurmpjeId: number, typeOfAction: actionStates, value: number, sorting?: (a: DBAction, b: DBAction) => number ): Promise<DBAction[]> {
             return new Promise(async (resolve, reject) => {
                 if (!this.db) {
                     return reject("Database not initialized")
+                }
+                if (!sorting) {
+                    sorting = (a, b) => b.created - a.created
                 }
 
                 const tx = this.db.transaction("actions", "readonly")
@@ -164,12 +176,11 @@ const Action = defineStore("action", {
                 // Load last actions for wurmpje
                 const allActions = await index.getAll()
                 const filteredActions = allActions.filter(action => action.wurmpjeId === wurmpjeId && action.action === typeOfAction)
-                // Sort by created date descending
-                filteredActions.sort((a, b) => b.created - a.created)
+                filteredActions.sort(sorting)
                 // Get the last 'value' actions
                 const actions = filteredActions.slice(0, value)
 
-                resolve(actions as unknown as DBAction)
+                resolve(actions)
             })
         },
         async loadAvailableFood(wurmpjeId: number) {
@@ -258,13 +269,13 @@ const Action = defineStore("action", {
         },
         toggleSelected() {
             this.isSelected = !this.isSelected
-
             // Start eat story when food action is selected
             if (this.isSelected && this.activeAction === "Food") {
                 if (!this.storyStore.getActiveStory("eat") ) {
                     this.storyStore.setActiveStory("eat")
                 }
             } else if (this.isSelected && this.activeAction === "Words of affirmation") {
+                
                 if (!this.storyStore.getActiveStory("wof") ) {
                     this.storyStore.setActiveStory("wof")
                 }

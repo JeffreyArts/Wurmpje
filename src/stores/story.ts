@@ -57,19 +57,6 @@ const story = defineStore("story", {
                 resolve(true)
             })
         },
-        killStory(name: string) {
-            const wurmpjeId = this.identity?.id
-
-            if (!wurmpjeId) {
-                throw new Error("No wurmpjeId set in identity store")
-            }
-
-            const activeStory = this.activeStories.find(s => s.name === name && s.wurmpjeId === wurmpjeId)
-            if (activeStory) {
-                activeStory.instance.destroy()
-                this.activeStories = this.activeStories.filter(s => s.name !== name || s.wurmpjeId !== wurmpjeId)
-            }
-        },
         addStory(name, storyInstance) {
             this.all.push({ name, instance: storyInstance })
             // Add story to dbs
@@ -161,6 +148,23 @@ const story = defineStore("story", {
 
             return this.activeStories.find(s => s.name === name && s.wurmpjeId === wurmpjeId)
         },
+        removeActiveStory(name: string) {
+            let wurmpjeId = this.identity?.id
+
+            if (!wurmpjeId) {
+                throw new Error("No wurmpjeId set in identity store")
+            }
+
+            let activeStory = this.activeStories.find(s => s.name === name && s.wurmpjeId === wurmpjeId)
+            // If not found, try with wurmpjeId 1 (default)
+            if (!activeStory) { wurmpjeId = 1 }
+            activeStory = this.activeStories.find(s => s.name === name && s.wurmpjeId === wurmpjeId)
+            console.log("Removing active story:", name, wurmpjeId, activeStory, this.activeStories)
+            if (activeStory) {
+                activeStory.instance.destroy()
+                this.activeStories = this.activeStories.filter(s => s.name !== name || s.wurmpjeId !== wurmpjeId)
+            }
+        },
         updateStoryDetails(name: string, details: { [key: string]: string | number | boolean | object | undefined | Array< string | number | boolean | object | undefined > }) {
             const wurmpjeId = this.identity?.id
 
@@ -208,6 +212,8 @@ const story = defineStore("story", {
             })
             return tx.done
         },
+
+        // Used to mark story as completed and set cooldown
         completeStory(name: string) {
             const activeStory = this.getActiveStory(name)
             if (activeStory) {
@@ -216,8 +222,16 @@ const story = defineStore("story", {
                 // activeStory.instance.destroy()
                 // this.activeStories = this.activeStories.filter(s => s.name !== name || s.wurmpjeId !== activeStory.wurmpjeId)
             }
-            
-        }
+        },
+         
+        // Used for stories that can be told multiple times (no cooldown)
+        killStory(name: string) {
+            this.removeActiveStory(name)
+            // if (activeStory) {
+            //     activeStory.instance.destroy()
+            //     this.activeStories = this.activeStories.filter(s => s.name !== name || s.wurmpjeId !== wurmpjeId)
+            // }
+        },   
     },
     getters: {
     }
