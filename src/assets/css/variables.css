@@ -22,7 +22,7 @@
     --error-color: #db4243;
     --bg-size: 16px;
 
-    --default-font: "Open sans", serif, "Helvetica", "Arial", "Verdana", sans-serif;
+    --default-font: "Inter", "Helvetica", "Arial", "Verdana", sans-serif;
     --accent-font: "FixedSys", sans-serif;
     --transition-default: .64s ease all;
     --transition-fast: .12s all linear;
