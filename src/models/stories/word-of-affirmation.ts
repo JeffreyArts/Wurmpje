@@ -555,6 +555,8 @@ class WordsOfAffirmationStory extends Story {
 
         // Create table 
         const tableEl = document.createElement("table")
+        tableEl.setAttribute("cellspacing", "0")
+        tableEl.setAttribute("cellpadding", "0")
 
         // Create table header
         const theadEl = document.createElement("thead")
