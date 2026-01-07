@@ -1,9 +1,7 @@
 // Todo
 // - wof actions moeten worden opgeslagen onder "wof", bij het starten van een game ( zodat het juiste getal boven het pictogram komt te staan )
 // - De timer moet terug gezet worden naar 60
-// - De woordensets moeten opnieuw geschreven worden
 // - De interval van de woorden moeten worden ge-optimaliseerd
-// - De tekst voor de scorefix moet worden aangepast, voor slechte scores, en goede scores
 
 import Story from "@/models/story"
 import gsap from "gsap"
@@ -171,7 +169,10 @@ class WordsOfAffirmationStory extends Story {
 
         // console.log("Elapsed time:", this.prevTime, Math.ceil(elapsed))
         if (elapsed >= this.timer) {
-            this.finish()
+            this.noNewWords = true
+            setTimeout(() => {
+                this.finish()
+            })
         }
 
         this.prevTime = Math.ceil(elapsed)
@@ -204,8 +205,11 @@ class WordsOfAffirmationStory extends Story {
             textAlign: "center",
             duration: 1,
             onComplete: () => {
-                this.createScorefix()
-                this.createLeaderboard()
+                setTimeout(() => {
+                    this.createScorefix()
+                    this.createLeaderboard()
+                }, 500)
+
                 setTimeout(() => {
                     document.addEventListener("click", () => {
                         this.endStory()
@@ -534,9 +538,23 @@ class WordsOfAffirmationStory extends Story {
     }
 
     createScorefix() {
-        const affermativeWords = [ "Amazing", "Incredible", "Brilliant", "Fantastic", "Wonderful", "Outstanding", "Spectacular", "Remarkable", "Exceptional", "Magnificent", "Phenomenal"]
-        const randomAffirmative = affermativeWords[Math.floor(Math.random() * affermativeWords.length)]
+        const bad = [ "Pathetic", "Weak", "Disappointing", "Bad", "Mediocre", "Awful"]
+        const good = [ "Okay", "Decent", "Nice", "Good"]
+        const great = [ "Amazing", "Incredible", "Brilliant", "Fantastic", "Wonderful", "Outstanding", "Spectacular", "Remarkable", "Exceptional", "Magnificent", "Phenomenal", "Great"]
+        const prefixes = [ "Pretty", "You are", "That was"]
 
+        const maxScore = this.timer * this.maxWords 
+        let randomAffirmative = ""
+        console.log("Creating scorefix", this.gameScore, maxScore)
+        if (this.gameScore < (maxScore * 0.4)) {
+            randomAffirmative = bad[Math.floor(Math.random() * bad.length)]
+        } else if (this.gameScore < (maxScore * 0.8)) {
+            randomAffirmative = good[Math.floor(Math.random() * good.length)]
+        } else {
+            randomAffirmative = great[Math.floor(Math.random() * great.length)] + "!"
+        }
+
+        
         const scorefixEl = document.createElement("div")
         scorefixEl.classList.add("wof-scorefix")
         document.body.appendChild(scorefixEl)
@@ -544,7 +562,8 @@ class WordsOfAffirmationStory extends Story {
         // Create title
         const titleEl = document.createElement("h1")
         titleEl.classList.add("wof-scorefix-title")
-        titleEl.innerHTML = `You are <br />${randomAffirmative}!`
+        const prefix = prefixes[Math.floor(Math.random() * prefixes.length)]
+        titleEl.innerHTML = `${prefix}<br />${randomAffirmative}`
         scorefixEl.appendChild(titleEl)
 
         // Create score
