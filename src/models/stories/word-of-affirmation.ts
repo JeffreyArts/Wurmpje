@@ -1,7 +1,3 @@
-// Todo
-// - wof actions moeten worden opgeslagen onder "wof", bij het starten van een game ( zodat het juiste getal boven het pictogram komt te staan )
-// - De interval van de woorden moeten worden ge-optimaliseerd
-
 import Story from "@/models/story"
 import gsap from "gsap"
 import { Icon } from "jao-icons"
@@ -130,7 +126,7 @@ class WordsOfAffirmationStory extends Story {
     startTime = 0
     noNewWords = false
 
-    start() {   
+    async start() {   
         console.info("Words of affirmation story started", this.identityStore)
 
         this.createBackground()
@@ -146,9 +142,13 @@ class WordsOfAffirmationStory extends Story {
                 this.addNewWord()
             }, i * 800 + Math.random() * 400)
         }
+        this.controller.disableDragging = true
+
+
+        await this.actionStore.add(this.identityStore.current.id, "wof", 10)
+        await this.actionStore.updateWof(this.identityStore.current.id)
 
         // this.words.push(this.createText("You are doing great!"))
-        this.controller.disableDragging = true
     }
 
     loop() {
@@ -228,7 +228,7 @@ class WordsOfAffirmationStory extends Story {
         gsap.to(".wof-score-display", { opacity: 0, duration: .8, delay: 0.2 })
         gsap.to(".wof-scorefix-title", { opacity: 0, duration: .8, delay: 0.4 })
 
-        gsap.to(".wof-background", { opacity: 0, duration: 1.5, delay: 1, ease: "power3.out", onComplete: () => {
+        gsap.to(".wof-background", { opacity: 0, duration: 2, delay: 1, ease: "power3.out", onComplete: () => {
             this.storyStore.killStory("wof")
             // this.storyStore.completeStory("words-of-affirmation")
             this.destroy()

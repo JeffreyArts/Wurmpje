@@ -224,7 +224,7 @@ export default defineComponent ({
         },
 
         actionContainerClicked() {
-            if (this.actionStore.availableActions <= 0 && this.actionStore.activeAction == "Food") {
+            if (this.actionStore.availableActions <= 0 ) {
                 return
             }
 

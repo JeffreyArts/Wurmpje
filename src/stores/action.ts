@@ -26,6 +26,10 @@ const Action = defineStore("action", {
         storyStore: undefined as ReturnType<typeof useStoryStore> | undefined,
         activeAction: "Words of affirmation" as actionTypes,
         possibleActions: ["Food", "Words of affirmation"] as actionTypes[],
+
+        // Set maximums
+        maxWofGames: 5,
+        maxFood: 3,
     }),
     actions: {
         init() {
@@ -184,7 +188,7 @@ const Action = defineStore("action", {
             })
         },
         async loadAvailableFood(wurmpjeId: number) {
-            const maxFood = 3
+            const maxFood = this.maxFood
             let availableFood = maxFood
             const lastFoodMoments = await this.loadLastActionsFromDB(wurmpjeId, "food", maxFood)
             for (const foodMoment in lastFoodMoments) {
@@ -200,6 +204,24 @@ const Action = defineStore("action", {
             }
 
             this.availableActions = availableFood
+        },
+        async updateWof(wurmpjeId: number) {
+            const maxGames = this.maxWofGames
+            let availableGames = maxGames
+            const lastFoodMoments = await this.loadLastActionsFromDB(wurmpjeId, "wof", maxGames)
+            for (const foodMoment in lastFoodMoments) {
+                // Get difference in hours between now and created
+                const now = Date.now()
+                const created = lastFoodMoments[foodMoment].created
+                const diffInHours = (now - created) / (1000 * 60 * 60)
+
+                // For each 4 hours passed, add 1 game back
+                if (diffInHours < 4) {
+                    availableGames --
+                }
+            }
+
+            this.availableActions = availableGames
         },
         async loadAvailableWOFtries(wurmpjeId: number) {
             const maxTries = 5
