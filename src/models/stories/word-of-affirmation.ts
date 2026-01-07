@@ -233,6 +233,12 @@ class WordsOfAffirmationStory extends Story {
             // this.storyStore.completeStory("words-of-affirmation")
             this.destroy()
         } })
+
+        setTimeout(async () => {
+            const loveValue = Math.floor(this.gameScore/100)
+            await this.actionStore.add(this.identityStore.current.id, "love", loveValue )
+            this.identityStore.current.love = Math.min(this.identityStore.current.love + loveValue, 100)
+        }, 2000)
     }
 
     pickRandomWord() {
@@ -242,8 +248,8 @@ class WordsOfAffirmationStory extends Story {
 
         // Maak een lijst met mogelijkheden op basis van de score
         let wordOptions = []
-        wordOptions.push(...this.hurtfulWords.map(w => ({ word: w, score: 0 })))
-        wordOptions.push(...this.affirmativeWords.map(w => ({ word: w, score: 1 })))
+        wordOptions.push(...shuffle(this.affirmativeWords.map(w => ({ word: w, score: 1 }))))
+        wordOptions.push(...shuffle(this.hurtfulWords.map(w => ({ word: w, score: 0 }))))
 
         // verwijder al gebruikte woorden
         wordOptions = wordOptions.filter(option => !this.wordScores.find(ws => ws.word === option.word))
@@ -253,18 +259,25 @@ class WordsOfAffirmationStory extends Story {
         }
 
         // sort op score (laag naar hoog)
-        wordOptions.sort((a, b) => b.score - a.score)
+        // wordOptions.sort((a, b) => a.score - b.score)
 
-        // Selecteer een willekeurig woord uit de onderste 2/3 van de lijst
-        let randomIndex = Math.round((Math.random() * .667) * wordOptions.length)
+        const positiveRatio = this.affirmativeWords.length/wordOptions.length
+        const ratio = positiveRatio * 1.2 // 20% is kans op een negatief woord, 80% kans op een positief woord
 
-        
-        if (totalScore <= 1 && this.wordScores.length >= this.maxWords * .75) {
-            randomIndex = wordOptions.length - Math.floor((this.hurtfulWords.length) * Math.random())
+        // Selecteer een willekeurig woord uit 2/3 van de lijst (dat betekend meestal positief)
+        let randomIndex = Math.floor(Math.random() * ratio * wordOptions.length)
+
+        // Forceer altijd ten minste één positief woord
+        if (totalScore < 1) {
+            randomIndex = 0
         }
 
         // kies een willekeurig woord uit de overgebleven opties
         newWord = { ...wordOptions[randomIndex], svgEl: undefined }
+        
+        if (!newWord.word) {
+            newWord = { ...wordOptions[0], svgEl: undefined }
+        }
         
         newWord.svgEl = this.createText(newWord.word)
         
