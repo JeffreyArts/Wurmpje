@@ -1,6 +1,5 @@
 // Todo
 // - wof actions moeten worden opgeslagen onder "wof", bij het starten van een game ( zodat het juiste getal boven het pictogram komt te staan )
-// - De timer moet terug gezet worden naar 60
 // - De interval van de woorden moeten worden ge-optimaliseerd
 
 import Story from "@/models/story"
@@ -126,7 +125,7 @@ class WordsOfAffirmationStory extends Story {
     hurtfulWords = hurtfulWords
     fadeOutDuration = 6
     maxWords = 2
-    timer = 8
+    timer = 60
     prevTime = 0
     startTime = 0
     noNewWords = false
@@ -285,6 +284,11 @@ class WordsOfAffirmationStory extends Story {
         if (newWord.score == 1) { 
             newWord.svgEl.classList.add("__isAffirmative")
         }
+        
+        gsap.fromTo(newWord.svgEl, { opacity: 0 }, { opacity: 1, delay: 1, duration: .4, ease: "power3.in", onComplete: () => {
+            this.fadeOutWord(newWord.svgEl)
+        } })
+
         this.wordScores.push({ ...newWord, x, y })
     }
 
@@ -385,7 +389,7 @@ class WordsOfAffirmationStory extends Story {
             // }})
         }
 
-        gsap.to(wordEl, { opacity: 0, duration: this.fadeOutDuration, scale: 0.5, onComplete })
+        gsap.to(wordEl, { opacity: 0, delay: .5, duration: this.fadeOutDuration, ease: "linear", scale: 0.5, onComplete })
     }
     
     createText(string: string) {
@@ -395,13 +399,7 @@ class WordsOfAffirmationStory extends Story {
         textEl.classList.add("wof-word")
         textEl.setAttribute("data-word", string)
         textEl.addEventListener("click", this.clickHandler.bind(this))
-        gsap.fromTo(textEl, 
-            { opacity: 0 }, 
-            { opacity: 1, duration: 1, ease: "linear", onComplete: () => {
-                this.fadeOutWord(textEl)
-            } }
-        )
-        
+
         return textEl
     }
 
