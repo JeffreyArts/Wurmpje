@@ -1,13 +1,20 @@
+// Todo
+// - wof actions moeten worden opgeslagen onder "wof", bij het starten van een game ( zodat het juiste getal boven het pictogram komt te staan )
+// - De timer moet terug gezet worden naar 60
+// - De woordensets moeten opnieuw geschreven worden
+// - De interval van de woorden moeten worden ge-optimaliseerd
+// - De tekst voor de scorefix moet worden aangepast, voor slechte scores, en goede scores
+
 import Story from "@/models/story"
 import gsap from "gsap"
 import { Icon } from "jao-icons"
 import { shuffle } from "lodash"
 
 const affirmativeWords = [
+    "Fantastic",
     "Amazing",
     "Incredible",
     "Brilliant",
-    "Fantastic",
     "Wonderful",
     "Outstanding",
     "Spectacular",
@@ -15,39 +22,43 @@ const affirmativeWords = [
     "Exceptional",
     "Magnificent",
     "Phenomenal",
+    "Terrific",
     "Fabulous",
-    "Strong",
-    "Capable",
-    "Confident",
-    "Calm",
-    "Focused",
-    "Brave",
+    "Excellent",
+    "Great",
+    "Good",
+    "Humble",
     "Kind",
-    "Worthy",
-    "Creative",
-    "Resilient",
-    "Positive",
-    "Grateful",
+    "Caring",
+    "Compassionate",
+    "Generous",
+    "Loving",
+    "Thoughtful",
     "Patient",
-    "Curious",
-    "Honest",
-    "Balanced",
-    "Energetic",
-    "Mindful",
-    "Determined",
+    "Understanding",
+    "Supportive",
+    "Encouraging",
     "Optimistic",
-    "Grounded",
-    "Motivated",
-    "Healthy",
-    "Loved",
-    "Growing",
-    "Powerful",
-    "Steady",
+    "Cheerful",
     "Joyful",
-    "Beautiful",
-    "Successful",
-    "Hopeful",
-    "Enough"
+    "Sweet",
+    "Grateful",
+    "Reliable",
+    "Trustworthy",
+    "Honest",
+    "Respectful",
+    "Friendly",
+    "Creative",
+    "Imaginative",
+    "Adventurous",
+    "Curious",
+    "Hardworking",
+    "Determined",
+    "Resilient",
+    "Brave",
+    "Confident",
+    "Enough",
+    "Vulnerable",
 ]
 
 const hurtfulWords = [
@@ -58,9 +69,7 @@ const hurtfulWords = [
     "Ugly",
     "Hopeless",
     "Incompetent",
-    "Worthless",
-    "Failure",
-    "Pathetic",
+    "Limited",
     "Disappointing",
     "Clumsy",
     "Cowardly",
@@ -78,7 +87,7 @@ const hurtfulWords = [
     "Impatient",
     "Pessimistic",
     "Negative",
-    "Gloomy",
+    "Needy",
     "Overwhelming",
     "Tiring",
     "Incapable",
@@ -89,7 +98,7 @@ const hurtfulWords = [
     "Unkind",
     "Unworthy",
     "Unimaginative",
-    "Fragile",
+    "Invisible",
     "Ungrateful",
     "Indifferent",
     "Dishonest",
@@ -197,9 +206,11 @@ class WordsOfAffirmationStory extends Story {
             onComplete: () => {
                 this.createScorefix()
                 this.createLeaderboard()
-                document.addEventListener("click", () => {
-                    this.endStory()
-                }, { once: true })
+                setTimeout(() => {
+                    document.addEventListener("click", () => {
+                        this.endStory()
+                    }, { once: true })
+                }, 1500)
             }
         })
 
