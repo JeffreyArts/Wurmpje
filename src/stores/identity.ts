@@ -74,7 +74,6 @@ const identity = defineStore("identity", {
                 this.watchForStateChanges()
                 this.setDefaultEmotionalState()
                 this.checkDeathConditions()
-
                 resolve(true)
             })
         },

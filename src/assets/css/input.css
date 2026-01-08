@@ -75,3 +75,23 @@ textarea.input {
         max-width: calc(100% - 40px);
     }
 }
+
+.button {
+    background-color: var(--contrast-color);
+    color: var(--primary-bg-color);
+    padding: 8px 16px;
+    border-width: 2px;
+    border-style: groove;
+    transition: var(--transition-default);
+    font-family: var(--accent-font);
+
+    &:hover {
+        border-style: inset;
+        cursor: pointer;
+        scale: 1.08;
+    }
+
+    &:focus {
+        opacity: 0.8;
+    }
+}

@@ -11,7 +11,7 @@
             <!-- DEFAULT SLOT -->
             <slot></slot>
             <div v-if="!hideSubmit" class="modal-actions">
-                <button class="modal-submit" type="submit" ref="modalSubmit" @click="handleSubmit">
+                <button class="modal-submit button" type="submit" ref="modalSubmit" @click="handleSubmit">
                     <!-- SUBMIT TEXT SLOT -->
                     <slot name="submit-text">Submit</slot>
                 </button>
@@ -90,6 +90,8 @@ export default defineComponent({
                 if (!modalOverlay || !modalContent) {
                     return
                 }
+                modalOverlay.style.pointerEvents = "auto"
+
                 gsap.fromTo([modalOverlay, modalContent], {
                     opacity: 0
                 },{
@@ -222,14 +224,9 @@ export default defineComponent({
 }
 
 .modal-submit {
-    background-color: var(--contrast-color);
-    color: var(--bg-color);
-    border: 0 none transparent;
-    padding: 8px 16px;
-    font-family: var(--accent-font);
     font-size: 16px;
     cursor: pointer;
-    transition: var(--transition-default);
+    
 
     &:hover,
     &:focus {
