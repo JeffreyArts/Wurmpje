@@ -194,8 +194,6 @@ export default defineComponent ({
                     })
                 })
             }
-
-            console.log(this.transitEffect)
                     
             this.transit(this.transitEffect)
         },
@@ -249,7 +247,7 @@ export default defineComponent ({
             
             this.originalGrid.forEach((grid, index) => {
                 const cell = find(this.displayGrid, { x:grid.x, y:grid.y })
-                console.log(duration)
+
                 if (cell) {
                     this.transitions.push(gsap.to(cell, {
                         color: grid.color,

@@ -36,8 +36,6 @@
 <script lang="ts">
 import { defineComponent } from "vue"
 import useIdentityStore from "@/stores/identity"
-import matterBox from "@/components/matter-box.vue";
-import Favicon from "@/components/favicon.vue";
 import requestInvitationModal from "@/modals/request-invitation.vue";
 import jaoIcon from "@/components/jao-icon.vue";
 import gsap from "gsap";
@@ -45,8 +43,6 @@ import gsap from "gsap";
 export default defineComponent ({ 
     name: "setupPage",
     components: { 
-        matterBox,
-        Favicon,
         requestInvitationModal,
         jaoIcon
     },
