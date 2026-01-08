@@ -86,11 +86,6 @@ export class Catterpillar {
         if (this.texture.stroke) {
             this.stroke = this.thickness * 0.05
         }
-        
-
-        document.onkeydown = (e) => {
-            this.#inTouchWithEarth()
-        }
 
 
         // Create composite

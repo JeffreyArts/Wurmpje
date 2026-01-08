@@ -60,7 +60,7 @@ export default defineComponent ({
     methods: {
         draw() {
             this.$nextTick().then(() => {
-                this.removeOldCanvas();
+                this.removeOld();
                 if (this.type === "flat") {
                     this.createFlatCanvas(this.$el.clientWidth, this.$el.querySelector("#canvas-container"), this.identityField);
                 } else {
@@ -124,14 +124,9 @@ export default defineComponent ({
             const canvas = target.querySelector("#two-js") as HTMLCanvasElement;
             this.$emit("ready", this.controller)
         },
-        removeOldCanvas() {
-            const oldTwoJSCanvas = this.$el.querySelector("#two-js") as HTMLCanvasElement;
-            const oldMatterCanvas = this.$el.querySelector("#matter") as HTMLCanvasElement;
-            if (oldTwoJSCanvas) {
-                oldTwoJSCanvas.remove();
-            }
-            if (oldMatterCanvas) {
-                oldMatterCanvas.remove();
+        removeOld() {
+            if (this.controller) {
+                this.controller.destroy()
             }
 
         }

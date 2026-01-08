@@ -1,12 +1,10 @@
 import Matter from "matter-js"
-import gsap from "gsap"
 import { MatterSetup } from "./setup"
 import { Draw } from "./draw"
 
 import { Wall } from "./create/wall"
 import { Catterpillar } from "./create/catterpillar"
 import CatterpillarModel from "@/models/catterpillar"
-import FoodModel from "@/models/food"
 import type { IdentityField } from "@/models/identity"
 
 import actionStore from "@/stores/action"
@@ -381,6 +379,8 @@ export class MatterController {
         this.ref.world.bodies.length = 0
         this.ref.world.composites.length = 0
         this.ref.world.constraints.length = 0
+        
+        this.ref.removePrivateEvents()
         
         Matter.Render.stop(this.ref.renderer)
 

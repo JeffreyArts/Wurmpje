@@ -212,4 +212,13 @@ export class MatterSetup {
             return fn.name !== name
         })
     }
+
+    removePrivateEvents = () => {
+        window.removeEventListener("touchstart", this.#disableScrollToRefresh)
+        window.removeEventListener("pointerdown", this.#onPointerDown)
+        window.removeEventListener("pointerup", this.#onPointerUp)
+        window.removeEventListener("pointermove", this.#onPointerMove)
+        window.removeEventListener("resize", this.#onResize)
+    }
+
 }

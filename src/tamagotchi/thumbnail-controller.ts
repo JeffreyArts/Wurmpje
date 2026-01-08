@@ -172,7 +172,7 @@ export class ThumbnailController {
         return this.catterpillar
     }
 
-    destroy() {
+    destroy = () => {
         this.ref.world.bodies.length = 0
         this.ref.world.composites.length = 0
         this.ref.world.constraints.length = 0
