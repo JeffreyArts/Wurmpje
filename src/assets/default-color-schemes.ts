@@ -20,7 +20,7 @@ export default [
     { "colors":["#e0e40c","#333333"],"name": "aureus niger" },
     { "colors":["#eef4fb","#333333"],"name": "aterniveus" },
     { "colors":["#d9d9d9","#333333"],"name": "cinereo" },
-    { "colors":["#333333","#e8e8e8"],"name": "niger" },
+    { "colors":["#333333","#e8e8e8"],"name": "greyzeus" },
     { "colors":["#333333","#faffad"],"name": "niger flavus" },
     { "colors":["#eed8ba","#654015"],"name": "brunneo" },
     { "colors":["#654015","#eed8ba"],"name": "brunneus" },

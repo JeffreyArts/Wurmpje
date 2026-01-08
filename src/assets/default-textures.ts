@@ -7,10 +7,10 @@ export type textureInterface = {
     disabled?: boolean
     name?: string
 }
-export default [{ "360": "worms", "stroke": false, "name": "Aurian" },
+export default [{ "360": "worms", "stroke": false, "name": "Patriciella" },
     { "360": "paths", "stroke": false, "name": "Rudolfius" },
-    { "360": "panter", "stroke": false, "name": "Serpetra" },
-    { "360": "panter", "stroke": true, "name": "Patriciella" },
+    { "360": "panter", "stroke": false, "name": "Pantera" },
+    { "360": "panter", "stroke": true, "name": "Panterus" },
     { "360": "leafs", "stroke": false, "name": "Corpatrick" },
     { "360": "leafs", "stroke": true, "name": "Rubanus" },
     { "360": "giraffe", "stroke": false, "name": "Maartjilla" },
@@ -81,7 +81,7 @@ export default [{ "360": "worms", "stroke": false, "name": "Aurian" },
     { "top": "t6","bottom": "b2","stroke": false,"name": "Aurisssa" },
     { "top": "t6","bottom": "b2","stroke": true,"name": "Valitia" },
     { "top": "t6","bottom": "b3","stroke": false,"name": "Luciella" },
-    { "top": "t6","bottom": "b5","stroke": false,"name": "Marcialla" },
+    { "top": "t6","bottom": "b5","stroke": false,"name": "Marciella" },
     { "top": "t6","bottom": "b5","stroke": true,"name": "Corissa" },
     { "top": "t6","bottom": "b6","stroke": false,"name": "Siletia" },
     { "top": "t6","bottom": "b7","stroke": false,"name": "Florella" },
