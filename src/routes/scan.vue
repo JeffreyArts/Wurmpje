@@ -439,6 +439,9 @@ export default defineComponent({
                 this.newIdentity.name = this.identity.getLatinName(this.newIdentity.colorSchemeIndex, this.newIdentity.textureIndex)
             }
 
+            // Set name to maximum 24 characters
+            this.newIdentity.name = this.newIdentity.name.substring(0, 24)
+
             const qrData = this.lastScans[this.lastScans.length - 1].data
         
             const characteristics = {

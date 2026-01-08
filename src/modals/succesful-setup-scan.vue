@@ -12,7 +12,7 @@
                 <i class="icon">
                     <jao-icon :name="newIdentity.gender === 0 ? 'male' : 'female'" size="large" inactive-color="transparent" activeColor="var(--bg-color)"/>
                 </i>
-                <input type="text" :placeholder="latinName" class="input large" v-model="newIdentity.name" />
+                <input type="text" :placeholder="latinName" class="input large" v-model="newIdentity.name" maxlength="24" />
             </div>
         </form>
         
