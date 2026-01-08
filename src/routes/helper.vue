@@ -5,13 +5,12 @@
             <wurmpjeThumbnail type="curved" class="wurmpje" :identityField="wurmpje" :redrawKey="redrawKey"/>
             <div class="qr-container" v-html="svg"></div>
         </article>
-
         <div class="helper-form">
             <form class="form" v-if="wurmpje">
                 
                 <label for="wurmpje-name-input">Name:</label>
                 <div class="row">
-                    <input id="wurmpje-name-input" type="text" v-model="wurmpje.name" @input="updateWurmpje(true)"/>
+                    <input id="wurmpje-name-input" pattern="[A-Za-z ]{1,24}" validate type="text" v-model="wurmpje.name" @input="updateWurmpje(true)"/>
                     <span class="wurmpje-name-length" :class="[wurmpje.name.length>=24 ? '__isTooLong': '']">[{{ wurmpje.name.length }}]</span>
                 </div>
                 <div class="row">
@@ -40,7 +39,7 @@
                                     <input id="wurmpje-length-input" type="number" min="3" max="18" v-model="wurmpje.length" @input="updateWurmpje()"/>
                                 </td>
                                 <td>
-                                    <input id="wurmpje-thickness-input" type="number" min="0" max="32" v-model="wurmpje.thickness" @input="updateWurmpje()"/>
+                                    <input id="wurmpje-thickness-input" type="number" min="8" max="40" v-model="wurmpje.thickness" @input="updateWurmpje()"/>
                                 </td>
                             </tr>
                         </tbody>
@@ -56,6 +55,17 @@
                     <label for="newborn">
                         <span>Newborn</span>
                         <input type="radio" name="display-as" id="newborn" value="newborn" v-model="displayAs" @change="updateWurmpje()"/>
+                    </label>
+                </div>
+                <span class="label">Gender:</span>
+                <div class="row display-as-options">
+                    <label for="man">
+                        <span>Man</span>
+                        <input type="radio" name="gender" id="man" :value="0" v-model="wurmpje.gender" @change="updateWurmpje()"/>
+                    </label>
+                    <label for="woman">
+                        <span>Woman</span>
+                        <input type="radio" name="gender" id="woman" :value="1" v-model="wurmpje.gender" @change="updateWurmpje()"/>
                     </label>
                 </div>
                 
@@ -153,7 +163,7 @@ export default defineComponent ({
                 colorSchemeIndex: this.wurmpje!.colorSchemeIndex,
                 offset: this.wurmpje!.offset,
                 gender: this.wurmpje!.gender,
-                length: this.wurmpje!.length - 3,
+                length: this.wurmpje!.length,
                 thickness: this.wurmpje!.thickness
             })
             
@@ -174,6 +184,8 @@ export default defineComponent ({
             if (!this.identity || !this.wurmpje) {
                 return
             }   
+            this.wurmpje.name = this.wurmpje.name.replace(/[^A-Za-z ]/g, "").slice(0,24)
+
             const identity = new Identity()
             try {
                 identity.encode(this.wurmpje)

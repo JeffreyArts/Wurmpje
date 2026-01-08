@@ -335,13 +335,12 @@ export default defineComponent({
                 const parentParam = url.searchParams.get("parent")
                 if (parentParam) {
                     this.$router.push({ name: "home", query: { parent: parentParam } })
-                    // Refresh page to trigger parent processing
-                    // window.location.reload()
                     return  
                 }
             }
-
+            
             const identityObject = await this.validateQR(qrData)
+            
 
             if (identityObject) {
                 this.updateTextMessage("")
@@ -562,7 +561,18 @@ export default defineComponent({
         },
         async validateQR(scannedData: string): Promise<IdentityField | null> {
             const identity = new Identity()
-            const identityObject = await identity.deriveIdentityFromHash(scannedData)
+            let identityObject
+            
+            try {
+                identityObject = await identity.decode(decodeURIComponent(scannedData))
+            } catch (e) {
+                identityObject = await identity.deriveIdentityFromHash(scannedData)
+            }
+            //  = await identity.decode(scannedData)
+
+            if (!identityObject) {
+                return null
+            }            
             
             if (identityObject.textureIndex >= this.identity.totalTextures()) {
                 return null

@@ -74,7 +74,6 @@ export default defineComponent({
         "identity.current": {
             handler() {
                 if (this.identity.current) {
-                    console.log("Identity changed, regenerating QR code")
                     this.generateQR()
                 }
             },

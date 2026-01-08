@@ -72,7 +72,7 @@
         <div class="breeding-container-cta" :class="[loveIsDisabled ? '__isDisabled' : '']" v-if="optionalParents.length > 0">
             <div class="divider" @click="submit">
                 <jao-icon name="heart" size="medium" active-color="var(--color-accent)" inactive-color="transparent"></jao-icon>
-                <button class="modal-submit" type="submit"> Make love </button>
+                <button class="modal-submit button" type="submit"> Make love </button>
             </div>
         </div>
     </Modal>

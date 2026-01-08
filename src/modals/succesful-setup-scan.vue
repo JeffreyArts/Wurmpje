@@ -10,9 +10,9 @@
         <form @submit.prevent="submit()" class="form" id="submit-name-form">
             <div class="row" v-if="newIdentity">
                 <i class="icon">
-                    <jao-icon :name="newIdentity.gender === 0 ? 'male' : 'female'" size="large" inactive-color="transparent" activeColor="var(--bg-color)"/>
+                    <jao-icon :name="newIdentity.gender === 0 ? 'male' : 'female'" size="large" inactive-color="transparent" activeColor="var(--bg-color)" @input="sanitizeName"/>
                 </i>
-                <input type="text" :placeholder="latinName" class="input large" v-model="newIdentity.name" maxlength="24" />
+                <input type="text" :placeholder="latinName" class="input large" v-model="newIdentity.name" @focus="clearDefaultName()" maxlength="24" />
             </div>
         </form>
         
@@ -96,6 +96,16 @@ export default defineComponent ({
         this.successMessage = this.successLines[Math.floor(Math.random() * this.successLines.length)]
     },
     methods: {
+        sanitizeName() {
+            if (this.newIdentity) {
+                this.newIdentity.name = this.newIdentity.name.replace(/[^A-Za-z ]/g, "").slice(0,24)
+            }
+        },
+        clearDefaultName() {
+            if (this.newIdentity && this.newIdentity.name === this.latinName) {
+                this.newIdentity.name = ""
+            }
+        },
         closeModalImmediate() {
             this.$emit("closeImmediate")
         },

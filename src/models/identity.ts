@@ -1,16 +1,16 @@
 export type IdentityField = {
     id: number;                 // 29-bit: 23 bits seconds/4 + 6 bits random
-    name: string;               // max 24 chars, letters A-Z/a-z + space
+    name: string;               // max 32 chars, letters A-Z/a-z + space
     textureIndex: number;       // 0-1023
     colorSchemeIndex: number;   // 0-1023
     offset: number;             // 0-15
     gender: number;             // 0 | 1
-    length: number;             // 3-20
-    thickness: number;          // 8-40
+    length: number;             // 0-31
+    thickness: number;          // 0-63
 }
 
 
-// Generate and encode identity to QR-ready Base45 string of 29 + 144 + 10 + 10 + 4 + 5 + 5 + 1 = 208 bits
+// Generate and encode identity to QR-ready Base45 string of 29 + 192 + 10 + 10 + 4 + 1 + 5 + 6 = 257 bits
 class Identity {
     private static readonly BASE45_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:"
     
@@ -62,8 +62,8 @@ class Identity {
         const colorSchemeIndex = readBits(10)  // 0-1023
         const offset = readBits(4)             // 0-15
         const gender = readBits(1)             // 0 of 1
-        const length = readBits(3)             // 0-7
-        const thickness = readBits(4)          // 0-32
+        const length = readBits(5)             // 0-31
+        const thickness = readBits(6)          // 0-63
 
 
         
@@ -74,11 +74,10 @@ class Identity {
             colorSchemeIndex,
             offset,
             gender,
-            length: length + 3,                      // 3-10
-            thickness: Math.min(thickness + 8, 32),  // 8-32
+            length: length,                 // 3-18
+            thickness: thickness,           // 8-39
         }
     }
-
 
     stringToId(str: string): number {
         let hash = 0
@@ -103,8 +102,8 @@ class Identity {
         }
         
         // Check name 
-        if (typeof name !== "string" || name.length > 24) {
-            throw new Error("Invalid name: must be string of max 24 chars")
+        if (typeof name !== "string" || name.length > 32) {
+            throw new Error("Invalid name: must be string of max 32 chars")
         }
 
         if (!/^[A-Za-z ]*$/.test(name)) {
@@ -132,13 +131,13 @@ class Identity {
         }
         
         // Check length
-        if (typeof length !== "number" || length < 3 || length > 20) {
-            throw new Error("Invalid length: must be 3-20")
+        if (typeof length !== "number" || length < 3 || length > 24) {
+            throw new Error("Invalid length: must be 3-24")
         }
 
         // Check thickness
-        if (typeof thickness !== "number" || thickness < 8 || thickness > 32) {
-            throw new Error("Invalid thickness: must be 8-32")
+        if (typeof thickness !== "number" || thickness < 8 || thickness > 64) {
+            throw new Error("Invalid thickness: must be 8-64")
         }
 
         return { id, name, textureIndex, colorSchemeIndex, offset, gender, length, thickness }
@@ -154,9 +153,9 @@ class Identity {
             }
         }
 
-        // UPDATE: Totaal is nu 208 bits (was 147)
-        // 208 bits / 8 = 26 bytes → afgerond naar 26 bytes
-        const minBytes = Math.ceil(208 / 8) // 26 bytes
+        // UPDATE: Totaal is nu 257 bits (was 147)
+        // 257 bits / 8 = 32.125 bytes → afgerond naar 33 bytes
+        const minBytes = Math.ceil(257 / 8) // 33 bytes
         
         const minLength = Math.ceil(minBytes * 3 / 2) 
         if (encodedString.length < minLength) {
@@ -205,15 +204,15 @@ class Identity {
         // ID: 29 bits
         this.push(bits, identity.id, 29)
 
-        // Name: 24 × 6 bits
-        const name = identity.name.padEnd(24, " ")
+        // Name: 32 × 6 bits
+        const name = identity.name.padEnd(32, " ")
         for (const c of name) {
             this.push(bits, this.encodeChar(c), 6)
         }
 
         // textureIndex: 10 bits
         this.push(bits, identity.textureIndex, 10)
-        
+
         // colorSchemeIndex: 10 bits
         this.push(bits, identity.colorSchemeIndex, 10)
 
@@ -226,40 +225,48 @@ class Identity {
         // length: 5 bits
         this.push(bits, identity.length, 5)
 
-        // thickness: 5 bits
-        this.push(bits, identity.thickness, 5)
+        // thickness: 6 bits
+        this.push(bits, identity.thickness, 6)
 
-        // Convert bits to bytes
+        // --- Convert bits to bytes (veilig voor niet-voud van 8) ---
         const bytes = new Uint8Array(Math.ceil(bits.length / 8))
-        bits.forEach((bit, i) => {
-            bytes[i >> 3] |= bit << (7 - (i % 8))
-        })
-
+        let byte = 0
+        for (let i = 0; i < bits.length; i++) {
+            byte = (byte << 1) | bits[i]
+            if (i % 8 === 7) {
+                bytes[i >> 3] = byte
+                byte = 0
+            }
+        }
+        // Voeg laatste byte toe als niet volle byte
+        if (bits.length % 8 !== 0) {
+            const pad = 8 - (bits.length % 8)
+            for (let i = 0; i < pad; i++) bits.push(0) // vul met nullen
+        }
         return bytes
     }
 
     // Decoding
     private bitUnpack(bytes: Uint8Array): IdentityField {
-
         const bits: number[] = []
         for (let i = 0; i < bytes.length; i++) {
+            const b = bytes[i]
             for (let j = 7; j >= 0; j--) {
-                bits.push((bytes[i] >> j) & 1)
+                bits.push((b >> j) & 1)
             }
         }
 
         let cursor = 0
         let result
 
-
         // ID: 29 bits
         result = this.unPush(bits, cursor, 29)
         const id = result.value
         cursor = result.cursor
 
-        // Name: 24 × 6 bits
+        // Name: 32 × 6 bits
         let name = ""
-        for (let i = 0; i < 24; i++) {
+        for (let i = 0; i < 32; i++) {
             result = this.unPush(bits, cursor, 6)
             name += this.decodeChar(result.value)
             cursor = result.cursor
@@ -291,8 +298,8 @@ class Identity {
         const length = result.value
         cursor = result.cursor
 
-        // thickness: 5 bits
-        result = this.unPush(bits, cursor, 5)
+        // thickness: 6 bits
+        result = this.unPush(bits, cursor, 6)
         const thickness = result.value
         cursor = result.cursor
 
@@ -306,7 +313,7 @@ class Identity {
         for (let i = 0; i < bytes.length; i += 2) {
             
             if (i + 1 < bytes.length) {
-                // Case 1: Twee bytes (24-bit X -> 3 Base45 karakters)
+                // Case 1: Twee bytes (16-bit X -> 3 Base45 karakters)
                 const x = (bytes[i] << 8) | bytes[i + 1]
 
                 const e = Math.floor(x / (45*45))
