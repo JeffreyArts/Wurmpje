@@ -6,7 +6,7 @@ export type IdentityField = {
     offset: number;             // 0-15
     gender: number;             // 0 | 1
     length: number;             // 3-20
-    thickness: number;          // 8-32
+    thickness: number;          // 8-40
 }
 
 
