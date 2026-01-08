@@ -79,7 +79,7 @@ export default defineComponent({
                 }
             },
             deep: true,
-            immediate: false,
+            immediate: true,
         },
     },
     data() {

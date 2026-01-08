@@ -1,6 +1,11 @@
 <template>
   
   <div id="catterpillar-container">
+
+    <router-link class="qr" to="/qr">
+        <jao-icon name="qr" size="large" active-color="currentColor" inactive-color="transparent" />
+    </router-link>
+
       <!-- Name tag -->
     <header v-if="identity && identity.name" class="catterpillar-header">
         <h1 class="catterpillar-name">
@@ -536,5 +541,19 @@ export default defineComponent ({
     letter-spacing: .2px;
     font-size: 10px;
     padding-top: 4px;
+}
+
+.qr {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    text-decoration: none;
+    z-index: 1;
+    
+    
+    svg {
+        height: 54px;
+        width: 54px;
+    }
 }
 </style>
