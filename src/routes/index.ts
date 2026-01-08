@@ -4,6 +4,7 @@ import Home from "@/routes/home.vue"
 import Setup from "@/routes/setup.vue"
 import Scan from "@/routes/scan.vue"
 import Helper from "@/routes/helper.vue"
+import QRCode from "@/routes/qr-code.vue"
 
 import { createWebHistory, createRouter } from "vue-router"
 
@@ -17,6 +18,11 @@ const routes = [
         path: "/scan",
         name: "scan",
         component: Scan,
+    },
+    {
+        path: "/qr",
+        name: "qr",
+        component: QRCode,
     },
     {
         path: "/hi",
