@@ -42,6 +42,17 @@ export default defineComponent ({
             console.error("Failed to initialise identity store:", e)
         }
     },
+    watch: {
+        "$route.query.parent": {
+            async handler() {
+                if (!this.identity.isInitialized) {
+                    await this.identity.initialised
+                }
+                await this.checkForParentInUrl()
+            },
+            immediate: true
+        }
+    },
     data() {
         return {
             invalidParentId: false,
@@ -59,11 +70,11 @@ export default defineComponent ({
         ]
     },
     async mounted() {
-        await this.identity.initialised
+        if (!this.identity.isInitialized) {
+            await this.identity.initialised
+        }
 
-        const foundParent = await this.checkForParentInUrl()
-
-        if (!this.identity.current && !foundParent) {
+        if (!this.identity.current && !this.$route.query.parent) {
             console.warn("No identity found, redirecting to setup page.")
             this.$router.push({ name: "setup" })
             return
@@ -73,11 +84,10 @@ export default defineComponent ({
         async checkForParentInUrl() {
             const queryString = this.$route.query.parent as string | undefined
             const identity = new Identity()
-
             if (!queryString) {
                 return
             }
-
+            
             try {
                 identity.validateIdentityString(queryString)
             } catch (e) {

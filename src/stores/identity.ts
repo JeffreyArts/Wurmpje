@@ -53,6 +53,7 @@ const identity = defineStore("identity", {
         current: undefined as currentIdentity | undefined,
         initialised: undefined as Promise<boolean> | undefined,
         isInitializing: false,
+        isInitialized: false,
 
     }),
     actions: {
@@ -75,6 +76,7 @@ const identity = defineStore("identity", {
                 this.setDefaultEmotionalState()
                 this.checkDeathConditions()
                 resolve(true)
+                this.isInitialized = true 
             })
         },
         async loadIdentityFromUrlParam() {

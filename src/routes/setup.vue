@@ -80,8 +80,9 @@ export default defineComponent ({
         ]
     },
     async mounted() {
-        await this.identity.initialised
-
+        if (!this.identity.isInitialized) {
+            await this.identity.initialised
+        }
     },
     methods: {
         closeModalImmediate() {

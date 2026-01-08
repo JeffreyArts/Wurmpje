@@ -336,7 +336,7 @@ export default defineComponent({
                 if (parentParam) {
                     this.$router.push({ name: "home", query: { parent: parentParam } })
                     // Refresh page to trigger parent processing
-                    window.location.reload()
+                    // window.location.reload()
                     return  
                 }
             }
