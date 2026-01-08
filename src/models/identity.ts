@@ -1,6 +1,6 @@
 export type IdentityField = {
     id: number;                 // 29-bit: 23 bits seconds/4 + 6 bits random
-    name: string;               // max 16 chars, letters A-Z/a-z + space
+    name: string;               // max 24 chars, letters A-Z/a-z + space
     textureIndex: number;       // 0-1023
     colorSchemeIndex: number;   // 0-1023
     offset: number;             // 0-15
@@ -10,7 +10,7 @@ export type IdentityField = {
 }
 
 
-// Generate and encode identity to QR-ready Base45 string of 29 + 96 + 10 + 10 + 4 + 5 + 5 + 1 = 160 bits
+// Generate and encode identity to QR-ready Base45 string of 29 + 144 + 10 + 10 + 4 + 5 + 5 + 1 = 208 bits
 class Identity {
     private static readonly BASE45_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:"
     
@@ -103,8 +103,8 @@ class Identity {
         }
         
         // Check name 
-        if (typeof name !== "string" || name.length > 16) {
-            throw new Error("Invalid name: must be string of max 16 chars")
+        if (typeof name !== "string" || name.length > 24) {
+            throw new Error("Invalid name: must be string of max 24 chars")
         }
 
         if (!/^[A-Za-z ]*$/.test(name)) {
@@ -154,9 +154,9 @@ class Identity {
             }
         }
 
-        // UPDATE: Totaal is nu 160 bits (was 147)
-        // 160 bits / 8 = 20 bytes → afgerond naar 20 bytes
-        const minBytes = Math.ceil(160 / 8) // 20 bytes
+        // UPDATE: Totaal is nu 208 bits (was 147)
+        // 208 bits / 8 = 26 bytes → afgerond naar 26 bytes
+        const minBytes = Math.ceil(208 / 8) // 26 bytes
         
         const minLength = Math.ceil(minBytes * 3 / 2) 
         if (encodedString.length < minLength) {
@@ -205,8 +205,8 @@ class Identity {
         // ID: 29 bits
         this.push(bits, identity.id, 29)
 
-        // Name: 16 × 6 bits
-        const name = identity.name.padEnd(16, " ")
+        // Name: 24 × 6 bits
+        const name = identity.name.padEnd(24, " ")
         for (const c of name) {
             this.push(bits, this.encodeChar(c), 6)
         }
@@ -257,9 +257,9 @@ class Identity {
         const id = result.value
         cursor = result.cursor
 
-        // Name: 16 × 6 bits
+        // Name: 24 × 6 bits
         let name = ""
-        for (let i = 0; i < 16; i++) {
+        for (let i = 0; i < 24; i++) {
             result = this.unPush(bits, cursor, 6)
             name += this.decodeChar(result.value)
             cursor = result.cursor
@@ -306,7 +306,7 @@ class Identity {
         for (let i = 0; i < bytes.length; i += 2) {
             
             if (i + 1 < bytes.length) {
-                // Case 1: Twee bytes (16-bit X -> 3 Base45 karakters)
+                // Case 1: Twee bytes (24-bit X -> 3 Base45 karakters)
                 const x = (bytes[i] << 8) | bytes[i + 1]
 
                 const e = Math.floor(x / (45*45))
