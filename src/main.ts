@@ -5,6 +5,9 @@ import { createPinia } from "pinia"
 // import { createHead } from "@unhead/vue/client"
 // import Physics from "./services/physics"
 
+if (!window.location.hostname.includes("localhost")) {
+    console.info = () => {} // noop in productie
+}
 
 import "./assets/css"
 // import App from "./App.vue"
