@@ -61,7 +61,7 @@ class PettingStory extends Story {
     }
 
 
-    start() {
+    async start() {
         console.info("Petting story started", this.identityStore)
         
         this.identity = this.identityStore.current
@@ -69,7 +69,18 @@ class PettingStory extends Story {
         this.controller.ref.addpointerDownEvent(this.createPetBrush.bind(this), "petting-story-create-brush")
         this.controller.ref.addpointerMoveEvent(this.updatePetBrushPosition.bind(this), "petting-story-move-brush")
         this.controller.ref.addpointerUpEvent(this.removePetBrush.bind(this), "petting-story-remove-brush")
-        Matter.Events.on(this.controller.ref.engine, "collisionActive",this.#collisionEventListener.bind(this))        
+        Matter.Events.on(this.controller.ref.engine, "collisionActive",this.#collisionEventListener.bind(this))   
+        
+
+        const maxLoveArray = await this.actionStore.loadLastActionsFromDB(this.identity.id, "petting", this.maxLove)
+
+        // remove all values that are older than 24 hours
+        const newMaxLoveArray = maxLoveArray.filter(action => {
+            const twentyFourHours = 24 * 60 * 60 * 1000
+            return (Date.now() - action.created) < twentyFourHours
+        })
+
+        this.maxLove = this.maxLove - newMaxLoveArray.length
     }
 
 
@@ -81,9 +92,10 @@ class PettingStory extends Story {
         if (!this.brush) return
         if (!this.catterpillar.isOnSolidGround) return
 
-        if (this.addLove <= this.maxLove && Math.floor(this.addLove) !== this.addedLove) {
+        if (this.addLove <= this.maxLove+1 && Math.floor(this.addLove) !== this.addedLove) {
             this.identityStore.current.love += Math.floor(this.addLove) - this.addedLove
             this.addedLove = Math.floor(this.addLove)
+            this.actionStore.add(this.identityStore.current.id, "petting", 1)
         }
                 
         this.xPos = this.brush.position.x
