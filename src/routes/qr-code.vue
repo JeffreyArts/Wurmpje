@@ -1,5 +1,5 @@
 <template>
-    <div class="qr-code-container">
+    <div class="qr-code-container" v-if="identity.current">
 
         <router-link class="page-go-back" to="/">
             <jao-icon name="chevron-left-fat" size="small" inactive-color="transparent" active-color="currentColor"/>
@@ -10,9 +10,13 @@
 
         <div class="qr-code-canvas-container">
             <div class="qr-code-canvas-title">
-                Make {{ identity.current.name }} the {{ parent }} of a new baby wurmpje by scanning the QR below
+                 {{ parent }} {{ identity.current.name }}
             </div>
+            <wurmpjeThumbnail type="flat" class="wurmpje" :identityField="identity.current" />
             <div v-html="svg" id="qr-code-svg"></div>
+            <div class="descriptive-note">
+                Scan the QR to make a new baby wurmpje
+            </div>
         </div>
 
         
@@ -36,11 +40,13 @@ import jaoIcon from "@/components/jao-icon.vue"
 import Identity, { type IdentityField } from "@/models/identity"
 import gsap from "gsap"
 import qrcode from "qrcode"
+import wurmpjeThumbnail from "@/components/wurmpje-thumbnail.vue"
 
 export default defineComponent({
     name: "qrCodePage",
     components: {
         jaoIcon,
+        wurmpjeThumbnail
     },
     computed: {
         parent(): string {
@@ -49,9 +55,9 @@ export default defineComponent({
             }
             
             if (this.identity.current.gender == 1) {
-                return "daddy"
+                return "Daddy"
             } else {
-                return "mommy"
+                return "Mommy"
             }
         }
     },
@@ -155,13 +161,22 @@ export default defineComponent({
     display: flex;
     flex-flow: column;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     gap: 64px;
     padding: 64px 0 32px;
 }
 
+#qr-code-svg {
+    max-height: 25vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    svg {
+        height: 100%;
+    }
+}
+
 .qr-code-canvas-container {
-    aspect-ratio: 1;
     width: calc(100% - 128px);   
     min-width: 256px;
     max-width: 480px;
