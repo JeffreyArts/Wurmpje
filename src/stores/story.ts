@@ -5,6 +5,7 @@ import type Story from "@/models/story"
 import introStory from "@/models/stories/intro"
 import eatStory from "@/models/stories/eat"
 import wofStory from "@/models/stories/word-of-affirmation"
+import wallSlamStory from "@/models/stories/wall-slam"
 import { type IdentityField } from "@/models/identity"
 import useDatabaseStore from "@/stores/database"
 
@@ -50,9 +51,15 @@ const story = defineStore("story", {
                 const databaseStore = useDatabaseStore()
                 this.db = await databaseStore.init()
 
+                // Conditional stories
                 this.addStory("intro", introStory)
+
+                // Action related stories
                 this.addStory("eat", eatStory)
                 this.addStory("wof", wofStory)
+                
+                // Passive stories, always active
+                this.addStory("wall-slam", wallSlamStory) 
 
                 resolve(true)
             })

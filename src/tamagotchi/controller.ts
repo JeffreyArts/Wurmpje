@@ -76,19 +76,21 @@ export class MatterController {
         
         this.createCatterpillar(startPosition, catterpillarOptions)
         this.#createWalls()
-        this.#collisionEventListener()
-        this.storyStore.initialised.then(() => {
-            this.storyStore.setController(this)
-            this.storyStore.setIdentity(this.identity)
-            this.storyStore.setActiveStory("intro")
-        })
-        
         // this.ref.addpointerMoveEvent(this.#lookAtMouse.bind(this), "lookAtMouse")
         this.ref.addpointerDownEvent(this.#grabCatterpillar.bind(this), "grabCatterpillar")
         this.ref.addpointerUpEvent(this.#releaseCatterpillar.bind(this), "releaseCatterpillar")
         this.ref.addpointerMoveEvent(this.#dragCatterpillar.bind(this), "dragCatterpillar")
         this.ref.addResizeEvent(this.#resizeCanvas.bind(this), "resizeCanvas")
         this.ref.addResizeEvent(this.#updateWalls.bind(this), "updateWalls")
+        
+        
+        this.storyStore.initialised.then(() => {
+            this.storyStore.setController(this)
+            this.storyStore.setIdentity(this.identity)
+            this.storyStore.setActiveStory("intro")
+
+            this.storyStore.setActiveStory("wall-slam")
+        })
         
         requestAnimationFrame(this.#loop.bind(this))
     }
@@ -226,35 +228,6 @@ export class MatterController {
             this.catterpillar.leftEye.lookAt({ x: mouse.x, y: mouse.y })
             this.catterpillar.rightEye.lookAt({ x: mouse.x, y: mouse.y })
         }
-    }
-
-    #collisionEventListener() {
-        Matter.Events.on(this.ref.engine, "collisionStart", (event) => {
-            event.pairs.forEach((pair) => {
-                // Check of dit pair je head bevat
-                const head = this.catterpillar.head.body
-                if (pair.bodyA === head || pair.bodyB === head) {
-                    // Bepaal welke body de head is en welke de ander
-                    const other = (pair.bodyA === head) ? pair.bodyB : pair.bodyA
-                    const normal = pair.collision.normal
-
-                    // Relatieve snelheid langs normaal
-                    const relVel = {
-                        x: other.velocity.x - head.velocity.x,
-                        y: other.velocity.y - head.velocity.y
-                    }
-                    const vRelAlongNormal = relVel.x * normal.x + relVel.y * normal.y
-
-                    const impactScore = Math.abs(vRelAlongNormal)
-
-                    if (impactScore > 24) {
-                        this.actionStore.add(this.identity.id, "love", -2)
-                        this.identityStore.current.love -= 2
-                    }
-                }
-            })
-        })
-
     }
 
     on(eventName: string, callback: (...args: any[]) => void) {

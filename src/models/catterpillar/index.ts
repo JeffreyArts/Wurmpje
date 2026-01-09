@@ -6,7 +6,7 @@ import { BodyPart } from "./bodypart"
 import Chroma from "chroma-js"
 import SpeechBubble from "@/models/speech-bubble"
 
-type Emote = "happy" | "sad" | "kiss" | "surprised" | "hmm"
+export type Emote = "happy" | "sad" | "kiss" | "surprised" | "hmm"
 
 export class Catterpillar {
     dev: boolean
