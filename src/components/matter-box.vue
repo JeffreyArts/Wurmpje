@@ -2,7 +2,7 @@
   
   <div id="catterpillar-container">
 
-    <router-link class="qr" to="/qr">
+    <router-link class="qr" to="/qr" v-if="!identity.death">
         <jao-icon name="qr" size="large" active-color="currentColor" inactive-color="transparent" />
     </router-link>
 
