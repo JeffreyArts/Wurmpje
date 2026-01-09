@@ -138,8 +138,8 @@ export default defineComponent ({
             name: "Helper Wurmpje",
             textureIndex: Math.floor(Math.random() * this.textures.length),
             colorSchemeIndex: Math.floor(Math.random() * this.colorSchemes.length),
-            length: 8,
-            thickness: 16,
+            length: 6,
+            thickness: 10,
             offset: Math.floor(Math.random() * 16),
             gender: Math.round(Math.random())
 
