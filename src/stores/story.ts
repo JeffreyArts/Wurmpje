@@ -1,11 +1,14 @@
 import { defineStore } from "pinia"
 import { MatterController } from "@/tamagotchi/controller"
 import { type IDBPDatabase } from "idb"
+
 import type Story from "@/models/story"
 import introStory from "@/models/stories/intro"
 import eatStory from "@/models/stories/eat"
 import wofStory from "@/models/stories/word-of-affirmation"
+import pettingStory from "@/models/stories/petting"
 import wallSlamStory from "@/models/stories/wall-slam"
+
 import { type IdentityField } from "@/models/identity"
 import useDatabaseStore from "@/stores/database"
 
@@ -60,6 +63,7 @@ const story = defineStore("story", {
                 
                 // Passive stories, always active
                 this.addStory("wall-slam", wallSlamStory) 
+                this.addStory("petting", pettingStory) 
 
                 resolve(true)
             })

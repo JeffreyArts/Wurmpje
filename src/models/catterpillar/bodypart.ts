@@ -74,9 +74,10 @@ export class BodyPart {
             collisionFilter: collisionBodyPart,
             mass: 1,
             density: .2,
-            friction: 20,
+            friction: .8,
+            frictionAir: .01,
             restitution: this.options.restitution,
-            slop: 1,
+            slop: .1,
             label,
             render: {
                 visible: this.dev,

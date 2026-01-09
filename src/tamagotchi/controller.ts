@@ -90,6 +90,7 @@ export class MatterController {
             this.storyStore.setActiveStory("intro")
 
             this.storyStore.setActiveStory("wall-slam")
+            this.storyStore.setActiveStory("petting")
         })
         
         requestAnimationFrame(this.#loop.bind(this))
