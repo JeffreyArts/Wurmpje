@@ -120,11 +120,12 @@ class WordsOfAffirmationStory extends Story {
     affirmativeWords = affirmativeWords
     hurtfulWords = hurtfulWords
     fadeOutDuration = 6
-    maxWords = 2
+    maxWords = 3
     timer = 60
     prevTime = 0
     startTime = 0
     noNewWords = false
+    newWordTimeout = null as ReturnType<typeof setTimeout> | null
 
     async start() {   
         console.info("Words of affirmation story started", this.identityStore)
@@ -137,18 +138,16 @@ class WordsOfAffirmationStory extends Story {
         this.startTime = Date.now()
         this.actionStore.isSelected = false
 
-        for (let i = 0; i < this.maxWords; i++) {
-            setTimeout(() => {
-                this.addNewWord()
-            }, i * 800 + Math.random() * 400)
-        }
+        // for (let i = 0; i < this.maxWords; i++) {
+        //     setTimeout(() => {
+        //         this.addNewWord()
+        //     }, i * 800 + Math.random() * 400)
+        // }
         this.controller.disableDragging = true
 
 
         await this.actionStore.add(this.identityStore.current.id, "wof", 10)
         await this.actionStore.updateWof(this.identityStore.current.id)
-
-        // this.words.push(this.createText("You are doing great!"))
     }
 
     loop() {
@@ -156,17 +155,25 @@ class WordsOfAffirmationStory extends Story {
             return
         }
 
+        if (this.wordScores.length < this.maxWords && !this.newWordTimeout) {
+            this.newWordTimeout = setTimeout(() => {  
+                if (this.wordScores.length < this.maxWords) {
+                    this.addNewWord()
+                }
+                clearTimeout(this.newWordTimeout)
+                this.newWordTimeout = null
+            }, Math.random() * 200 + 100)
+        }
+
         const elapsed = (Date.now() - this.startTime) / 1000
         if (this.prevTime !== Math.ceil(elapsed)) {
             if (this.prevTime%10 === 0 ) {
                 this.maxWords ++
-                this.addNewWord()
             }
             this.updateTimerDisplay()
         }
 
 
-        // console.log("Elapsed time:", this.prevTime, Math.ceil(elapsed))
         if (elapsed >= this.timer) {
             this.noNewWords = true
             setTimeout(() => {
@@ -290,7 +297,12 @@ class WordsOfAffirmationStory extends Story {
         }
 
         const newWord = this.pickRandomWord()
-        const { x, y } = this.getRandomPosition(newWord.svgEl)
+        const pos = this.getRandomPosition(newWord.svgEl)
+        if (!pos) {
+            this.removeWord(newWord.svgEl)
+            return
+        }
+        const { x, y } = pos
         newWord.svgEl.style.position = "absolute"
         newWord.svgEl.style.left = `${x}px`
         newWord.svgEl.style.top = `${y}px`
@@ -305,7 +317,10 @@ class WordsOfAffirmationStory extends Story {
         this.wordScores.push({ ...newWord, x, y })
     }
 
-    getRandomPosition(el: SVGElement) {
+    getRandomPosition(el: SVGElement, tries=0) {
+        if (tries > 100) {
+            return undefined
+        }
         const bounds = el.getBoundingClientRect()
         const offset = 32
         const x = Math.random() * ((window.innerWidth - offset) - bounds.width ) + offset / 2
@@ -348,7 +363,7 @@ class WordsOfAffirmationStory extends Story {
         }
 
         if (overlapping) {
-            return this.getRandomPosition(el)
+            return this.getRandomPosition(el, tries+1)
         }
 
         return { x, y }
@@ -363,7 +378,6 @@ class WordsOfAffirmationStory extends Story {
         if (wordEl.parentNode) {
             wordEl.parentNode.removeChild(wordEl)
         }
-        // console.log("Word removed", wordEl.getAttribute("data-word"), this.wordScores)
     }
 
     fadeOutWord(wordEl: SVGElement) {
@@ -471,7 +485,6 @@ class WordsOfAffirmationStory extends Story {
 
     updateTimerDisplay() {
         const timerEl = document.querySelector(".wof-timer") as HTMLElement
-        // console.log("Updating timer display", this.timer, this.timer - this.prevTime, this.prevTime)
         if (timerEl && this.prevTime !== undefined) {
             let timerString = (this.timer - this.prevTime).toString()
             if (timerString.length < 2) {
@@ -556,7 +569,7 @@ class WordsOfAffirmationStory extends Story {
 
         const maxScore = this.timer * this.maxWords 
         let randomAffirmative = ""
-        console.log("Creating scorefix", this.gameScore, maxScore)
+        
         if (this.gameScore < (maxScore * 0.4)) {
             randomAffirmative = bad[Math.floor(Math.random() * bad.length)]
         } else if (this.gameScore < (maxScore * 0.8)) {
