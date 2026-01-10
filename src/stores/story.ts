@@ -65,6 +65,8 @@ const story = defineStore("story", {
                 this.addStory("wall-slam", wallSlamStory) 
                 this.addStory("petting", pettingStory) 
 
+                // Info
+                console.info("Story database initialized")
                 resolve(true)
             })
         },
