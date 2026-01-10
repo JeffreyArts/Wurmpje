@@ -8,6 +8,7 @@ import eatStory from "@/models/stories/eat"
 import wofStory from "@/models/stories/word-of-affirmation"
 import pettingStory from "@/models/stories/petting"
 import wallSlamStory from "@/models/stories/wall-slam"
+import ballStory from "@/models/stories/ball"
 
 import { type IdentityField } from "@/models/identity"
 import useDatabaseStore from "@/stores/database"
@@ -56,6 +57,7 @@ const story = defineStore("story", {
 
                 // Conditional stories
                 this.addStory("intro", introStory)
+                this.addStory("ball", ballStory) 
 
                 // Action related stories
                 this.addStory("eat", eatStory)

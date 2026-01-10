@@ -25,5 +25,6 @@ export class Wall {
 
         // Add to world
         Matter.World.add(this.world, this.body)
+        return this
     }
 }

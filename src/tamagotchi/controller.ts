@@ -91,6 +91,7 @@ export class MatterController {
 
             this.storyStore.setActiveStory("wall-slam")
             this.storyStore.setActiveStory("petting")
+            this.storyStore.setActiveStory("ball")
         })
         
         requestAnimationFrame(this.#loop.bind(this))
@@ -122,13 +123,15 @@ export class MatterController {
         const wallThickness = 100
 
         // Top wall
-        new Wall({
+        const top = new Wall({
             x: width / 2,
             y: 0 - wallThickness / 2,
             width: width * 2,
             height: wallThickness,
             id: "top",
         }, this.ref.world)
+        top.body.collisionFilter.group = -1 // Ignore collisions with everything that is in the same group
+
 
         // Bottom
         new Wall({
