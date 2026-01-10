@@ -178,9 +178,15 @@ export default defineComponent ({
             return
         }
 
+        // let startPosition = { x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - this.config.offsetBottom - catterpillarOptions.identity.thickness }
+        const offsetBottom = 128
+        const startPosition = { 
+            x: window.innerWidth / 2,
+            y: window.innerHeight - offsetBottom - this.identity.thickness 
+        }
         this.controller = new MatterController( this.$refs["catterpillar"] as HTMLElement, {
             identity: this.identity,
-            catterpillarPos: { x: window.innerWidth / 2, y: -100},
+            catterpillarPos: startPosition,
             offsetBottom: 128
         })
 
