@@ -184,6 +184,12 @@ export default defineComponent ({
             x: window.innerWidth / 2,
             y: window.innerHeight - offsetBottom - this.identity.thickness 
         }
+
+        // Change startPosition if the catterpillar is new, so it falls from the sky
+        if (this.identity.age <= 1) {
+            startPosition.y = -200
+        }
+        
         this.controller = new MatterController( this.$refs["catterpillar"] as HTMLElement, {
             identity: this.identity,
             catterpillarPos: startPosition,
