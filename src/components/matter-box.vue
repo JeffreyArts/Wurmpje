@@ -561,7 +561,7 @@ export default defineComponent ({
     left: 16px;
     text-decoration: none;
     z-index: 1;
-    
+    color: currentColor;
     
     svg {
         height: 54px;
