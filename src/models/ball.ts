@@ -9,6 +9,7 @@ export class Ball {
     size: number
     color: string
     rotation: number = 0
+    isFlying: boolean = false
 
     constructor(options: {
         x: number,

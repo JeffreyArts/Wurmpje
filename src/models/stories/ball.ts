@@ -14,6 +14,10 @@ class BallStory extends Story {
     disableDragging = false
     mousePin = undefined as Matter.Constraint | undefined
     isGrabbed = false
+    isLookingAtBall = false
+    // isGoingForBall = false
+    ballIsFlying = false
+    ballIsFlyingTimeout = undefined as NodeJS.Timeout | undefined
 
     async start() {
         console.info("Ball story started", this.identityStore)
@@ -25,6 +29,8 @@ class BallStory extends Story {
         for (let i = 0; i < this.maxBalls; i++) {
             await this.createBall()
         }
+
+        this.ball = this.balls[0]
     }
 
     #createMousePin(pinPos) {
@@ -131,9 +137,20 @@ class BallStory extends Story {
         const ball = balls[Math.floor(Math.random() * balls.length)]
         
         if (ball) {
+            this.#setIsFlying()
+        }
+        
+        
+        if (this.ballIsFlying) {
+            this.isLookingAtBall = true
             this.catterpillar.leftEye.lookAt(ball)
             this.catterpillar.rightEye.lookAt(ball)
+        } else {
+            if (this.catterpillar.isPointingLeft()) {
+                this.resetEyes()
+            }
         }
+
 
         // Try to move towards first food
         if (balls.length > 0 && !this.catterpillar.isMoving && !this.catterpillar.isTurning && this.movementCooldown <= 0) {
@@ -156,6 +173,37 @@ class BallStory extends Story {
         
         
         this.movementCooldown -= 1
+    }
+
+    #setIsFlying() {
+        if (!this.ball) return
+        const yTreshold = this.controller.ref.renderer.canvas.clientHeight - this.controller.config.offsetBottom - this.ball.size 
+
+        if (this.ball.y < yTreshold) {
+            if (this.ballIsFlyingTimeout) {
+                clearTimeout(this.ballIsFlyingTimeout)
+            }
+            this.ballIsFlying = true
+        } else { 
+            this.ballIsFlyingTimeout = setTimeout(() => {
+                this.ballIsFlying = false
+            }, 100)
+        }
+    }
+
+    resetEyes() {   
+        if (!this.isLookingAtBall) {
+            return
+        }
+        console.log("Resetting eyes")
+
+        this.catterpillar.leftEye.blink()
+        this.catterpillar.rightEye.blink()
+        this.catterpillar.leftEye.lookLeft(0, 2)
+        this.catterpillar.rightEye.lookLeft(0, 2)
+
+        this.isLookingAtBall = false
+
     }
     
     destroy() {
