@@ -18,6 +18,8 @@ class BallStory extends Story {
     // isGoingForBall = false
     ballIsFlying = false
     ballIsFlyingTimeout = undefined as NodeJS.Timeout | undefined
+    
+    resettingEyesTimeout = undefined as NodeJS.Timeout | undefined
 
     async start() {
         console.info("Ball story started", this.identityStore)
@@ -109,6 +111,24 @@ class BallStory extends Story {
         }
     }   
 
+    #ballIsOutOfBounds() {
+        if (!this.ball) {
+            return false
+        }
+
+        if (this.ball.x < 0 ) {
+
+            this.catterpillar.leftEye.lookLeft(2, 4)
+            this.catterpillar.rightEye.lookLeft(2, 4)
+            return true
+        }
+        if (this.ball.x > this.controller.ref.renderer.canvas.clientWidth ) {
+            this.catterpillar.leftEye.lookRight(2, 4)
+            this.catterpillar.rightEye.lookRight(2, 4)
+            return true
+        }
+    }
+
     async createBall() {
         const size = this.controller.catterpillar.thickness
 
@@ -145,14 +165,24 @@ class BallStory extends Story {
             this.isLookingAtBall = true
             this.catterpillar.leftEye.lookAt(ball)
             this.catterpillar.rightEye.lookAt(ball)
-        } else {
-            if (this.catterpillar.isPointingLeft()) {
-                this.resetEyes()
-            }
         }
 
+        // Make catterpillar sad if ball is out of bounds
+        if (this.#ballIsOutOfBounds()) {
+            if (this.catterpillar.mouth.state != "🙁" && !this.resettingEyesTimeout) {
+                this.catterpillar.emote("sad")
+                
+                this.resettingEyesTimeout = setTimeout(() => {
+                    this.catterpillar.mouth.moveToState("😐")
+                    this.resetEyes()
+                }, 8000)
+                this.removeBall(this.ball)
+            }
 
-        // Try to move towards first food
+        } 
+
+
+        // Try to move towards ball
         if (balls.length > 0 && !this.catterpillar.isMoving && !this.catterpillar.isTurning && this.movementCooldown <= 0) {
                     
             if (ball.x < head.position.x) {
@@ -189,6 +219,21 @@ class BallStory extends Story {
                 this.ballIsFlying = false
             }, 100)
         }
+    }
+
+    removeBall(ball: BallModel) {
+        if (!ball) {
+            return
+        }
+        
+        // Remove from array
+        this.balls = this.balls.filter(b => b !== ball)
+
+        // Remove from world
+        this.controller.draw.newObjects = this.controller.draw.newObjects.filter(o => o.id !== ball.composite.id)
+        
+        // Remove from Matter world
+        Matter.World.remove(this.controller.ref.world, ball.composite)
     }
 
     resetEyes() {   

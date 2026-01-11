@@ -86,6 +86,10 @@ export class Eye  {
     }
 
     lookAt(target: { x: number, y: number }, duration?: number) {
+        if (!target) {
+            return
+        }
+        
         const angle = Math.atan2(target.y - this.y, target.x - this.x)
         const distance = Math.min( Math.hypot(target.x - this.x, target.y - this.y), 10)
         

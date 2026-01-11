@@ -45,7 +45,7 @@ export const availableBodyPartTextures = [
     "/bodyparts/vert/polkadots",
 ]
 type objectModel = {
-    id: string,
+    id: number,
     type: "food" | "catterpillar" | "speechBubble",
     model: FoodModel | CatterpillarModel | SpeechBubble,
     layers: Layers
