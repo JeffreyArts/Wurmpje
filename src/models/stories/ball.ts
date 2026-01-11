@@ -105,8 +105,13 @@ class BallStory extends Story {
 
     async createBall() {
         const size = this.controller.catterpillar.thickness
+
+        const leftSide = this.controller.catterpillar.head.x - this.controller.catterpillar.thickness * 2 - 64
+        const rightSide = this.controller.ref.renderer.canvas.clientWidth - this.controller.catterpillar.butt.x - 64
+        const x = Math.random() < .5 ? Math.random() * leftSide + 32 : (Math.random() * rightSide) + this.controller.catterpillar.butt.x + 32
+
         const ball = new BallModel({
-            x: Math.random() * (window.innerWidth - size) + size / 2,
+            x: x ,
             y: window.innerHeight - this.controller.config.offsetBottom + size / 2,
             size: size,
             color: "aquamarine"
