@@ -5,6 +5,7 @@ import type { currentIdentity } from "@/stores/identity"
 import { collisionBrush } from "@/tamagotchi/collisions"
 
 class PettingStory extends Story {
+    type = "passive" as const
     identity = undefined as currentIdentity | undefined
     catterpillar = undefined as Catterpillar | undefined
     brush = undefined as Matter.Body | undefined

@@ -4,11 +4,13 @@ import Catterpillar, { type Emote } from "../catterpillar"
 import type { currentIdentity } from "@/stores/identity"
 
 class WallSlamStory extends Story {
+    type = "passive" as const
     identity = undefined as currentIdentity | undefined
     catterpillar = undefined as Catterpillar | undefined
     defaultState = "happy" as Emote
     defaultStateTimeout = undefined as ReturnType<typeof setTimeout> | undefined
     isHurt = false
+    
     start() {
         console.info("Wall Slam story started", this.identityStore)
         

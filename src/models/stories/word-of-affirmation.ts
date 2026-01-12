@@ -114,6 +114,7 @@ const hurtfulWords = [
 
 
 class WordsOfAffirmationStory extends Story {
+    type = "action" as const
     gameScore = 0
     elements: Array<HTMLElement> = []
     wordScores = [] as Array<{ word: string, score: 1 | 0, svgEl: SVGElement | undefined, x: number, y: number }>

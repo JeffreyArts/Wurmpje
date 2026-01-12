@@ -2,6 +2,7 @@ import { watch } from "vue"
 import Story from "@/models/story"
 
 class IntroStory extends Story {
+    type = "conditional" as const
     hasIntroducedItself = false
     touchingGroundCounter = 0
     storyIndex: number = 0

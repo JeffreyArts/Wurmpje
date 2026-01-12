@@ -4,6 +4,7 @@ import type Catterpillar from "../catterpillar"
 import BallModel from "@/models/ball"
 
 class BallStory extends Story {
+    type = "conditional" as const
     catterpillar = undefined as Catterpillar | undefined
     movementCooldown = 0
     cooldown = 1000 // 1 second
