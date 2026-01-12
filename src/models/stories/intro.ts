@@ -3,6 +3,7 @@ import Story from "@/models/story"
 
 class IntroStory extends Story {
     type = "conditional" as const
+    priority = "high" as const
     hasIntroducedItself = false
     touchingGroundCounter = 0
     storyIndex: number = 0
@@ -60,6 +61,17 @@ class IntroStory extends Story {
         })
 
         
+    }
+
+    async checkCondition() {
+        // Check if story is already completed
+        const isCompleted = await this.storyStore.getLatestDatabaseEntry("intro")
+
+        if (isCompleted) {
+            return false
+        }
+
+        return true
     }
 
     loop() {

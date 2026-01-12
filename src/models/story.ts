@@ -5,23 +5,27 @@ import StoryStore from "@/stores/story"
 
 class Story {
     type = undefined as "conditional" | "action" | "passive"
+    priority = "low" as "low" | "medium" | "high"
     controller: MatterController
     identityStore: ReturnType<typeof IdentityStore>
     actionStore: ReturnType<typeof ActionStore>
     storyStore: ReturnType<typeof StoryStore>
     cooldown: number // in hours
     score: number = 0 // Number between 0 and 10, higher score equals higher priority
-    
+
     isDestroyed: boolean = false
     isAvailable: boolean = true
 
-    constructor(controller: MatterController) {
+    constructor(controller: MatterController, silent = false) {
         this.controller = controller
         this.identityStore = IdentityStore()
         this.actionStore = ActionStore()
         this.storyStore = StoryStore()
 
-        this.checkIfAvailable()
+        // Silent is used to prevent the story from fully starting, but just initiate the stores & controller
+        if (silent) {
+            return
+        }
 
         setTimeout(() => {
             this.start()
@@ -43,7 +47,8 @@ class Story {
     loop() {
     }
 
-    checkIfAvailable() {
+    async checkCondition() {
+        return false
     }
 
     start() {

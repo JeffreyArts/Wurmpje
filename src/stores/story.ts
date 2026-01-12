@@ -43,6 +43,7 @@ const story = defineStore("story", {
         db: undefined as IDBPDatabase | undefined,
         initialised: undefined as Promise<boolean> | undefined,
         isInitializing: false,
+        conditionalStories: [] as Array<{ name: string, instance: typeof Story, priority: "low" | "medium" | "high" }>,
 
     }),
     actions: {
@@ -74,11 +75,59 @@ const story = defineStore("story", {
         },
         addStory(name, storyInstance) {
             this.all.push({ name, instance: storyInstance })
-            // Add story to dbs
+        },
+        async updateConditionalStories() {
+            this.conditionalStories = []
+            const promises = [] as Array<() => Promise<void>>
+            this.all.forEach(async story => {
+                promises.push(async () => {
+                    if (!this.controller) {
+                        return
+                    }
+                    const tempInstance = new story.instance(this.controller, true)
+                    if (tempInstance.type === "conditional") {
+                        const conditionMet = await tempInstance.checkCondition()
+                        if (conditionMet) {
+                            this.conditionalStories.push({ name: story.name, instance: story.instance, priority: tempInstance.priority  })
+                        }
+                    }
+                    tempInstance.destroy()
+                })
+            })
+
+            await Promise.all(promises.map(p => p()))
+
+            // Sort this.conditionalStories by priority high to low
+            this.conditionalStories.sort((a, b) => {
+                const priorityMap = { "high": 3, "medium": 2, "low": 1 }
+                const aPriority = priorityMap[a.priority] || 1
+                const bPriority = priorityMap[b.priority] || 1
+                return bPriority - aPriority
+            })
+
+            console.warn("Updated conditional stories:", this.conditionalStories)
+        },
+        async getLatestDatabaseEntry(name: string) {
+            const wurmpjeId = this.identity?.id
+
             if (!this.db) {
                 throw new Error("Database not initialized")
             }
+            if (!wurmpjeId) {
+                throw new Error("No wurmpjeId set in identity store")
+            }
+            
+            const tx = this.db.transaction("stories", "readonly")
+            const store = tx.objectStore("stories")
+            const index = store.index("wurmpjeId")
+            const stories = await index.getAll(IDBKeyRange.only(wurmpjeId))
+            const storyDB = stories.find(s => s.name === name)
+            await tx.done
+
+            return storyDB
         },
+
+
         setController(controller: MatterController) {
             this.controller = controller
         },
@@ -203,18 +252,45 @@ const story = defineStore("story", {
             })
             return tx.done
         },
-        updateStoryCooldown(name: string) {
-            const wurmpjeId = this.identity?.id
 
-            if (!this.db) {
-                throw new Error("Database not initialized")
+        // updateStoryCooldown(name: string) {
+        //     const wurmpjeId = this.identity?.id
+
+        //     if (!this.db) {
+        //         throw new Error("Database not initialized")
+        //     }
+
+        //     if (!wurmpjeId) {
+        //         throw new Error("No wurmpjeId set in identity store")
+        //     }
+        //     const activeStory = this.getActiveStory(name)
+            
+        //     const tx = this.db.transaction("stories", "readwrite")
+        //     const store = tx.objectStore("stories")
+        //     const index = store.index("wurmpjeId")
+        //     index.getAll(IDBKeyRange.only(wurmpjeId)).then((stories) => {
+        //         const storyDB = stories.find(s => s.name === name)
+        //         if (storyDB) {
+        //             storyDB.cooldown = activeStory.instance.cooldown
+        //             store.put(storyDB)
+        //         }
+        //     })
+        //     return tx.done
+        // },
+
+        // Used to mark story as completed and set cooldown
+        completeStory(name: string) {
+            const wurmpjeId = this.identity?.id
+            const activeStory = this.getActiveStory(name)
+            if (!activeStory) {
+                return
             }
 
             if (!wurmpjeId) {
-                throw new Error("No wurmpjeId set in identity store")
+                console.warn("No wurmpjeId set in identity store for completing story")
+                return
             }
-            const activeStory = this.getActiveStory(name)
-            
+
             const tx = this.db.transaction("stories", "readwrite")
             const store = tx.objectStore("stories")
             const index = store.index("wurmpjeId")
@@ -225,27 +301,15 @@ const story = defineStore("story", {
                     store.put(storyDB)
                 }
             })
+            
+            this.killStory(name)
+            
             return tx.done
-        },
-
-        // Used to mark story as completed and set cooldown
-        completeStory(name: string) {
-            const activeStory = this.getActiveStory(name)
-            if (activeStory) {
-                this.updateStoryCooldown(name)
-
-                // activeStory.instance.destroy()
-                // this.activeStories = this.activeStories.filter(s => s.name !== name || s.wurmpjeId !== activeStory.wurmpjeId)
-            }
         },
          
         // Used for stories that can be told multiple times (no cooldown)
         killStory(name: string) {
             this.removeActiveStory(name)
-            // if (activeStory) {
-            //     activeStory.instance.destroy()
-            //     this.activeStories = this.activeStories.filter(s => s.name !== name || s.wurmpjeId !== wurmpjeId)
-            // }
         },   
     },
     getters: {

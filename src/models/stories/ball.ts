@@ -36,6 +36,24 @@ class BallStory extends Story {
         this.ball = this.balls[0]
     }
 
+    async checkCondition() {
+        // Check if story is already completed
+        const prevStory = await this.storyStore.getLatestDatabaseEntry("ball")
+
+        // Check if prevStory is older than 4 weeks
+        const isCompleted = prevStory && (Date.now() - prevStory.created) < (28 * 24 * 60 * 60 * 1000)
+
+        if (isCompleted) {
+            return false
+        }
+
+        if (this.identityStore.current.age < 3) {
+            return false
+        }
+
+        return true
+    }
+
     #createMousePin(pinPos) {
         let inReach = false
         // Get distance from pinPos to ball center
