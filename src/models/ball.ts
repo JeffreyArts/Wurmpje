@@ -9,7 +9,8 @@ export class Ball {
     size: number
     color: string
     rotation: number = 0
-    isFlying: boolean = false
+    isMoving: boolean = false
+    isMovingTimeout: NodeJS.Timeout | number = 0
 
     constructor(options: {
         x: number,
@@ -31,7 +32,7 @@ export class Ball {
         const body = Matter.Bodies.circle(this.x, this.y, this.size, {
             label: "ball",
             collisionFilter: collisionItem,
-            friction: 0.01,
+            friction: 0.1,
             frictionAir: 0.001,
             restitution: 0.9,
             // mass: .4,
@@ -45,8 +46,7 @@ export class Ball {
                 // }
             }
         })
-
-
+        
         Matter.Composite.add(this.composite, body)
         Matter.World.add(this.world, this.composite)
         requestAnimationFrame(this.#loop.bind(this))
@@ -54,14 +54,29 @@ export class Ball {
 
     #loop() {
         const targetBody = this.composite.bodies[0]
+
+        if (Math.abs(this.x - targetBody.position.x) > 0.01 ||
+            Math.abs(this.y - targetBody.position.y) > 0.01) {
+            this.isMoving = true
+            if (this.isMovingTimeout) {
+                clearTimeout(this.isMovingTimeout as NodeJS.Timeout)
+            }
+            this.isMovingTimeout = setTimeout(() => {
+                this.isMoving = false
+            }, 500)
+        }
+        
         this.x = targetBody.position.x
         this.y = targetBody.position.y
         this.rotation = targetBody.angle
+
+
         if (this.y < 100) {
             targetBody.collisionFilter.group = -1
         } else {
             targetBody.collisionFilter.group = 0
         }
+
         requestAnimationFrame(this.#loop.bind(this))
     }
 

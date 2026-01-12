@@ -138,7 +138,7 @@ class BallStory extends Story {
 
         const ball = new BallModel({
             x: x ,
-            y: window.innerHeight - this.controller.config.offsetBottom + size / 2,
+            y: window.innerHeight - this.controller.config.offsetBottom - size *2,
             size: size,
             color: "aquamarine"
         }, this.controller.ref.world)
@@ -156,15 +156,18 @@ class BallStory extends Story {
         
         const ball = balls[Math.floor(Math.random() * balls.length)]
         
-        if (ball) {
-            this.#setIsFlying()
-        }
-        
-        
-        if (this.ballIsFlying) {
+        if (this.ball?.isMoving) {
             this.isLookingAtBall = true
             this.catterpillar.leftEye.lookAt(ball)
             this.catterpillar.rightEye.lookAt(ball)
+        } else {
+
+            if (!this.resettingEyesTimeout) {
+                this.resettingEyesTimeout = setTimeout(() => {
+                    this.resetEyes()
+                    this.resettingEyesTimeout = undefined
+                }, 100)
+            }
         }
 
         // Make catterpillar sad if ball is out of bounds
@@ -203,22 +206,6 @@ class BallStory extends Story {
         
         
         this.movementCooldown -= 1
-    }
-
-    #setIsFlying() {
-        if (!this.ball) return
-        const yTreshold = this.controller.ref.renderer.canvas.clientHeight - this.controller.config.offsetBottom - this.ball.size 
-
-        if (this.ball.y < yTreshold) {
-            if (this.ballIsFlyingTimeout) {
-                clearTimeout(this.ballIsFlyingTimeout)
-            }
-            this.ballIsFlying = true
-        } else { 
-            this.ballIsFlyingTimeout = setTimeout(() => {
-                this.ballIsFlying = false
-            }, 100)
-        }
     }
 
     removeBall(ball: BallModel) {

@@ -448,13 +448,15 @@ export class Draw {
             if (bodyPart.circle) {
                 layer.add(bodyPart.circle)
             }
-            console.log("bodyPart textures", bodyPart.textures)
+
             bodyPart.textures.forEach((texture: Two.Group) => {
                 layer.add(texture)
             })
+
             if (bodyPart.mouth) {
                 layer.add(bodyPart.mouth)
             }
+            
             if (bodyPart.leftEye) {
                 layer.add(bodyPart.leftEye.eyeGroup)
                 layer.add(bodyPart.leftEye.eyelid)
