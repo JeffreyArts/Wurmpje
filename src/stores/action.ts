@@ -24,7 +24,7 @@ const Action = defineStore("action", {
         availableActions: 3,
         isSelected: false,
         storyStore: undefined as ReturnType<typeof useStoryStore> | undefined,
-        activeAction: "Words of affirmation" as actionTypes,
+        activeAction: "Food" as actionTypes,
         possibleActions: ["Food", "Words of affirmation"] as actionTypes[],
 
         // Set maximums
