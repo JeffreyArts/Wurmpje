@@ -384,7 +384,6 @@ export class Draw {
                 if (index !== 0) {
                     const svgItem = await this.#importSVGAsync(svgUrl, svgOptions)
                     texturePromises.push(svgItem)
-                    svgItem.opacity = 0
                     svgItem.fill = secondaryColor.hex()
                     textures.push(svgItem)
                 }
@@ -423,9 +422,7 @@ export class Draw {
 
             }
             
-            // const circle = this.addCircle(part, circleOptions, layer)
             newBodyPart.circle = this.addCircle(part, circleOptions)
-            // circle.opacity = 0
             if (index !== 0) {
                 newBodyPart.textures = []
                 textures.forEach(svgItem => {
@@ -467,29 +464,6 @@ export class Draw {
                 layer.add(bodyPart.rightEye.eyelid)
                 layer.add(bodyPart.rightEye.pupil)
             }
-        })
-        
-        // this.layers.push(layer)
-        // Sorteer de lagen op index zodat de juiste volgorde wordt weergegeven
-        // this.layers.sort((a, b) => {
-        //     if (!a.name || !b.name) return 0
-        //     const indexA = parseInt(a.name.split("-")[1])
-        //     const indexB = parseInt(b.name.split("-")[1])
-        //     return indexB - indexA
-        // })
-        // Clear all existing layers
-        // this.two.clear()
-
-        // Voeg lagen toe in de juiste volgorde
-        // this.layers.forEach(layer => {
-        //     this.two.add(layer)
-        // })
-
-        this.layers.forEach(layer => {
-            if (!layer.children) return
-            layer.children.forEach(child => {
-                gsap.fromTo(child, { delay: .08, opacity: 0 }, { opacity: 1, duration: .16 })
-            })
         })
     }
 
