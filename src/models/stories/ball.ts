@@ -2,6 +2,7 @@ import Matter from "matter-js"
 import Story from "@/models/story"
 import type Catterpillar from "../catterpillar"
 import BallModel from "@/models/ball"
+import { type DBStory } from "@/stores/story"
 
 class BallStory extends Story {
     type = "conditional" as const
@@ -16,10 +17,13 @@ class BallStory extends Story {
     mousePin = undefined as Matter.Constraint | undefined
     isGrabbed = false
     isLookingAtBall = false
-    // isGoingForBall = false
+    dbStory = undefined as DBStory | undefined
+    storyIndex = 0
     ballIsFlying = false
+    ballIsOutOfBounds = false
     ballIsFlyingTimeout = undefined as NodeJS.Timeout | undefined
     resetMoveTowardsPointTimeout = undefined as NodeJS.Timeout | undefined
+    releaseBallTimeout = undefined as NodeJS.Timeout | undefined
     
     resettingEyesTimeout = undefined as NodeJS.Timeout | undefined
 
@@ -36,7 +40,32 @@ class BallStory extends Story {
         }
 
         this.ball = this.balls[0]
-        this.firstMessage()
+        
+        this.dbStory = await this.storyStore.getLatestDatabaseEntry("ball")
+
+        if (typeof this.dbStory?.details?.storyIndex === "number") {
+            this.storyIndex = this.dbStory?.details?.storyIndex
+        }
+
+
+        if (this.storyIndex === 0) {
+            this.firstMessage()
+        }
+
+        if (this.storyIndex === 1 && this.storyAgeInHours() <= 1) {
+            this.backIn1Hour()
+            
+        }
+
+    }
+
+    storyAgeInHours() {
+        if (!this.dbStory) {
+            return Infinity
+        }
+        
+        const ageInMs = Date.now() - this.dbStory.created
+        return ageInMs / (1000 * 60 * 60)
     }
 
     async checkCondition() {
@@ -122,7 +151,7 @@ class BallStory extends Story {
         this.isGrabbed = false
 
         // Make catterpillar move to ball
-        setTimeout(() => {
+        this.releaseBallTimeout = setTimeout(() => {
             this.catterpillar.emote("happy")
             this.makeCatterpillarMoveToBall()
         }, 500)
@@ -145,14 +174,19 @@ class BallStory extends Story {
         }
 
         if (this.ball.x < 0 ) {
-
             this.catterpillar.leftEye.lookLeft(2, 4)
             this.catterpillar.rightEye.lookLeft(2, 4)
+            this.ballIsOutOfBounds = true
             return true
-        }
-        if (this.ball.x > this.controller.ref.renderer.canvas.clientWidth ) {
+        } else if (this.ball.x > this.controller.ref.renderer.canvas.clientWidth ) {
             this.catterpillar.leftEye.lookRight(2, 4)
             this.catterpillar.rightEye.lookRight(2, 4)
+            this.ballIsOutOfBounds = true
+            return true
+        } else if (this.ball.y > this.controller.ref.renderer.canvas.clientHeight ) {
+            this.catterpillar.leftEye.lookDown(2, 4)
+            this.catterpillar.rightEye.lookDown(2, 4)
+            this.ballIsOutOfBounds = true
             return true
         }
     }
@@ -171,7 +205,7 @@ class BallStory extends Story {
             color: "aquamarine"
         }, this.controller.ref.world)
 
-        await this.actionStore.add(this.identityStore.current.id, "ball", 1)
+        await this.actionStore.add(this.identityStore.current.id, "ball", this.balls.length)
         this.controller.draw.addBall(ball)
         this.balls.push(ball)
         return ball
@@ -184,12 +218,13 @@ class BallStory extends Story {
         
         const ball = balls[Math.floor(Math.random() * balls.length)]
         
+        // Look at ball when it is moving
         if (this.ball?.isMoving) {
             this.isLookingAtBall = true
             this.catterpillar.leftEye.lookAt(ball)
             this.catterpillar.rightEye.lookAt(ball)
         } else {
-
+        // Reset eyes after a short delay when ball movement has stopped
             if (!this.resettingEyesTimeout) {
                 this.resettingEyesTimeout = setTimeout(() => {
                     if (!this.catterpillar.isMoving) {
@@ -199,19 +234,27 @@ class BallStory extends Story {
                 }, 100)
             }
         }
-
+        
         // Make catterpillar sad if ball is out of bounds
         if (this.#ballIsOutOfBounds()) {
-            if (this.catterpillar.mouth.state != "🙁" && !this.resettingEyesTimeout) {
+            this.catterpillar.moveTowardsPoint = null
+            this.removeBall(this.ball)
+
+            if (this.resettingEyesTimeout) {
+                clearTimeout(this.resettingEyesTimeout)
+            }
+            
+            if (this.releaseBallTimeout) {
+                clearTimeout(this.releaseBallTimeout)
+            }
+
+            if (this.catterpillar.mouth.state != "🙁") {
                 this.catterpillar.emote("sad")
-                
                 this.resettingEyesTimeout = setTimeout(() => {
                     this.catterpillar.mouth.moveToState("😐")
                     this.resetEyes()
                 }, 8000)
-                this.removeBall(this.ball)
             }
-
         } 
 
         if (this.ball && (this.ball.x < this.ball.size*3 || this.ball.x > this.controller.ref.renderer.canvas.clientWidth - this.ball.size*3)) {
@@ -233,7 +276,11 @@ class BallStory extends Story {
         }
 
         // Try to move towards ball
-        if (balls.length > 0 && !this.catterpillar.isMoving && !this.catterpillar.isTurning && this.movementCooldown <= 0) {
+        if (!this.ballIsOutOfBounds && 
+            balls.length > 0 &&
+            !this.catterpillar.isMoving &&
+            !this.catterpillar.isTurning &&
+            this.movementCooldown <= 0) {
                     
             if (ball.x < head.position.x) {
                 if (!this.catterpillar.isPointingLeft()) {
@@ -263,9 +310,12 @@ class BallStory extends Story {
         // Remove from array
         this.balls = this.balls.filter(b => b !== ball)
 
-        // Remove from world
-        this.controller.draw.newObjects = this.controller.draw.newObjects.filter(o => o.id !== ball.composite.id)
-        
+        // Remove ball
+        this.ball = this.balls[0]
+
+        // Remove from draw controller
+        this.controller.draw.removeObjectById(ball.composite.id)
+
         // Remove from Matter world
         Matter.World.remove(this.controller.ref.world, ball.composite)
     }
@@ -278,19 +328,47 @@ class BallStory extends Story {
 
         this.catterpillar.leftEye.blink()
         this.catterpillar.rightEye.blink()
-        this.catterpillar.leftEye.lookLeft(0, 2)
-        this.catterpillar.rightEye.lookLeft(0, 2)
+        this.catterpillar.leftEye.lookLeft(2, 2)
+        this.catterpillar.rightEye.lookLeft(2, 2)
 
         this.isLookingAtBall = false
 
     }
 
     firstMessage() {
+        const messages = [
+            "Look, a ball!"
+        ]
+        const message = messages[Math.floor(Math.random() * messages.length)]
+        
         this.catterpillar.leftEye.lookAt(this.ball)
         this.catterpillar.rightEye.lookAt(this.ball)
         setTimeout(async () => {
             this.catterpillar.emote("happy")
-            await this.catterpillar.say("Look, a ball!")
+            await this.catterpillar.say(message)
+            
+            setTimeout(() => {
+                this.controller.catterpillar.speechBubble?.remove()
+            }, 3200)
+            this.makeCatterpillarMoveToBall()
+        }, 500)
+
+        this.storyStore.updateStoryDetails("ball", { storyIndex: 1 })
+    }
+
+    backIn1Hour() {
+        const messages = [
+            "They threw it back!",
+            "Happy to see someone returned my ball!",
+            "Yay! My ball is back!",
+        ]
+        const message = messages[Math.floor(Math.random() * messages.length)]
+        
+        this.catterpillar.leftEye.lookAt(this.ball)
+        this.catterpillar.rightEye.lookAt(this.ball)
+        setTimeout(async () => {
+            this.catterpillar.emote("happy")
+            await this.catterpillar.say(message)
 
             setTimeout(() => {
                 this.controller.catterpillar.speechBubble?.remove()

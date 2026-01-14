@@ -611,4 +611,25 @@ export class Draw {
         }
         return { eyeGroup, eyelid, pupil }
     }
+
+    removeObjectById(id: number) {
+        const obj = this.newObjects.find(o => o.id === id)
+        console.log("obj:", obj, this.newObjects)
+        this.newObjects = this.newObjects.filter(o => o.id !== id)
+        if (!obj) return
+
+        // Remove from Draw.objects
+        for (const i in obj.layers) { 
+            const layer = obj.layers[i]
+            layer.forEach(layerObj => {
+                
+                if (layerObj.svg) {
+                    // Not a real solution, but the remove method throws an error
+                    layerObj.svg.position.set(-9999, -9999)
+                    // this.two.remove(layerObj.svg)
+                }
+            })
+        }
+    }
+
 }
