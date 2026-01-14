@@ -35,26 +35,28 @@ class BallStory extends Story {
         this.controller.ref.addpointerMoveEvent(this.#dragBall.bind(this), "dragBall")
         this.catterpillar = this.controller.catterpillar
 
-        for (let i = 0; i < this.maxBalls; i++) {
-            await this.createBall()
-        }
-
-        this.ball = this.balls[0]
-        
         this.dbStory = await this.storyStore.getLatestDatabaseEntry("ball")
+        this.ballIsOutOfBounds = !!this.dbStory?.details?.outOfBounds || false
+        console.log(this.dbStory.details)
+        if (!this.ballIsOutOfBounds) {
+            for (let i = 0; i < this.maxBalls; i++) {
+                await this.createBall()
+            }
+        }
+        
 
         if (typeof this.dbStory?.details?.storyIndex === "number") {
             this.storyIndex = this.dbStory?.details?.storyIndex
         }
 
 
-        if (this.storyIndex === 0) {
+
+        if (this.storyIndex === 0 && !this.ballIsOutOfBounds) {
             this.firstMessage()
         }
 
-        if (this.storyIndex === 1 && this.storyAgeInHours() <= 1) {
-            this.backIn1Hour()
-            
+        if (this.storyIndex === 1 && this.storyAgeInHours() <= 1 && this.ballIsOutOfBounds) {
+            this.backIn1Hour()   
         }
 
     }
@@ -173,22 +175,24 @@ class BallStory extends Story {
             return false
         }
 
+        this.ballIsOutOfBounds = false
+
         if (this.ball.x < 0 ) {
             this.catterpillar.leftEye.lookLeft(2, 4)
             this.catterpillar.rightEye.lookLeft(2, 4)
             this.ballIsOutOfBounds = true
-            return true
         } else if (this.ball.x > this.controller.ref.renderer.canvas.clientWidth ) {
             this.catterpillar.leftEye.lookRight(2, 4)
             this.catterpillar.rightEye.lookRight(2, 4)
             this.ballIsOutOfBounds = true
-            return true
         } else if (this.ball.y > this.controller.ref.renderer.canvas.clientHeight ) {
             this.catterpillar.leftEye.lookDown(2, 4)
             this.catterpillar.rightEye.lookDown(2, 4)
             this.ballIsOutOfBounds = true
-            return true
         }
+
+        this.storyStore.updateStoryDetails("ball", { outOfBounds: this.ballIsOutOfBounds })
+        return this.ballIsOutOfBounds
     }
 
     async createBall() {
@@ -208,6 +212,7 @@ class BallStory extends Story {
         await this.actionStore.add(this.identityStore.current.id, "ball", this.balls.length)
         this.controller.draw.addBall(ball)
         this.balls.push(ball)
+        this.ball = this.balls[0]
         return ball
     }
 
@@ -364,14 +369,26 @@ class BallStory extends Story {
         ]
         const message = messages[Math.floor(Math.random() * messages.length)]
         
+        this.createBall()
+
+        if (this.resettingEyesTimeout) {
+            clearTimeout(this.resettingEyesTimeout)
+        }
+
+
+        this.isLookingAtBall = true
+        console.log(this.ball)
         this.catterpillar.leftEye.lookAt(this.ball)
         this.catterpillar.rightEye.lookAt(this.ball)
+
+        
         setTimeout(async () => {
             this.catterpillar.emote("happy")
             await this.catterpillar.say(message)
 
             setTimeout(() => {
                 this.controller.catterpillar.speechBubble?.remove()
+                this.resettingEyesTimeout = undefined
             }, 3200)
             this.makeCatterpillarMoveToBall()
         }, 500)

@@ -249,7 +249,7 @@ const story = defineStore("story", {
             index.getAll(IDBKeyRange.only(wurmpjeId)).then((stories) => {
                 const storyDB = stories.find(s => s.name === name)
                 if (storyDB) {
-                    storyDB.details = details
+                    storyDB.details = { ...storyDB.details, ...details }
                     store.put(storyDB)
                 }
             })
