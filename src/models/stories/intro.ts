@@ -65,9 +65,9 @@ class IntroStory extends Story {
 
     async checkCondition() {
         // Check if story is already completed
-        const isCompleted = await this.storyStore.getLatestDatabaseEntry("intro")
+        const prevStory = await this.storyStore.getLatestDatabaseEntry("intro")
 
-        if (isCompleted) {
+        if (prevStory && typeof prevStory.details.storyIndex == "number" && prevStory.details.storyIndex >= this.storyLines.length) {
             return false
         }
 

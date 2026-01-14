@@ -76,6 +76,7 @@ const story = defineStore("story", {
         addStory(name, storyInstance) {
             this.all.push({ name, instance: storyInstance })
         },
+        
         async updateConditionalStories() {
             this.conditionalStories = []
             const promises = [] as Array<() => Promise<void>>
@@ -107,6 +108,7 @@ const story = defineStore("story", {
 
             console.warn("Updated conditional stories:", this.conditionalStories)
         },
+
         async getLatestDatabaseEntry(name: string) {
             const wurmpjeId = this.identity?.id
 
@@ -121,8 +123,9 @@ const story = defineStore("story", {
             const store = tx.objectStore("stories")
             const index = store.index("wurmpjeId")
             const stories = await index.getAll(IDBKeyRange.only(wurmpjeId))
-            const storyDB = stories.find(s => s.name === name)
-            await tx.done
+            const storyDB = stories.find(s => s.name === name) as DBStory
+            
+            // await tx.done
 
             return storyDB
         },
