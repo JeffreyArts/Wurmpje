@@ -225,9 +225,20 @@ class BallStory extends Story {
         }, this.controller.ref.world)
 
         await this.actionStore.add(this.identityStore.current.id, "ball", this.balls.length)
-        await this.actionStore.add(this.identityStore.current.id, "joy", 5)
-        this.identityStore.current.joy += 5
 
+        // Load last 4 joy actions
+        const lastActions = await this.actionStore.loadLastActionsFromDB(this.identityStore.current.id, "joy", 10)
+        lastActions.sort((a, b) => b.created - a.created)
+        const lastAction = lastActions.find(action => {
+            // Check for action that is within the last day and has the value of 5
+            if (action.value == 5 && (Date.now() - action.created) < 24 * 60 * 60 * 1000) {
+                return true
+            }
+        })
+        if (!lastAction) {
+            await this.actionStore.add(this.identityStore.current.id, "joy", 5)
+            this.identityStore.current.joy += 5
+        }
         
         this.controller.draw.addBall(ball)
         this.balls.push(ball)
