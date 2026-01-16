@@ -114,6 +114,7 @@ const hurtfulWords = [
 
 
 class WordsOfAffirmationStory extends Story {
+    type = "action" as const
     gameScore = 0
     elements: Array<HTMLElement> = []
     wordScores = [] as Array<{ word: string, score: 1 | 0, svgEl: SVGElement | undefined, x: number, y: number }>
@@ -450,8 +451,8 @@ class WordsOfAffirmationStory extends Story {
                 if (wordScore > 0) {
                     color = "#ff9900"
                 }
+                this.removeWord(clickedWordEl)
                 gsap.to(clickedWordEl, { opacity: 0, duration: 0.5, color, ease: "power2.out", onComplete: () => {
-                    this.removeWord(clickedWordEl)
                     this.addNewWord()
                 } })
 

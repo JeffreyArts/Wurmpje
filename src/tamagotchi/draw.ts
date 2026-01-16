@@ -3,6 +3,7 @@ import CatterpillarModel from "@/models/catterpillar"
 import Chroma from "chroma-js"
 import gsap from "gsap"
 import Two from "two.js"
+import { reverse } from "lodash"
 
 import { Eye } from "@/models/catterpillar/eye"
 import { Mouth } from "@/models/catterpillar/mouth"
@@ -44,7 +45,7 @@ export const availableBodyPartTextures = [
     "/bodyparts/vert/polkadots",
 ]
 type objectModel = {
-    id: string,
+    id: number,
     type: "food" | "catterpillar" | "speechBubble",
     model: FoodModel | CatterpillarModel | SpeechBubble,
     layers: Layers
@@ -63,6 +64,12 @@ export class Draw {
 
     constructor(two: Two) {
         this.two = two
+        for (let i = 0; i < 16; i++) {
+            const layer = this.two.makeGroup() as Two.Group
+            layer.name = `layer-${i}`
+            this.layers.push(layer)
+            this.two.add(layer)
+        }
         requestAnimationFrame(this.#draw.bind(this))
     }
 
@@ -80,10 +87,10 @@ export class Draw {
         this.newObjects.forEach(obj => {
             if (obj.type == "food") {
                 this.drawFood(obj)
+            } else if (obj.type == "ball") {
+                this.drawBall(obj)
             }
         })
-        // this.newObjects = []
-
         
         for (let i = this.objects.length - 1; i >= 0; i--) {
             const obj = this.objects[i]
@@ -207,8 +214,8 @@ export class Draw {
 
             }
         }
-        
-        this.layers.unshift(bg)
+        this.layers[0].add(bg)
+        // this.layers.unshift(bg)
     }
 
     // Zorg ervoor dat Two.js is geïnstalleerd en geïmporteerd
@@ -325,7 +332,16 @@ export class Draw {
         const texturePromises = []
         const bodyParts = catterpillar.bodyParts
         this.catterpillars.push(catterpillar)
+        const newBodyParts = []
         for (let index = 0; index < bodyParts.length; index++) {
+            const newBodyPart = {
+                circle: null,
+                textures: [] as Two.Group[],
+                mouth: null as Two.Group | null,
+                leftEye: null as { eyeGroup: Two.Group, eyelid: Two.Path, pupil: Two.Circle } | null,
+                rightEye: null as { eyeGroup: Two.Group, eyelid: Two.Path, pupil: Two.Circle } | null,
+            }
+
             const part = bodyParts[index]
             const diameter = catterpillar.thickness * 1.25
             let primaryColor = Chroma(catterpillar.primaryColor)
@@ -368,14 +384,11 @@ export class Draw {
                 if (index !== 0) {
                     const svgItem = await this.#importSVGAsync(svgUrl, svgOptions)
                     texturePromises.push(svgItem)
-                    svgItem.opacity = 0
                     svgItem.fill = secondaryColor.hex()
                     textures.push(svgItem)
                 }
             }
-            // Create layers if not exist
-            const layer = this.two.makeGroup() as Two.Group
-            layer.name = `layer-${index}`
+
             const offset = Math.random() * 0.125
             // Define bodyPart color
             if (index % 2 === 0) {
@@ -409,65 +422,55 @@ export class Draw {
 
             }
             
-            const circle = this.addCircle(part, circleOptions, layer)
-            
-            circle.opacity = 0
+            newBodyPart.circle = this.addCircle(part, circleOptions)
             if (index !== 0) {
+                newBodyPart.textures = []
                 textures.forEach(svgItem => {
-                    this.addSVG(part, svgItem, { name: `bodypart-${index}-texture` }, layer)
+                    newBodyPart.textures.push(this.addSVG(part, svgItem, { name: `bodypart-${index}-texture` }))
                 })
             }
-            if (index === 0) {
-                this.addMouth(
-                    part,
-                    catterpillar.mouth,
-                    {
-                        // stroke: "#CD2527",
-                        // strokeWidth: 2,
-                        fill: "#000"
-                    },
-                    layer
-                )
 
-                this.addEye(
-                    part,
-                    catterpillar.leftEye,
-                    layer
-                )
-                this.addEye(
-                    part,
-                    catterpillar.rightEye,
-                    layer
-                )
+            if (index === 0) {
+                newBodyPart.mouth = this.addMouth(part,catterpillar.mouth,{ fill: "#000" })
+
+                newBodyPart.leftEye = this.addEye( part, catterpillar.leftEye, this.layers[2])
+                newBodyPart.rightEye = this.addEye( part, catterpillar.rightEye, this.layers[2])
+            }
+            newBodyParts.push(newBodyPart)
+        }
+
+        // Loop through newBodyParts and voeg alles toe aan de gewenste layer
+        reverse(newBodyParts).forEach(bodyPart => {
+            const layer = this.layers[1]
+            if (bodyPart.circle) {
+                layer.add(bodyPart.circle)
             }
 
-            this.layers.push(layer)
-        }
-        // Sorteer de lagen op index zodat de juiste volgorde wordt weergegeven
-        this.layers.sort((a, b) => {
-            if (!a.name || !b.name) return 0
-            const indexA = parseInt(a.name.split("-")[1])
-            const indexB = parseInt(b.name.split("-")[1])
-            return indexB - indexA
-        })
-        // Clear all existing layers
-        this.two.clear()
-
-        // Voeg lagen toe in de juiste volgorde
-        this.layers.forEach(layer => {
-            this.two.add(layer)
-        })
-
-        this.layers.forEach(layer => {
-            if (!layer.children) return
-            layer.children.forEach(child => {
-                gsap.fromTo(child, { delay: .08, opacity: 0 }, { opacity: 1, duration: .16 })
+            bodyPart.textures.forEach((texture: Two.Group) => {
+                layer.add(texture)
             })
+
+            if (bodyPart.mouth) {
+                layer.add(bodyPart.mouth)
+            }
+            
+            if (bodyPart.leftEye) {
+                layer.add(bodyPart.leftEye.eyeGroup)
+                layer.add(bodyPart.leftEye.eyelid)
+                layer.add(bodyPart.leftEye.pupil)
+            }
+            if (bodyPart.rightEye) {
+                layer.add(bodyPart.rightEye.eyeGroup)
+                layer.add(bodyPart.rightEye.eyelid)
+                layer.add(bodyPart.rightEye.pupil)
+            }
         })
     }
 
 
     addFood = async (food: FoodModel) => {
+        const svg = await this.#importSVGAsync("./leaf.svg", { width: food.size, height: food.size } )
+        
         const obj = {
             type: "food",
             id: food.composite.id,
@@ -475,10 +478,7 @@ export class Draw {
             layers:{ 
                 10: [{
                     level: 0,
-                    svg: await this.#importSVGAsync(
-                        "./leaf.svg",
-                        { width: food.size, height: food.size }
-                    )
+                    svg
                 }]
             }
         }
@@ -486,38 +486,35 @@ export class Draw {
 
         this.newObjects.push(obj)
         this.drawFood(obj)
-        // addSVG(
-        //     { x: food.x, y: food.y },
-        //     await this.#importSVGAsync(
-        //         "./leaf.svg",
-        //         { width: food.size, height: food.size }
-        //     ),
-        //     { name: `food-${food.composite.id}` }
-        // )
+    }
+
+    addBall = async (ball: BallModel) => {
+        const svg = await this.#importSVGAsync("./ball.svg", { width: ball.size * 2 , height: ball.size * 2 } )
+
+        const obj = {
+            type: "ball",
+            id: ball.composite.id,
+            model: ball,
+            layers:{ 
+                10: [{
+                    level: 0,
+                    svg
+                }]
+            }
+        }
+
+        this.newObjects.push(obj)
+        this.drawBall(obj)
+    }
+
+    drawBall = (ball: objectModel) => {
+        ball.layers[10][0].svg.position.set(ball.model.x, ball.model.y)
+        ball.layers[10][0].svg.rotation = ball.model.rotation
     }
 
     drawFood = (food: objectModel) => {
-
         food.layers[10][0].svg.position.set(food.model.x, food.model.y)
         food.layers[10][0].svg.rotation = food.model.rotation
-
-        // for (const layerIndex in food.layers) {
-        //     const layerNumber = parseInt(layerIndex)
-        //     let layer = this.layers.find(l => l.name == `layer-${layerNumber}`)
-        //     if (!layer) {
-        //         layer = this.two.makeGroup() as Two.Group
-        //         layer.name = `layer-${layerNumber}`
-        //         this.layers.push(layer)
-        //     }
-        //     food.layers[layerNumber].forEach(part => {
-        //         this.addSVG(
-        //             { x: food.model.x, y: food.model.y },
-        //             part.svg,
-        //             { name: `food-${food.model.composite.id}` },
-        //             layer
-        //         )
-        //     })
-        // }
     }
 
     addMouth(
@@ -556,7 +553,9 @@ export class Draw {
             }
         })
 
-        layer.add(path)
+        if (layer) {
+            layer.add(path)
+        }
         return path
     }
 
@@ -606,7 +605,31 @@ export class Draw {
         })
 
         // 5. Voeg toe aan layers, zodat ze ook zichtbaar zijn
-        layer.add(eyelid)
-        layer.add(eyeGroup)
+        if (layer) {
+            layer.add(eyelid)
+            layer.add(eyeGroup)
+        }
+        return { eyeGroup, eyelid, pupil }
     }
+
+    removeObjectById(id: number) {
+        const obj = this.newObjects.find(o => o.id === id)
+        console.log("obj:", obj, this.newObjects)
+        this.newObjects = this.newObjects.filter(o => o.id !== id)
+        if (!obj) return
+
+        // Remove from Draw.objects
+        for (const i in obj.layers) { 
+            const layer = obj.layers[i]
+            layer.forEach(layerObj => {
+                
+                if (layerObj.svg) {
+                    // Not a real solution, but the remove method throws an error
+                    layerObj.svg.position.set(-9999, -9999)
+                    // this.two.remove(layerObj.svg)
+                }
+            })
+        }
+    }
+
 }

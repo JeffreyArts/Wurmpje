@@ -18,6 +18,7 @@ export class Wall {
 
         // Set body
         this.body = Matter.Bodies.rectangle(x, y, width, height, { isStatic: true, collisionFilter: collisionWall })
+        this.body.friction = 0.8
         this.body.label = "wall"
         if (id) {
             this.body.label += `,${id}`
@@ -25,5 +26,6 @@ export class Wall {
 
         // Add to world
         Matter.World.add(this.world, this.body)
+        return this
     }
 }

@@ -4,10 +4,13 @@ import Catterpillar, { type Emote } from "../catterpillar"
 import type { currentIdentity } from "@/stores/identity"
 
 class WallSlamStory extends Story {
+    type = "passive" as const
     identity = undefined as currentIdentity | undefined
     catterpillar = undefined as Catterpillar | undefined
     defaultState = "happy" as Emote
     defaultStateTimeout = undefined as ReturnType<typeof setTimeout> | undefined
+    isHurt = false
+    
     start() {
         console.info("Wall Slam story started", this.identityStore)
         
@@ -30,10 +33,6 @@ class WallSlamStory extends Story {
             // Check of dit pair je head bevat
             const head = this.catterpillar.head.body
             if (pair.bodyA.label === head.label || pair.bodyB.label === head.label) {
-                
-                if (this.defaultStateTimeout) {
-                    clearTimeout(this.defaultStateTimeout)
-                }
 
                 // Bepaal welke body de head is en welke de ander
                 const other = (pair.bodyA.label === head.label) ? pair.bodyB : pair.bodyA
@@ -52,14 +51,19 @@ class WallSlamStory extends Story {
                     this.actionStore.add(this.identity.id, "love", -2)
                     this.identityStore.current.love -= 2
                     this.catterpillar.defaultState = "sad"
+                    this.isHurt = true
+                 
+                    if (this.defaultStateTimeout) {
+                        clearTimeout(this.defaultStateTimeout)
+                    }
+                 
+                    this.defaultStateTimeout = setTimeout(() => {
+                        this.identityStore.setDefaultEmotionalState()
+                        this.catterpillar.defaultState = this.identityStore.current.defaultState as Emote
+                        this.catterpillar.emote(this.catterpillar.defaultState)
+                        this.isHurt = false
+                    }, 10000)
                 }
-
-                this.defaultStateTimeout = setTimeout(() => {
-                    this.identityStore.setDefaultEmotionalState()
-                    this.catterpillar.defaultState = this.identityStore.current.defaultState as Emote
-                    this.catterpillar.emote(this.catterpillar.defaultState)
-                }, 5000)
-
             }
         })
     }

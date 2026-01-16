@@ -42,6 +42,10 @@
         </div>
         <div class="stats">
             <div class="healthbar-row" v-if="identity">
+                <healthbar :value="identity.joy" />
+                <span class="healthbar-name">joy</span>
+            </div>
+            <div class="healthbar-row" v-if="identity">
                 <healthbar :value="identity.love" />
                 <span class="healthbar-name">love</span>
             </div>
@@ -178,9 +182,21 @@ export default defineComponent ({
             return
         }
 
+        // let startPosition = { x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - this.config.offsetBottom - catterpillarOptions.identity.thickness }
+        const offsetBottom = 128
+        const startPosition = { 
+            x: window.innerWidth / 2,
+            y: window.innerHeight - offsetBottom - this.identity.thickness 
+        }
+
+        // Change startPosition if the catterpillar is new, so it falls from the sky
+        if (this.identity.age <= 1) {
+            startPosition.y = -200
+        }
+        
         this.controller = new MatterController( this.$refs["catterpillar"] as HTMLElement, {
             identity: this.identity,
-            catterpillarPos: { x: window.innerWidth / 2, y: -100},
+            catterpillarPos: startPosition,
             offsetBottom: 128
         })
 
@@ -549,7 +565,7 @@ export default defineComponent ({
     left: 16px;
     text-decoration: none;
     z-index: 1;
-    
+    color: currentColor;
     
     svg {
         height: 54px;

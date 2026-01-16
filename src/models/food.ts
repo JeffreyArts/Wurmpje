@@ -42,7 +42,6 @@ export class Food {
 
     #loop() {
         const targetBody = this.composite.bodies[0]
-        // console.log(targetBody)
         this.x = targetBody.position.x
         this.y = targetBody.position.y
         this.rotation = targetBody.angle

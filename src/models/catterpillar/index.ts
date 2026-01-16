@@ -38,6 +38,7 @@ export class Catterpillar {
     blinkTimeout: NodeJS.Timeout | number = 0
     autoBlink: boolean = true
     defaultState: Emote = "happy"
+    moveTowardsPoint: { x: number, y: number } | null = null
     
     isStanding: boolean = false
     isTurning: boolean = false
@@ -231,6 +232,7 @@ export class Catterpillar {
                 
         }
     }
+
     #autoCheckScared() {
         const head = this.head.body
         const butt = this.butt.body
@@ -785,6 +787,48 @@ export class Catterpillar {
         })
     }
 
+    moveTowards = (pos: { x: number, y: number }) => { 
+        this.moveTowardsPoint = pos
+        this.#moveTowards()
+    }
+
+    async #moveTowards(speed = 100) { 
+        if (!this.moveTowardsPoint) {
+            return
+        }
+        this.leftEye.lookAt(this.moveTowardsPoint, .5)
+        this.rightEye.lookAt(this.moveTowardsPoint, .5)
+
+        if (this.moveTowardsPoint.x < this.x ) {
+            if (this.isPointingRight() && !this.isTurning && !this.isMoving) {
+                await this.turnAround()
+                await this.move()
+            } else if (!this.isMoving && !this.isTurning) {
+                await this.move()
+            }
+        } else if (this.moveTowardsPoint.x > this.x ) {
+            if (this.isPointingLeft() && !this.isTurning && !this.isMoving) {
+                await this.turnAround()
+                await this.move()
+            } else if (!this.isMoving && !this.isTurning) {
+                await this.move()
+            }
+        }
+
+        if (!this.moveTowardsPoint) {
+            return
+        }
+        
+        // Clear moveTowardsPoint if close enough
+        if (Math.abs(this.moveTowardsPoint.x - this.x) < this.thickness) {
+            this.moveTowardsPoint = null
+        } else {
+            setTimeout(() => {
+                this.#moveTowards(speed)
+            }, speed)
+        }
+        
+    }
 
     move = async () => {
         this.isMoving = true
@@ -840,7 +884,7 @@ export class Catterpillar {
                 text: text
             })
 
-            this.speechBubble.updateText(text, 80).then(() => {
+            return this.speechBubble.updateText(text, 80).then(() => {
                 this.isTalking = false
             })
         }

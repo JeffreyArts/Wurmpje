@@ -6,6 +6,7 @@ import FoodModel from "@/models/food"
 import gsap from "gsap"
 
 class EatStory extends Story {
+    type = "action" as const
     catterpillar = undefined as Catterpillar | undefined
     movementCooldown = 0
     cooldown = 1000 // 1 second

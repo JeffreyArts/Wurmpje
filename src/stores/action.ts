@@ -5,7 +5,7 @@ import type { DBIdentity } from "@/stores/identity"
 import useStoryStore from "@/stores/story"
 import useDatabaseStore from "@/stores/database"
 
-export type actionStates = "food" | "joy" | "love" | "hungerLoss" | "wof" | "wof-score" | "petting"
+export type actionStates = "food" | "joy" | "love" | "hungerLoss" | "wof" | "wof-score" | "petting" | "ball"
 export type actionTypes = "Food" | "Words of affirmation"
 export type DBAction =  {
     id: number;                 
@@ -24,7 +24,7 @@ const Action = defineStore("action", {
         availableActions: 3,
         isSelected: false,
         storyStore: undefined as ReturnType<typeof useStoryStore> | undefined,
-        activeAction: "Words of affirmation" as actionTypes,
+        activeAction: "Food" as actionTypes,
         possibleActions: ["Food", "Words of affirmation"] as actionTypes[],
 
         // Set maximums
