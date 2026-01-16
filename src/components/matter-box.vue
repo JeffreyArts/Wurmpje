@@ -42,6 +42,10 @@
         </div>
         <div class="stats">
             <div class="healthbar-row" v-if="identity">
+                <healthbar :value="identity.joy" />
+                <span class="healthbar-name">joy</span>
+            </div>
+            <div class="healthbar-row" v-if="identity">
                 <healthbar :value="identity.love" />
                 <span class="healthbar-name">love</span>
             </div>

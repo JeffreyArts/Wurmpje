@@ -65,8 +65,10 @@ class BallStory extends Story {
                 } else if (this.storyAgeInHours() <= 24) {
                 }
             }
-
-            this.storyStore.completeStory("ball")
+            
+            if (this.storyAgeInHours() > 1) {
+                this.storyStore.completeStory("ball")
+            }
         }
 
     }
@@ -174,8 +176,10 @@ class BallStory extends Story {
             return
         }
 
+        const maxY = this.controller.ref.renderer.canvas.clientHeight - this.controller.config.offsetBottom
+        
         // Move constraint 
-        if (this.mousePin) {
+        if (this.mousePin && pos.y < maxY) {
             this.mousePin.pointB = pos
         }
     }   
@@ -221,6 +225,10 @@ class BallStory extends Story {
         }, this.controller.ref.world)
 
         await this.actionStore.add(this.identityStore.current.id, "ball", this.balls.length)
+        await this.actionStore.add(this.identityStore.current.id, "joy", 5)
+        this.identityStore.current.joy += 5
+
+        
         this.controller.draw.addBall(ball)
         this.balls.push(ball)
         this.ball = this.balls[0]
@@ -413,6 +421,7 @@ class BallStory extends Story {
         }
         let messages = []
         let emoteState = "sad" as Emote
+        let joyValue = -15
         
         if (this.storyAgeInHours() <= 1) {
             messages = [
@@ -423,22 +432,31 @@ class BallStory extends Story {
         } else if (this.storyAgeInHours() <= 24) {
             messages = [
                 "Why did you do that!",
-                "Why can't you do normal?",
+                "Why can't you do normal!?",
                 "That was my favorite! 😢",
             ]
+            joyValue = -10
         }  else if (this.storyAgeInHours() <= 24 * 7) {
             messages = [
                 "That's to bad",
                 "Well... That was bound to happen...",
                 "Well.. At least it was fun while it lasted"
             ]
+            joyValue = -5
         }  else {
             messages = [
                 "That was bound to happen... 🙈",
                 "Well.. That was fun"
             ]
+            joyValue = -1
             emoteState = "happy"
         } 
+
+        // Decrease joy
+        this.identityStore.current.joy += joyValue
+        this.actionStore.add(this.identityStore.current.id, "joy", joyValue)
+        
+
         const message = messages[Math.floor(Math.random() * messages.length)]
         this.catterpillar.say(message)   
         this.catterpillar.emote(emoteState)
