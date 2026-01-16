@@ -73,6 +73,7 @@ const story = defineStore("story", {
                 resolve(true)
             })
         },
+        
         addStory(name, storyInstance) {
             this.all.push({ name, instance: storyInstance })
         },
@@ -130,13 +131,14 @@ const story = defineStore("story", {
             return storyDB
         },
 
-
         setController(controller: MatterController) {
             this.controller = controller
         },
+
         setIdentity(identity: IdentityField) {
             this.identity = identity
         },
+
         async setActiveStory(name: string) {
             const story = this.all.find(s => s.name === name)
             const wurmpjeId = this.identity?.id
@@ -188,7 +190,18 @@ const story = defineStore("story", {
                 }
                 store.add(storyDB)
                 await tx.done
-            } 
+            } else if (storyDB.cooldown) {
+                // Create a new story, since the cooldown has passed
+                storyDB = {
+                    wurmpjeId,
+                    created: Date.now(),
+                    cooldown: undefined,
+                    name,
+                    details: {},
+                }
+                store.add(storyDB)
+                await tx.done
+            }
 
             // First add object to activeStories array, so the instance has access to it during construction 
             const newStory = {
@@ -206,6 +219,7 @@ const story = defineStore("story", {
             return newStory
 
         },
+
         getActiveStory(name: string) {
             const wurmpjeId = this.identity?.id
 
@@ -215,6 +229,7 @@ const story = defineStore("story", {
 
             return this.activeStories.find(s => s.name === name && s.wurmpjeId === wurmpjeId)
         },
+
         removeActiveStory(name: string) {
             let wurmpjeId = this.identity?.id
 
@@ -232,6 +247,7 @@ const story = defineStore("story", {
                 this.activeStories = this.activeStories.filter(s => s.name !== name || s.wurmpjeId !== wurmpjeId)
             }
         },
+
         updateStoryDetails(name: string, details: { [key: string]: string | number | boolean | object | undefined | Array< string | number | boolean | object | undefined > }) {
             const wurmpjeId = this.identity?.id
 
@@ -256,58 +272,67 @@ const story = defineStore("story", {
             return tx.done
         },
 
-        // updateStoryCooldown(name: string) {
-        //     const wurmpjeId = this.identity?.id
-
-        //     if (!this.db) {
-        //         throw new Error("Database not initialized")
-        //     }
-
-        //     if (!wurmpjeId) {
-        //         throw new Error("No wurmpjeId set in identity store")
-        //     }
-        //     const activeStory = this.getActiveStory(name)
-            
-        //     const tx = this.db.transaction("stories", "readwrite")
-        //     const store = tx.objectStore("stories")
-        //     const index = store.index("wurmpjeId")
-        //     index.getAll(IDBKeyRange.only(wurmpjeId)).then((stories) => {
-        //         const storyDB = stories.find(s => s.name === name)
-        //         if (storyDB) {
-        //             storyDB.cooldown = activeStory.instance.cooldown
-        //             store.put(storyDB)
-        //         }
-        //     })
-        //     return tx.done
-        // },
-
-        // Used to mark story as completed and set cooldown
-        completeStory(name: string) {
+        async updateStory(name: string, dbStory: DBStory) {
             const wurmpjeId = this.identity?.id
+
+            if (!this.db) {
+                throw new Error("Database not initialized")
+            }
+
+            if (!wurmpjeId) {
+                throw new Error("No wurmpjeId set in identity store")
+            }
+            
+            const tx = this.db.transaction("stories", "readwrite")
+            const store = tx.objectStore("stories")
+            const index = store.index("wurmpjeId")
+            const stories = await index.getAll(IDBKeyRange.only(wurmpjeId))
+            const storyDB = stories.find(s => s.name === name)
+            if (storyDB) {
+                store.put({ ...storyDB, ...dbStory })
+            }
+            
+            return tx.done
+        },
+
+        async getLatestStoryFromDatabase(name: string) {
+            const wurmpjeId = this.identity?.id
+
+            if (!this.db) {
+                throw new Error("Database not initialized")
+            }
+            if (!wurmpjeId) {
+                throw new Error("No wurmpjeId set in identity store")
+            }
+            
+            const tx = this.db.transaction("stories", "readonly")
+            const store = tx.objectStore("stories")
+            const index = store.index("wurmpjeId")
+            const stories = await index.getAll(IDBKeyRange.only(wurmpjeId))
+            if (!stories || stories.length === 0) {
+                return null
+            }
+            stories.sort((a, b) => b.id - a.id)
+            const storyDB = stories.find(s => s.name === name)
+            return storyDB
+        },
+
+        // Used to mark story as completed and set cooldown, used for conditional stories
+        async completeStory(name: string) {
             const activeStory = this.getActiveStory(name)
             if (!activeStory) {
                 return
             }
 
-            if (!wurmpjeId) {
-                console.warn("No wurmpjeId set in identity store for completing story")
-                return
+            const storyDB = await this.getLatestStoryFromDatabase(name)
+            if (storyDB) {
+                storyDB.cooldown = activeStory.instance.cooldown
+                await this.updateStory(name, storyDB)
             }
-
-            const tx = this.db.transaction("stories", "readwrite")
-            const store = tx.objectStore("stories")
-            const index = store.index("wurmpjeId")
-            index.getAll(IDBKeyRange.only(wurmpjeId)).then((stories) => {
-                const storyDB = stories.find(s => s.name === name)
-                if (storyDB) {
-                    storyDB.cooldown = activeStory.instance.cooldown
-                    store.put(storyDB)
-                }
-            })
             
             this.killStory(name)
             
-            return tx.done
+            return storyDB
         },
          
         // Used for stories that can be told multiple times (no cooldown)

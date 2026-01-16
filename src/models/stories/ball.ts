@@ -1,14 +1,15 @@
 import Matter from "matter-js"
 import Story from "@/models/story"
 import type Catterpillar from "../catterpillar"
+import type { Emote } from "../catterpillar"
 import BallModel from "@/models/ball"
 import { type DBStory } from "@/stores/story"
 
 class BallStory extends Story {
     type = "conditional" as const
+    cooldown = 4 * 7 * 24 * 60 * 60 * 1000 // 4 weeks
     catterpillar = undefined as Catterpillar | undefined
     movementCooldown = 0
-    cooldown = 1000 // 1 second
     score = 1
     maxBalls = 1
     ball = undefined as BallModel | undefined
@@ -37,7 +38,7 @@ class BallStory extends Story {
 
         this.dbStory = await this.storyStore.getLatestDatabaseEntry("ball")
         this.ballIsOutOfBounds = !!this.dbStory?.details?.outOfBounds || false
-        console.log(this.dbStory.details)
+
         if (!this.ballIsOutOfBounds) {
             for (let i = 0; i < this.maxBalls; i++) {
                 await this.createBall()
@@ -51,12 +52,21 @@ class BallStory extends Story {
 
 
 
-        if (this.storyIndex === 0 && !this.ballIsOutOfBounds) {
-            this.firstMessage()
-        }
+        if (!this.ballIsOutOfBounds) {
 
-        if (this.storyIndex === 1 && this.storyAgeInHours() <= 1 && this.ballIsOutOfBounds) {
-            this.backIn1Hour()   
+            if (this.storyIndex === 0) {
+                this.firstMessage()
+            }
+
+        } else {
+            if (this.storyIndex === 1) {
+                if (this.storyAgeInHours() <= 1) {
+                    this.backIn1Hour()   
+                } else if (this.storyAgeInHours() <= 24) {
+                }
+            }
+
+            this.storyStore.completeStory("ball")
         }
 
     }
@@ -74,9 +84,9 @@ class BallStory extends Story {
         // Check if story is already completed
         const prevStory = await this.storyStore.getLatestDatabaseEntry("ball")
 
-        // Check if prevStory is older than 4 weeks
-        const isCompleted = prevStory && (Date.now() - prevStory.created) > (28 * 24 * 60 * 60 * 1000)
-
+        // Check if cooldown is set 
+        const isCompleted = prevStory && prevStory.cooldown && (Date.now() - prevStory.created) < prevStory.cooldown
+        console.log("Ball story completed:", isCompleted)
         if (isCompleted) {
             return false
         }
@@ -192,6 +202,7 @@ class BallStory extends Story {
         }
 
         this.storyStore.updateStoryDetails("ball", { outOfBounds: this.ballIsOutOfBounds })
+
         return this.ballIsOutOfBounds
     }
 
@@ -241,7 +252,7 @@ class BallStory extends Story {
         }
         
         // Make catterpillar sad if ball is out of bounds
-        if (this.#ballIsOutOfBounds()) {
+        if (this.#ballIsOutOfBounds() && this.ball) {
             this.catterpillar.moveTowardsPoint = null
             this.removeBall(this.ball)
 
@@ -252,6 +263,8 @@ class BallStory extends Story {
             if (this.releaseBallTimeout) {
                 clearTimeout(this.releaseBallTimeout)
             }
+
+            this.messageOutOfBounds()
 
             if (this.catterpillar.mouth.state != "🙁") {
                 this.catterpillar.emote("sad")
@@ -377,7 +390,7 @@ class BallStory extends Story {
 
 
         this.isLookingAtBall = true
-        console.log(this.ball)
+        
         this.catterpillar.leftEye.lookAt(this.ball)
         this.catterpillar.rightEye.lookAt(this.ball)
 
@@ -393,6 +406,44 @@ class BallStory extends Story {
             this.makeCatterpillarMoveToBall()
         }, 500)
     }
+
+    messageOutOfBounds() {
+        if (!this.ballIsOutOfBounds) {
+            return
+        }
+        let messages = []
+        let emoteState = "sad" as Emote
+        
+        if (this.storyAgeInHours() <= 1) {
+            messages = [
+                "Oh no! My ball is gone!",
+                "Why did you do that? 😭",
+                "Hope they will throw it back...",
+            ]
+        } else if (this.storyAgeInHours() <= 24) {
+            messages = [
+                "Why did you do that!",
+                "Why can't you do normal?",
+                "That was my favorite! 😢",
+            ]
+        }  else if (this.storyAgeInHours() <= 24 * 7) {
+            messages = [
+                "That's to bad",
+                "Well... That was bound to happen...",
+                "Well.. At least it was fun while it lasted"
+            ]
+        }  else {
+            messages = [
+                "That was bound to happen... 🙈",
+                "Well.. That was fun"
+            ]
+            emoteState = "happy"
+        } 
+        const message = messages[Math.floor(Math.random() * messages.length)]
+        this.catterpillar.say(message)   
+        this.catterpillar.emote(emoteState)
+    }
+
 
     makeCatterpillarMoveToBall() {
         this.catterpillar.moveTowards(this.ball)
