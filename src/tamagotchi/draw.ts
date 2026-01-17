@@ -89,6 +89,8 @@ export class Draw {
                 this.drawFood(obj)
             } else if (obj.type == "ball") {
                 this.drawBall(obj)
+            } else if (obj.type == "plank") {
+                this.drawPlank(obj)
             }
         })
         
@@ -505,6 +507,56 @@ export class Draw {
 
         this.newObjects.push(obj)
         this.drawBall(obj)
+    }
+
+    addPlank = async (plank: PlankModel) => {
+        
+
+        const obj = {
+            type: "plank",
+            id: plank.body.id,
+            model: plank,
+            layers:{ 
+                10: [{
+                    level: 0,
+                    squares: []
+                }]
+            }
+        }
+
+        this.newObjects.push(obj)
+        this.drawPlank(obj)
+    }
+
+    drawPlank = (plank: objectModel) => {
+
+        const numSquares = Math.ceil(plank.model.width / 18)
+        if (numSquares != plank.layers[10][0].squares.length) {
+            // Recreate squares
+            plank.layers[10][0].squares.forEach(square => {
+                this.two.remove(square)
+            })
+            plank.layers[10][0].squares = []
+            const offsetX = 0
+            for (let i = 0; i < numSquares; i++) {
+                const x = offsetX + i * 18 + 9
+                const y = plank.model.y + 2
+                const size = 16
+                const square = this.two.makeRectangle(x, y, size, size)
+                square.fill = plank.model.color
+                square.noStroke()
+                plank.layers[10][0].squares.push(square)
+                this.two.add(square) 
+                // this.layers[10].add(square)
+            }
+        }
+
+        plank.layers[10][0].squares.forEach((square, index) => {
+            const offsetX = -plank.model.width / 2
+            const x = offsetX + plank.model.x + index * 18 + 9
+            const y = plank.model.y + 2
+            square.position.set(x, y)
+        })
     }
 
     drawBall = (ball: objectModel) => {

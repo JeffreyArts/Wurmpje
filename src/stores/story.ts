@@ -9,6 +9,7 @@ import wofStory from "@/models/stories/word-of-affirmation"
 import pettingStory from "@/models/stories/petting"
 import wallSlamStory from "@/models/stories/wall-slam"
 import ballStory from "@/models/stories/ball"
+import plankjeTestStory from "@/models/stories/plankje-test"
 
 import { type IdentityField } from "@/models/identity"
 import useDatabaseStore from "@/stores/database"
@@ -67,6 +68,7 @@ const story = defineStore("story", {
                 // Passive stories, always active
                 this.addStory("wall-slam", wallSlamStory) 
                 this.addStory("petting", pettingStory) 
+                this.addStory("plankje-test", plankjeTestStory) 
 
                 // Info
                 console.info("Story database initialized")
