@@ -1,8 +1,10 @@
 import Matter from "matter-js"
 import Story from "@/models/story"
 import type Catterpillar from "../catterpillar"
+import type BodyPart from "../catterpillar/bodypart"
 import PlankModel from "@/models/plank"
 import { type DBStory } from "@/stores/story"
+import { collisionBodyPart, collisionWall } from "@/tamagotchi/collisions"
 
 class PlankjeTestStory extends Story {
     type = "passive" as const
@@ -12,6 +14,7 @@ class PlankjeTestStory extends Story {
     isGrabbed = false
     plankIsMovable = true
     xOffset = 0
+    yOffset = 0
     dbStory = undefined as DBStory | undefined
     
     async start() {
@@ -36,13 +39,15 @@ class PlankjeTestStory extends Story {
 
         this.isGrabbed = false
 
-        if (pos.x > this.plank.x - this.plank.width / 2 - 40 &&
-            pos.x < this.plank.x + this.plank.width / 2 + 40 &&
-            pos.y > this.plank.y - this.plank.height / 2 - 40 &&
-            pos.y < this.plank.y + this.plank.height / 2 + 40
+        const width = Math.floor(this.plank.width / 16) * 16
+        if (pos.x > this.plank.x - width / 2 - 8 &&
+            pos.x < this.plank.x + width / 2 + 8 &&
+            pos.y > this.plank.y - this.plank.height / 2 &&
+            pos.y < this.plank.y + this.plank.height / 2
         ) {
             this.isGrabbed = true
             this.xOffset = this.plank.x - pos.x
+            this.yOffset = this.plank.y - pos.y
         }   
     }
 
@@ -62,7 +67,9 @@ class PlankjeTestStory extends Story {
         const maxY = this.controller.ref.renderer.canvas.clientHeight - this.controller.config.offsetBottom
         
         // Move plank
-        Matter.Body.setPosition(this.plank.body, Matter.Vector.create(pos.x + this.xOffset, Math.min(pos.y, maxY)))
+        const x = pos.x + this.xOffset
+        const y = Math.min(pos.y + this.yOffset, maxY)
+        Matter.Body.setPosition(this.plank.body, Matter.Vector.create(x, y))
          
         // this.plank.x = pos.x
         // this.plank.y = Math.min(pos.y, maxY)
@@ -87,7 +94,35 @@ class PlankjeTestStory extends Story {
     }
 
     loop() {
-        
+        if (this.catterpillar) {
+            this.catterpillar.bodyParts.forEach(this.preventGettingStuck.bind(this))
+        }
+    }
+    
+    preventGettingStuck(bodyPart: BodyPart) {
+        if (!this.plank) {
+            return
+        }
+
+        if (bodyPart && this.plank) {
+            // Check if bodyPart is within plank width
+            const halfPlankWidth = this.plank.width / 2 - 8
+            if (bodyPart.x + bodyPart.radius < this.plank.x - halfPlankWidth ||
+                bodyPart.x - bodyPart.radius > this.plank.x + halfPlankWidth) {
+                return
+            }
+            if (bodyPart.y - bodyPart.radius < this.plank.y + 8 && bodyPart.y + bodyPart.radius > this.plank.y - 6) {
+                // Disable collisions temporarily
+                bodyPart.body.collisionFilter.mask = 0
+                this.plank.body.collisionFilter.mask = 0
+                // Push bodyPart up slightly
+                Matter.Body.setVelocity(bodyPart.body, Matter.Vector.create(bodyPart.body.velocity.x, -4))
+            } else {
+                // Set collisions back to normal
+                bodyPart.body.collisionFilter.mask = collisionBodyPart.mask
+                this.plank.body.collisionFilter.mask = collisionWall.mask
+            }
+        }
     }
 
     removePlank(plank: PlankModel) {

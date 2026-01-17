@@ -46,7 +46,6 @@ export class Plank {
     #loop() {
         const targetBody = this.body
 
-        
         this.x = targetBody.position.x
         this.y = targetBody.position.y
 
