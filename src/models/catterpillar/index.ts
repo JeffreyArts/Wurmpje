@@ -134,8 +134,8 @@ export class Catterpillar {
     }
 
     #inTouchWithEarth() {
-        const headCollisions = Matter.Query.collides(this.head.body, this.world.bodies.filter(b => b.label.indexOf("bottom" ) !== -1))
-        const buttCollisions = Matter.Query.collides(this.butt.body, this.world.bodies.filter(b => b.label.indexOf("bottom" ) !== -1))
+        const headCollisions = Matter.Query.collides(this.head.body, this.world.bodies.filter(b => b.isStatic))
+        const buttCollisions = Matter.Query.collides(this.butt.body, this.world.bodies.filter(b => b.isStatic))
         
         return (headCollisions.length > 0 && buttCollisions.length > 0) 
     }
