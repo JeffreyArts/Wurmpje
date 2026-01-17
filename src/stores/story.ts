@@ -5,6 +5,7 @@ import { type IDBPDatabase } from "idb"
 import type Story from "@/models/story"
 import introStory from "@/models/stories/intro"
 import eatStory from "@/models/stories/eat"
+import catapultStory from "@/models/stories/catapult"
 import wofStory from "@/models/stories/word-of-affirmation"
 import pettingStory from "@/models/stories/petting"
 import wallSlamStory from "@/models/stories/wall-slam"
@@ -60,6 +61,7 @@ const story = defineStore("story", {
                 // Conditional stories
                 this.addStory("intro", introStory)
                 this.addStory("ball", ballStory) 
+                this.addStory("catapult", catapultStory) 
 
                 // Action related stories
                 this.addStory("eat", eatStory)

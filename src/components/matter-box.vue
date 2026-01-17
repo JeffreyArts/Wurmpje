@@ -158,6 +158,8 @@ export default defineComponent ({
                     return "leaf"
                 case "Words of affirmation":
                     return "thoughts"
+                case "Catapult":
+                    return "throw-ball"
                 default:
                     return "question-mark"
             }
@@ -241,6 +243,8 @@ export default defineComponent ({
                 await this.actionStore.loadAvailableFood(this.identity.id)
             } else if (actionType == "Words of affirmation") {
                 await this.actionStore.loadAvailableWOFtries(this.identity.id)
+            } else if (actionType == "Catapult") {
+                await this.actionStore.loadAvailableCatapultTries(this.identity.id)
             }
         },
 

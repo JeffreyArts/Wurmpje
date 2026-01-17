@@ -61,9 +61,11 @@ export class Draw {
     layers: Two.Group[] = []
     newObjects: Array<objectModel> = []
     catterpillars: CatterpillarModel[] = []
+    renderer?: Matter.Render | undefined
 
-    constructor(two: Two) {
+    constructor(two: Two, renderer?: Matter.Render) {
         this.two = two
+        this.renderer = renderer
         for (let i = 0; i < 16; i++) {
             const layer = this.two.makeGroup() as Two.Group
             layer.name = `layer-${i}`
@@ -75,6 +77,16 @@ export class Draw {
 
     #draw() {
         this.two.update()
+        if (this.renderer) {
+            
+            const bounds = this.renderer.bounds
+
+            this.two.scene.translation.set(
+                -bounds.min.x,
+                -bounds.min.y
+            )
+
+        }
 
         this.catterpillars.forEach(catterpillar => {
             if (catterpillar.speechBubble) {

@@ -6,7 +6,7 @@ import useStoryStore from "@/stores/story"
 import useDatabaseStore from "@/stores/database"
 
 export type actionStates = "food" | "joy" | "love" | "hungerLoss" | "wof" | "wof-score" | "petting" | "ball"
-export type actionTypes = "Food" | "Words of affirmation"
+export type actionTypes = "Food" | "Words of affirmation" | "Catapult"
 export type DBAction =  {
     id: number;                 
     created: number;            // timestamp
@@ -24,12 +24,13 @@ const Action = defineStore("action", {
         availableActions: 3,
         isSelected: false,
         storyStore: undefined as ReturnType<typeof useStoryStore> | undefined,
-        activeAction: "Food" as actionTypes,
-        possibleActions: ["Food", "Words of affirmation"] as actionTypes[],
+        activeAction: "Catapult" as actionTypes,
+        possibleActions: ["Food", "Words of affirmation", "Catapult"] as actionTypes[],
 
         // Set maximums
         maxWofGames: 5,
         maxFood: 3,
+        maxCatapultGames: 500
     }),
     actions: {
         init() {
@@ -136,6 +137,8 @@ const Action = defineStore("action", {
                 iconName = "leaf"
             } else if (typeOfAction === "Words of affirmation") {
                 iconName = "heart"
+            } else if (typeOfAction === "Catapult") {
+                iconName = "throw-ball"
             }
 
             if (!iconName) {
@@ -241,6 +244,24 @@ const Action = defineStore("action", {
 
             this.availableActions = availableTries
         },
+        async loadAvailableCatapultTries(wurmpjeId: number) {
+            const maxTries = 500
+            let availableTries = maxTries
+            const lastTries = await this.loadLastActionsFromDB(wurmpjeId, "catapult", maxTries)
+            for (const lastTry in lastTries) {
+                // Get difference in hours between now and created
+                const now = Date.now()
+                const created = lastTries[lastTry].created
+                const diffInHours = (now - created) / (1000 * 60 * 60)
+
+                // For each 8 hours passed, give back another try
+                if (diffInHours < 8) {
+                    availableTries --
+                }
+            }
+
+            this.availableActions = availableTries
+        },
         async procesStartingHunger(wurmpjeId: number) {
             let amountOfHoursWithoutFood = 0
 
@@ -300,6 +321,11 @@ const Action = defineStore("action", {
                 
                 if (!this.storyStore.getActiveStory("wof") ) {
                     this.storyStore.setActiveStory("wof")
+                }
+            } else if (this.isSelected && this.activeAction === "Catapult") {
+                
+                if (!this.storyStore.getActiveStory("catapult") ) {
+                    this.storyStore.setActiveStory("catapult")
                 }
             }
         }

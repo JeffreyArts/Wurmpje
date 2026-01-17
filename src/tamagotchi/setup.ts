@@ -130,8 +130,8 @@ export class MatterSetup {
     // Pointer events
     #onPointerUp(event: PointerEvent) {
         const rect = (this.el as HTMLElement).getBoundingClientRect()
-        const x = event.clientX - rect.left
-        const y = event.clientY - rect.top
+        const x = event.clientX - rect.left + this.renderer.bounds.min.x
+        const y = event.clientY - rect.top + this.renderer.bounds.min.y
 
         if (this.isClicking) {
             this.clickEvents.forEach(clickEvent => {
@@ -149,8 +149,8 @@ export class MatterSetup {
 
     #onPointerDown(event: PointerEvent) {
         const rect = (this.el as HTMLElement).getBoundingClientRect()
-        const x = event.clientX - rect.left
-        const y = event.clientY - rect.top
+        const x = event.clientX - rect.left + this.renderer.bounds.min.x
+        const y = event.clientY - rect.top + this.renderer.bounds.min.y
 
         this.isClicking = true
         setTimeout(() => {
@@ -164,8 +164,8 @@ export class MatterSetup {
 
     #onPointerMove(event: PointerEvent) {
         const rect = (this.el as HTMLElement).getBoundingClientRect()
-        const x = event.clientX - rect.left
-        const y = event.clientY - rect.top
+        const x = event.clientX - rect.left + this.renderer.bounds.min.x
+        const y = event.clientY - rect.top + this.renderer.bounds.min.y
 
         this.pointerMoveEvents.forEach(pointerMoveEvent => {
             pointerMoveEvent.fn({ x, y })

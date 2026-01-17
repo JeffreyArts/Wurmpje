@@ -66,7 +66,7 @@ export class MatterController {
             this.config.offsetBottom = 0
         }
         
-        this.draw = new Draw(this.ref.two)
+        this.draw = new Draw(this.ref.two, this.ref.renderer)
         
         let startPosition = { x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }
         if (options?.catterpillarPos) {
