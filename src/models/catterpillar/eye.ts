@@ -33,6 +33,7 @@ export class Eye  {
     lid: Array<Point>
     isFollowing: gsap.core.Tween | null = null
     isLooking: gsap.core.Tween | null = null
+    disableBlink: boolean = false
    
     target: { x: number, y: number } | null = null
     
@@ -160,8 +161,30 @@ export class Eye  {
         })
     }
 
+    pinch(duration = .4) {
+        console.log("pinch")
+        return new Promise<void>(resolve => {
+            this.disableBlink = true
+            const ease = "power2.out"
+            gsap.to(this.lid[1], {
+                y: this.height * .3,
+                duration,
+                ease,
+            })
+            gsap.to(this.lid[3], {
+                y: this.height - this.height * .3,
+                duration,
+                ease,
+                onComplete: () => {
+                    resolve()
+                }
+            })
+        })
+    }
+
     open(duration = .2) {
         return new Promise<void>(resolve => {
+            this.disableBlink = false
             const ease = "power2.out"
             gsap.to(this.lid[1], {
                 y: 0,
@@ -181,6 +204,9 @@ export class Eye  {
 
     blink(duration = .4) {
         return new Promise<void>(async resolve => {
+            if (this.disableBlink) {
+                return resolve()
+            }
             await this.close(duration / 2)
             await this.open(duration / 2)
             resolve()

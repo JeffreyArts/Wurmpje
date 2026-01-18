@@ -565,11 +565,11 @@ export class Catterpillar {
 
 
     // duration: duration in seconds
-    releaseSpine = (duration =  .4) => {
-        return new Promise((resolve, reject) => {
+    releaseSpine = (duration =  .4) : Promise<void> => {
+        return new Promise((resolve) => {
             if (!this.contraction) {
                 console.warn("Catterpillar is not in a contracting state")
-                return reject()
+                return resolve()
             }
             // Kill contraction tween when it is still running
             if (this.contraction.contractionTween) {
@@ -614,7 +614,7 @@ export class Catterpillar {
                     this.#removeContraction()
                     this.spine.stiffness = .01
 
-                    resolve(true)
+                    resolve()
                 }
             })
         })
@@ -623,9 +623,9 @@ export class Catterpillar {
 
     // angle: degrees between -45 & 45 where 0 is upright
     // speed: amount of seconds to reach the standing angle
-    standUp = (angle = 0, speed = 2) => {
+    standUp = (angle = 0, speed = 2) : Promise<void> => {
         return new Promise(async (resolve, reject) => {
-            if (!this.isOnSolidGround) {
+            if (!this.isOnSolidGround && !this.isStanding) {
                 console.warn("Catterpillar is not touching solid ground, cannot stand up now")
                 return reject()
             }
@@ -663,8 +663,7 @@ export class Catterpillar {
             })
 
             if (!this.contraction) {
-                this.contraction = {
-                }
+                this.contraction = {}
             } else {
                 if (this.contraction.tickerFn) {
                     gsap.ticker.remove(this.contraction.tickerFn)
@@ -723,18 +722,15 @@ export class Catterpillar {
                     })
                 },
                 onComplete: () => {
-                    
-                    if (this.contraction) {
-                        this.isStanding = true
-                        this.contraction.tickerFn = () => {
-                            Matter.Body.setVelocity( this.head.body, {
-                                x: angleX,
-                                y: angleY,
-                            })
-                        }
-                        gsap.ticker.add(this.contraction.tickerFn)
+                    this.isStanding = true
+                    this.contraction.tickerFn = () => {
+                        Matter.Body.setVelocity( this.head.body, {
+                            x: angleX,
+                            y: angleY,
+                        })
                     }
-                    resolve(true)
+                    gsap.ticker.add(this.contraction.tickerFn)
+                    resolve()
                 }
             })
         })

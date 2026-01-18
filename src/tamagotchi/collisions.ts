@@ -2,7 +2,7 @@
  * Collision matrix:
  *
  *                               SpeechBubble | food | wall | bodyPart | brush | item
- * SpeechBubble                    ❌            ❌      ❌      ❌       ❌    ❌
+ * SpeechBubble                    ❌            ❌      ✅      ❌       ❌    ❌
  * food                            ❌            ✅      ✅      ❌       ❌    ✅
  * wall                            ✅            ✅      ✅      ✅       ❌    ✅
  * bodyPart                        ❌            ❌      ✅      ❌       ✅    ✅

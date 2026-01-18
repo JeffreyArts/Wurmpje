@@ -55,15 +55,15 @@ export class Ball {
     #loop() {
         const targetBody = this.composite.bodies[0]
 
-        if (Math.abs(this.x - targetBody.position.x) > 0.01 ||
-            Math.abs(this.y - targetBody.position.y) > 0.01) {
+        if (Math.abs(this.x - targetBody.position.x) > 0.1 ||
+            Math.abs(this.y - targetBody.position.y) > 0.1) {
             this.isMoving = true
             if (this.isMovingTimeout) {
                 clearTimeout(this.isMovingTimeout as NodeJS.Timeout)
             }
             this.isMovingTimeout = setTimeout(() => {
                 this.isMoving = false
-            }, 500)
+            }, 200)
         }
         
         this.x = targetBody.position.x
