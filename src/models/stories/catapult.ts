@@ -69,6 +69,10 @@ class CatapultStory extends Story {
             return
         }
 
+        if (this.catterpillar.head.x < this.catterpillar.length * this.catterpillar.thickness) {
+            this.phase1 = "done"
+            return
+        } 
 
         try {
             if (this.catterpillar.isPointingLeft()) {
