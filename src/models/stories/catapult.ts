@@ -142,6 +142,12 @@ class CatapultStory extends Story {
         this.phase4 = "inProgress"
 
         this.leaderboard = new Leaderboard("catapult-score", Math.floor(this.score / 10), this.restartStory.bind(this) )
+
+        const rightWall = this.controller.ref.world.bodies.find(body => body.label.includes("wall,right"))
+        if (rightWall) {
+            rightWall.collisionFilter = collisionWall
+        }
+
     }
 
 
@@ -159,7 +165,7 @@ class CatapultStory extends Story {
         this.actionStore.isSelected = false
 
         const targetObject = { x: this.ball.x - width / 2, y: 0 }
-        let ease = "elastic.out"
+        let ease = "power1.out"
         if (this.ball.x < width) {
             ease = "power2.out"
         }
