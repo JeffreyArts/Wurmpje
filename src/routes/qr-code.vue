@@ -55,9 +55,9 @@ export default defineComponent({
             }
             
             if (this.identity.current.gender == 1) {
-                return "Daddy"
-            } else {
                 return "Mommy"
+            } else {
+                return "Daddy"
             }
         }
     },
