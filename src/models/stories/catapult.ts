@@ -1,10 +1,12 @@
 import Matter from "matter-js"
 import Story from "@/models/story"
+import gsap from "gsap"
 import type Catterpillar from "../catterpillar"
 import BallModel from "@/models/ball"
 import { type DBStory } from "@/stores/story"
 import { collisionWall } from "@/tamagotchi/collisions"
 import { reject } from "lodash"
+import Leaderboard from "@/models/leaderboard"
 
 class CatapultStory extends Story {
     type = "action" as const
@@ -14,18 +16,14 @@ class CatapultStory extends Story {
     score: number = 0
     dbStory = undefined as DBStory | undefined
     
-    phase1 = undefined as Promise<void> | undefined
-    phase1Completed = false
-    phase2 = undefined as Promise<void> | undefined
-    phase2Completed = false
-    phase3 = undefined as Promise<void> | undefined
-    phase3Completed = false
-    phase4 = undefined as Promise<void> | undefined
-    phase4Completed = false
+    phase1 = undefined as "inProgress" | "done" | "waiting" |  undefined
+    phase2 = undefined as "inProgress" | "done" | undefined
+    phase3 = undefined as "inProgress" | "done" | undefined
+    phase4 = undefined as "inProgress" | "done" | undefined
 
-    isInLaunchPosition: boolean = false
     startPosition = undefined as Matter.Vector | undefined
     extraFloor = undefined as  Matter.Body | undefined
+    leaderboard = undefined as Leaderboard | undefined
     
     async start() {
         console.info("Plankje test story started", this.identityStore)
@@ -33,20 +31,19 @@ class CatapultStory extends Story {
         this.catterpillar = this.controller.catterpillar
 
         this.dbStory = await this.storyStore.getLatestDatabaseEntry("catapult")
-        this.startPhase1()
+
+        await this.actionStore.add(this.identityStore.current.id, "catapult", 1) // register a try, value is irrelevant
     }
 
 
     loop() {
-        if (!this.phase1) {
+        if (this.phase1 === undefined) {
             this.startPhase1()
-        } else if (this.phase1Completed && !this.phase2) {
+        } else if (this.phase1 === "done" && this.phase2 !== "done") {
             this.startPhase2()
-        } else if (this.phase2Completed && !this.phase3 ) {
+        } else if (this.phase2 === "done" && this.phase3 !== "done") {
             this.startPhase3()
-        } else if (this.phase3 && !this.phase3Completed) {
-            // This is the state before launching the ball
-        } else if (this.phase3Completed && !this.phase4) {
+        } else if (this.phase3 === "done" && this.phase4 !== "done") {
             this.cameraFollowBall()
             this.floorFollowBall()
             this.score = this.ball.x - this.catterpillar.x 
@@ -57,120 +54,162 @@ class CatapultStory extends Story {
     async startPhase1() {
         // Make catterpillar crawl to the left wall for the catapult position
 
-        this.phase1 = new Promise<void>(async (resolve) => {
-            if (!this.catterpillar) {
-                reject(new Error("Catterpillar not defined"))
-            }
-            this.catterpillar.emote("happy")
-            
-            if (this.catterpillar.isMoving) {
-                return
-            }
+        if (this.phase1 == "inProgress") {
+            return
+        }
+        this.phase1 = "inProgress"
 
+        if (!this.catterpillar) {
+            reject(new Error("Catterpillar not defined"))
+        }
+        
+        this.catterpillar.emote("happy")
+        
+        if (this.catterpillar.isMoving) {
+            return
+        }
+
+
+        try {
             if (this.catterpillar.isPointingLeft()) {
                 await this.catterpillar.move()    
             } else {
                 await this.catterpillar.turnAround()
             }
-
-            if (this.catterpillar.head.x < this.catterpillar.length * this.catterpillar.thickness) {
-                this.phase1Completed = true
-            } else {
-                this.phase1 = undefined
-            }
-            resolve()
-        })
-        return this.phase1
+        } catch {
+            // Try again next loop
+            this.phase1 = undefined
+            return
+        }
+            
+        if (this.catterpillar.head.x < this.catterpillar.length * this.catterpillar.thickness) {
+            this.phase1 = "done"
+        } else {
+            this.phase1 = undefined
+        }
     }
 
     async startPhase2() {
         // Add ball, extra floor and make catterpillar stand up
 
-        this.phase2 = new Promise<void>(async (resolve) => {
-            if (!this.catterpillar) {
-                reject(new Error("Catterpillar not defined"))
-            }
+        if (this.phase2 == "inProgress") {
+            return
+        }
+        this.phase2 = "inProgress"
 
-            this.catterpillar.leftEye.lookRight(4,2)
-            this.catterpillar.rightEye.lookRight(4,2)
+        if (!this.catterpillar) {
+            reject(new Error("Catterpillar not defined"))
+        }
+
+        this.catterpillar.leftEye.lookRight(4,2)
+        this.catterpillar.rightEye.lookRight(4,2)
+        try {
             await this.catterpillar.standUp()
-            await this.createBall()
-            this.createExtraFloor()
+        } catch {
+            // Try again next loop
+            this.phase2 = undefined
+            return
+        }
 
-            this.startPosition = Matter.Vector.create(this.ball.x, this.ball.y)
-            this.phase2Completed = true
-            resolve()
-        })
-            
+
+        await this.createBall()
+        this.createExtraFloor()
+
+        this.startPosition = Matter.Vector.create(this.ball.x, this.ball.y)
+        this.phase2 = "done"    
     }
+
+    async startPhase3() {
+        this.phase3 = "inProgress"
+        document.addEventListener("pointerdown", this.pointerDownEvent.bind(this))
+        document.addEventListener("pointerup", this.pointerUpEvent.bind(this))
+    }
+
 
     async startPhase4() {
         if (this.ball.isMoving) {
             return
         }
 
-        // Add event listeners for launching the ball
-        this.phase4 = new Promise<void>(async (resolve) => {
-            if (!this.catterpillar) {
-                reject(new Error("Catterpillar not defined"))
-            }
-            this.phase3Completed = true
-            alert(this.score)    
-                
-            resolve()
-        })
-    }
-
-    async startPhase3() {
-        // Add event listeners for launching the ball
-        this.phase3 = new Promise<void>(async (resolve) => {
-            if (!this.catterpillar) {
-                reject(new Error("Catterpillar not defined"))
-            }
-
-            document.addEventListener("pointerdown", this.pointerDownEvent.bind(this))
-            document.addEventListener("pointerup", this.pointerUpEvent.bind(this))
-
-            // There should be a power meter here       
-                
-            resolve()
-        })
-    }
-
-    showScore() {
-        if (!this.dbStory) {
+        if (this.phase4 == "inProgress") {
             return
         }
+
+        this.phase4 = "inProgress"
+
+        this.leaderboard = new Leaderboard("catapult-score", Math.floor(this.score / 10), this.restartStory.bind(this) )
+    }
+
+
+    async restartStory() {
+
+        const render = this.controller.ref.renderer
+        const width  = render.options.width
+        const height = render.options.height
+        render.bounds.min.x = 0
+        this.controller.draw.removeObjectById(this.ball.composite.id)
+
+        this.phase1 = "waiting"
         
-        console.info("Score:", this.score)
+        this.storyStore.killStory("catapult")
+        this.actionStore.isSelected = false
+
+        const targetObject = { x: this.ball.x - width / 2, y: 0 }
+        let ease = "elastic.out"
+        if (this.ball.x < width) {
+            ease = "power2.out"
+        }
+        
+        gsap.to(targetObject, { x: 0, duration: 1, ease, onUpdate: () => {
+            Matter.Render.lookAt(render, {
+                min: {
+                    x: targetObject.x,
+                    y: 0
+                },
+                max: {
+                    x: targetObject.x + width,
+                    y: height
+                }
+            })
+        } })
+
+        // Update joy
+        const joy = Math.floor(this.score / 1000)
+        await this.actionStore.add(this.identityStore.current.id, "joy", joy)
+        gsap.to(this.identityStore.current, { joy: this.identityStore.current.joy + joy, duration: 1 })
+
+        this.destroy()
     }
 
     async pointerDownEvent() {
-        if (this.phase3 && !this.phase3Completed) {
-            // Start pulling back the ball
-            this.isInLaunchPosition = true
-            this.catterpillar.leftEye.pinch(.4)
-            this.catterpillar.rightEye.pinch(.4)
-            this.catterpillar.emote("hmm")
-            // await this.catterpillar.releaseSpine(.1)
-            await this.catterpillar.standUp(-70, 1)
-        }
+        if (this.phase3 !== "inProgress") {
+            return
+        }  
+        
+        // Start pulling back the ball
+        this.catterpillar.leftEye.pinch(.4)
+        this.catterpillar.rightEye.pinch(.4)
+        this.catterpillar.emote("hmm")
+        // await this.catterpillar.releaseSpine(.1)
+        await this.catterpillar.standUp(-70, 1)
     }
             
     async pointerUpEvent() {
-        if (this.phase3 && !this.phase3Completed) {
-            if (!this.isInLaunchPosition) {
-                return
-            }
-            // Start pulling back the ball
-            this.catterpillar.leftEye.open(.4)
-            this.catterpillar.rightEye.open(.4)
-            await this.catterpillar.standUp(0, .05)
-            this.launchBall()
-            this.catterpillar.emote("happy")
-            this.catterpillar.releaseStance()
-            this.isInLaunchPosition = false
+        if (this.phase3 !== "inProgress") {
+            return
         }   
+
+        // Start pulling back the ball
+        this.catterpillar.leftEye.open(.4)
+        this.catterpillar.rightEye.open(.4)
+        await this.catterpillar.standUp(0, .05)
+        this.launchBall()
+
+        this.catterpillar.emote("happy")
+        await this.catterpillar.releaseStance()
+        setTimeout(() => {
+            this.catterpillar.turnAround()
+        }, 2000)
     }
      
     launchBall() {
@@ -196,7 +235,7 @@ class CatapultStory extends Story {
         if (this.ballConstraint) {
             Matter.World.remove(this.controller.ref.world, this.ballConstraint)
             this.ballConstraint = undefined
-            this.phase3Completed = true
+            this.phase3 = "done"
         }
     }
             
@@ -271,7 +310,6 @@ class CatapultStory extends Story {
                 const ballBody = this.ball.composite.bodies[0]
                 if ((pair.bodyA === ballBody && pair.bodyB === this.extraFloor) ||
                     (pair.bodyB === ballBody && pair.bodyA === this.extraFloor)) {
-                    this.showScore()
                     ballBody.frictionAir += 0.0005
                 }
             })
@@ -305,6 +343,10 @@ class CatapultStory extends Story {
         super.destroy()
         if (this.ballConstraint) {
             Matter.World.remove(this.controller.ref.world, this.ballConstraint)
+        }
+
+        if (this.extraFloor) {
+            Matter.World.remove(this.controller.ref.world, this.extraFloor)
         }
 
         if (this.ball) {

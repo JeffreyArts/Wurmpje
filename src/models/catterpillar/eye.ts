@@ -162,7 +162,6 @@ export class Eye  {
     }
 
     pinch(duration = .4) {
-        console.log("pinch")
         return new Promise<void>(resolve => {
             this.disableBlink = true
             const ease = "power2.out"

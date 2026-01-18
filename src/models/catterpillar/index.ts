@@ -623,7 +623,7 @@ export class Catterpillar {
 
     // angle: degrees between -45 & 45 where 0 is upright
     // speed: amount of seconds to reach the standing angle
-    standUp = (angle = 0, speed = 2) : Promise<void> => {
+    standUp = (angle = 0, speed = 2) => {
         return new Promise(async (resolve, reject) => {
             if (!this.isOnSolidGround && !this.isStanding) {
                 console.warn("Catterpillar is not touching solid ground, cannot stand up now")
@@ -730,7 +730,7 @@ export class Catterpillar {
                         })
                     }
                     gsap.ticker.add(this.contraction.tickerFn)
-                    resolve()
+                    resolve(true)
                 }
             })
         })

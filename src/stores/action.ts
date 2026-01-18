@@ -5,7 +5,7 @@ import type { DBIdentity } from "@/stores/identity"
 import useStoryStore from "@/stores/story"
 import useDatabaseStore from "@/stores/database"
 
-export type actionStates = "food" | "joy" | "love" | "hungerLoss" | "wof" | "wof-score" | "petting" | "ball"
+export type actionStates = "food" | "joy" | "love" | "hungerLoss" | "wof" | "wof-score" | "petting" | "ball" | "catapult-score" | "catapult"
 export type actionTypes = "Food" | "Words of affirmation" | "Catapult"
 export type DBAction =  {
     id: number;                 
@@ -208,26 +208,8 @@ const Action = defineStore("action", {
 
             this.availableActions = availableFood
         },
-        async updateWof(wurmpjeId: number) {
-            const maxGames = this.maxWofGames
-            let availableGames = maxGames
-            const lastFoodMoments = await this.loadLastActionsFromDB(wurmpjeId, "wof", maxGames)
-            for (const foodMoment in lastFoodMoments) {
-                // Get difference in hours between now and created
-                const now = Date.now()
-                const created = lastFoodMoments[foodMoment].created
-                const diffInHours = (now - created) / (1000 * 60 * 60)
-
-                // For each 4 hours passed, add 1 game back
-                if (diffInHours < 4) {
-                    availableGames --
-                }
-            }
-
-            this.availableActions = availableGames
-        },
         async loadAvailableWOFtries(wurmpjeId: number) {
-            const maxTries = 5
+            const maxTries = this.maxWofGames
             let availableTries = maxTries
             const lastTries = await this.loadLastActionsFromDB(wurmpjeId, "wof", maxTries)
             for (const lastTry in lastTries) {

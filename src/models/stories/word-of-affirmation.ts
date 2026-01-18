@@ -147,8 +147,8 @@ class WordsOfAffirmationStory extends Story {
         this.controller.disableDragging = true
 
 
-        await this.actionStore.add(this.identityStore.current.id, "wof", 10)
-        await this.actionStore.updateWof(this.identityStore.current.id)
+        await this.actionStore.add(this.identityStore.current.id, "wof", 1) // register a try, value is irrelevant
+        await this.actionStore.loadAvailableWOFtries(this.identityStore.current.id)
     }
 
     loop() {

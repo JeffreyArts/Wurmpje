@@ -80,6 +80,9 @@ export class Ball {
         requestAnimationFrame(this.#loop.bind(this))
     }
 
+    destroy() {
+        Matter.World.remove(this.world, this.composite)
+    }
 }
 
 export default Ball
