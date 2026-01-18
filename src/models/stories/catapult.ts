@@ -26,7 +26,7 @@ class CatapultStory extends Story {
     leaderboard = undefined as Leaderboard | undefined
     
     async start() {
-        console.info("Plankje test story started", this.identityStore)
+        console.info("Catapult story started", this.identityStore)
         
         this.catterpillar = this.controller.catterpillar
 
@@ -350,6 +350,7 @@ class CatapultStory extends Story {
         }
 
         if (this.ball) {
+            this.ball.destroy()
             this.controller.draw.removeObjectById(this.ball.composite.id)
         }
     }

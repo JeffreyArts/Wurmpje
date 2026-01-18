@@ -9,18 +9,23 @@ class Leaderboard {
     targetAction: actionStates
     onClose: () => void
 
-    constructor(targetAction: actionStates, gameScore: number, onClose: () => void) {   
+    constructor(targetAction: actionStates, gameScore: number, onClose: () => void, options?: { fadeInBackground?: boolean }) {   
         this.actionStore = ActionStore()
         
         this.targetAction = targetAction
         this.gameScore = gameScore
         this.onClose = onClose
-        this.start()
+        this.start(options)
     }
     
-    async start() {
+    async start(options: { fadeInBackground?: boolean } = {}) {
+        let fadeInBackground = true
+        if (options.fadeInBackground !== undefined) {
+            fadeInBackground = options.fadeInBackground 
+        }
+
+        this.createBackground(fadeInBackground)
         await this.actionStore.add(1, this.targetAction, this.gameScore)
-        this.createBackground()
         await this.createLeaderboard()
 
     }
@@ -39,13 +44,22 @@ class Leaderboard {
         } })
     }
 
-    createBackground() {
+    fadeIn() {
+        gsap.fromTo(".leaderboard tr", { opacity: 0 }, { opacity: 1, duration: .8, stagger: { 
+            each: 0.1,
+            from: "end"
+        }, delay: 1 })
+    }
+
+    createBackground(fadeIn: boolean) {
         const bg = document.createElement("div")
         bg.classList.add("leaderboard-bg")
-        bg.style.opacity = "0"
         document.body.appendChild(bg)
         this.elements.push(bg)
         bg.addEventListener("click", this.fadeOut.bind(this))
+
+        if (!fadeIn) return
+        bg.style.opacity = "0"
         gsap.to(bg, { opacity: 1, duration: 1 })
     }
 
@@ -115,6 +129,8 @@ class Leaderboard {
         }
 
         leaderboardEl.appendChild(tableEl)
+
+        this.fadeIn()
     }
 
 

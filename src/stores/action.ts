@@ -29,8 +29,8 @@ const Action = defineStore("action", {
 
         // Set maximums
         maxWofGames: 5,
-        maxFood: 3,
-        maxCatapultGames: 500
+        maxFood: 5,
+        maxCatapultGames: 5
     }),
     actions: {
         init() {
@@ -227,7 +227,7 @@ const Action = defineStore("action", {
             this.availableActions = availableTries
         },
         async loadAvailableCatapultTries(wurmpjeId: number) {
-            const maxTries = 500
+            const maxTries = this.maxCatapultGames
             let availableTries = maxTries
             const lastTries = await this.loadLastActionsFromDB(wurmpjeId, "catapult", maxTries)
             for (const lastTry in lastTries) {
@@ -291,6 +291,23 @@ const Action = defineStore("action", {
                 await actionTx.done
             }
             
+        },
+        deselectAction() {
+            if (this.isSelected && this.activeAction === "Food") {
+                if (this.storyStore.getActiveStory("eat") ) {
+                    this.storyStore.killStory("eat")
+                }
+            } else if (this.isSelected && this.activeAction === "Words of affirmation") {
+                if (this.storyStore.getActiveStory("wof") ) {
+                    this.storyStore.killStory("wof")
+                }
+            } else if (this.isSelected && this.activeAction === "Catapult") {
+                if (this.storyStore.getActiveStory("catapult") ) {
+                    this.storyStore.killStory("catapult")
+                }
+            }
+            
+            this.isSelected = false
         },
         toggleSelected() {
             this.isSelected = !this.isSelected

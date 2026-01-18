@@ -96,6 +96,7 @@
     text-align: center;
     left: 50%;
     translate: -50% 0;
+    z-index: 1;
 }
 
 .wof-scorefix-title {

@@ -30,11 +30,11 @@
                 {{availableActions}}x
             </header>
             <section>
-                <jao-icon name="chevron-left" size="small" active-color="#666666" inactive-color="#fafafa" @click="prevAction"/>
+                <jao-icon name="chevron-left" class="prev-action" size="small" active-color="#666666" inactive-color="#fafafa" @click="prevAction" :class="{'__isDisabled': actionStore.isSelected }"/>
                 <div class="action-container" :class="{'__isActive': actionStore.isSelected, '__isDisabled': availableActions <= 0  }" @click="actionContainerClicked">
                     <jao-icon :name="actionIcon" size="large" active-color="currentColor" inactive-color="#fafafa" :transit-effect="iconTransitEffect"/>
                 </div>
-                <jao-icon name="chevron-right" size="small" active-color="#666666" inactive-color="#fafafa" @click="nextAction"/>
+                <jao-icon name="chevron-right" class="next-action" size="small" active-color="#666666" inactive-color="#fafafa" @click="nextAction" :class="{'__isDisabled': actionStore.isSelected }"/>
             </section>
             <footer class="actions-footer" :class="{'__isDisabled': availableActions <= 0 }">
                 {{actionStore.activeAction}}
@@ -217,6 +217,9 @@ export default defineComponent ({
     },
     methods: {
         nextAction() {
+            if (this.actionStore.isSelected) {
+                return
+            }
             this.iconTransitEffect.effect = "right-to-left"
             const index = this.actionStore.possibleActions.indexOf(this.actionStore.activeAction)
             const nextIndex = (index + 1) % this.actionStore.possibleActions.length
@@ -224,6 +227,9 @@ export default defineComponent ({
             this.loadAction(this.actionStore.activeAction)
         },
         prevAction() {
+            if (this.actionStore.isSelected) {
+                return
+            }
             this.iconTransitEffect.effect = "left-to-right"
             const index = this.actionStore.possibleActions.indexOf(this.actionStore.activeAction)
             const prevIndex = index - 1 < 0 ? this.actionStore.possibleActions.length -1 : index - 1
@@ -274,7 +280,9 @@ export default defineComponent ({
 
 
                 e.preventDefault()
-                this.actionStore.isSelected = false
+                this.actionStore.deselectAction()   
+
+
                 homeFooter.removeEventListener("click", removeActionActive)
             }
 
@@ -477,6 +485,11 @@ export default defineComponent ({
         align-items: center;
         width: 100%;
     }
+}
+
+.next-action.__isDisabled,
+.prev-action.__isDisabled {
+    opacity: 0.1;
 }
 
 .actions-header {
