@@ -200,9 +200,6 @@ class WordsOfAffirmationStory extends Story {
             }
         })
 
-        // Save current score
-        await this.actionStore.add(1, "wof-score", this.gameScore)
-
 
         // Animate score display to center
         gsap.to(".wof-score-display", { 
