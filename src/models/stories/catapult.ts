@@ -7,6 +7,7 @@ import { type DBStory } from "@/stores/story"
 import { collisionWall } from "@/tamagotchi/collisions"
 import { reject } from "lodash"
 import Leaderboard from "@/models/leaderboard"
+import Powerbar from "@/models/powerbar"
 
 class CatapultStory extends Story {
     type = "action" as const
@@ -124,9 +125,11 @@ class CatapultStory extends Story {
     }
 
     async startPhase3() {
+        if (this.phase3 == "inProgress") { 
+            return
+        }
         this.phase3 = "inProgress"
         document.addEventListener("pointerdown", this.pointerDownEvent.bind(this))
-        document.addEventListener("pointerup", this.pointerUpEvent.bind(this))
     }
 
 
@@ -195,6 +198,7 @@ class CatapultStory extends Story {
         if (this.phase3 !== "inProgress") {
             return
         }  
+        new Powerbar(this.pointerUpEvent.bind(this))
         
         // Start pulling back the ball
         this.catterpillar.leftEye.pinch(.4)
@@ -204,7 +208,7 @@ class CatapultStory extends Story {
         await this.catterpillar.standUp(-70, 1)
     }
             
-    async pointerUpEvent() {
+    async pointerUpEvent(force: number) {
         if (this.phase3 !== "inProgress") {
             return
         }   
@@ -213,7 +217,7 @@ class CatapultStory extends Story {
         this.catterpillar.leftEye.open(.4)
         this.catterpillar.rightEye.open(.4)
         await this.catterpillar.standUp(0, .05)
-        this.launchBall()
+        this.launchBall(force)
 
         this.catterpillar.emote("happy")
         await this.catterpillar.releaseStance()
@@ -222,21 +226,26 @@ class CatapultStory extends Story {
         }, 2000)
     }
      
-    launchBall() {
+    launchBall(forceMultiplier: number) {
         if (!this.ball || !this.startPosition) {
             return
         }
-
+        
+    
         const currentPosition = Matter.Vector.create(this.ball.x, this.ball.y)
         const launchVector = Matter.Vector.sub(this.startPosition, currentPosition)
         const launchMagnitude = Matter.Vector.magnitude(launchVector)
+        
 
         // Limit the maximum launch power
-        const maxLaunchPower = 150
+        const maxLaunchPower = 200
         const clampedLaunchPower = Math.min(launchMagnitude, maxLaunchPower)
-
+        // let adjustedLaunchPower = clampedLaunchPower * forceMultiplier
         // Apply force to the ball based on the launch power
-        const forceMagnitude = clampedLaunchPower * 0.0005 // Adjust the multiplier for desired effect
+        let forceMagnitude = clampedLaunchPower / 1000 // Adjust the multiplier for desired effect
+        forceMagnitude *= forceMultiplier
+        forceMagnitude *= .5 // tweak down overall power
+
         const forceVector = Matter.Vector.mult(Matter.Vector.normalise(launchVector), forceMagnitude)
 
         Matter.Body.applyForce(this.ball.composite.bodies[0], this.ball.composite.bodies[0].position, forceVector)

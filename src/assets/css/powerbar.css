@@ -1,0 +1,28 @@
+.powerbar {
+    display: flex;
+    flex-direction: row;
+    gap: 2px;
+    align-items: flex-end;
+    position: fixed;
+    left: 50%;
+    top: 25%;
+    translate: -50% 0;
+    z-index: 2;
+    color: #eaeaea;
+
+    &:after {
+        content: "power";
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        translate: calc(-50% + 8px) calc(100% + 8px);
+        font-size: 16px;
+        font-family: var(--accent-font);
+        color: #111;
+    }
+
+    .bar {
+        width: 4px;
+        background-color: currentColor;
+    }
+}
