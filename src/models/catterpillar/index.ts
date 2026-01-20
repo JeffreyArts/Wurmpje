@@ -948,6 +948,10 @@ export class Catterpillar {
             // Mo
         }
     }
+
+    destroy() { 
+        this.remove()
+    }
 }
 
 export default Catterpillar

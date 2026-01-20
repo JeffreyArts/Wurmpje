@@ -1,13 +1,16 @@
 import Matter from "matter-js"
 import Story from "@/models/story"
 import gsap from "gsap"
-import type Catterpillar from "../catterpillar"
+import Catterpillar from "@/models/catterpillar"
+// import { Catterpillar as CatterpillarModel } from "@/tamagotchi/create/catterpillar"
 import BallModel from "@/models/ball"
 import { type DBStory } from "@/stores/story"
-import { collisionWall } from "@/tamagotchi/collisions"
+import { collisionWall, collisionItem } from "@/tamagotchi/collisions"
 import { reject } from "lodash"
+import Identity, { type IdentityField } from "@/models/identity"
 import Leaderboard from "@/models/leaderboard"
 import Powerbar from "@/models/powerbar"
+
 
 class CatapultStory extends Story {
     type = "action" as const
@@ -25,6 +28,8 @@ class CatapultStory extends Story {
     startPosition = undefined as Matter.Vector | undefined
     extraFloor = undefined as  Matter.Body | undefined
     leaderboard = undefined as Leaderboard | undefined
+    launcherCatapillers = [] as Array<Catterpillar>
+    launchPositions = [] as Array<number>
     
     async start() {
         console.info("Catapult story started", this.identityStore)
@@ -33,9 +38,74 @@ class CatapultStory extends Story {
 
         this.dbStory = await this.storyStore.getLatestDatabaseEntry("catapult")
 
+        // document.addEventListener("click", this.createCatterpillarLauncher.bind(this))
+        console.log("Registering catapult try in action store", this.controller.ref.world)
         await this.actionStore.add(this.identityStore.current.id, "catapult", 1) // register a try, value is irrelevant
     }
 
+    generateLaunchPositions() {
+        this.launchPositions = []
+        const screenWidth = this.controller.ref.renderer.options.width
+        const startPoint = this.controller.ref.renderer.bounds.max.x + 200
+        for (let i = 0; i < 5; i++) {
+            const startX = startPoint + i * screenWidth * 2
+            this.launchPositions.push(startX + Math.random() * screenWidth)
+        }
+    }
+
+    createCatterpillarLauncher(posX: number) {
+        // if (!this.ball) {
+        //     return
+        // }
+        
+        const thickness = 16
+        const id = Math.floor(Math.random()*10)
+        const identity = {
+            id,
+            name: `catterpillar-${id}`,
+            textureIndex: 0,
+            colorSchemeIndex: Math.floor(Math.random() * 32),
+            offset: Math.floor(Math.random() * 16),
+            gender: Math.random() > 0.5 ? 1 : 0,
+            thickness,
+            length: Math.floor(Math.random() * 5) + 3,
+        } as IdentityField
+        const offsetBottom = this.controller.config.offsetBottom ? this.controller.config.offsetBottom : 0
+        const position = {  
+            x: posX,
+            y: this.controller.ref.renderer.canvas.clientHeight - offsetBottom - thickness 
+        }
+
+        const textures = [
+            { "stroke": false },
+            { "stroke": true },
+            { "360": "panter","stroke": true },
+            { "360": "panter","stroke": true },
+            { "360": "cow","stroke": false },
+            { "360": "cow","stroke": true },
+            { "360": "camo","stroke": false },
+            { "360": "camo","stroke": true },]
+
+        const catterPillarOptions =  {
+            id: Math.floor(Math.random()*10).toString(),
+            x: position.x,
+            y: position.y,
+            length: identity.length,
+            thickness: identity.thickness,
+            primaryColor: "#f90",
+            secondaryColor: "#111",
+            offset: identity.offset,
+            texture: textures[Math.floor(Math.random() * textures.length)],
+        }
+        
+        // Set composite
+        const catterpillar = new Catterpillar(catterPillarOptions,  this.controller.ref.world)
+        catterpillar.composite.bodies.forEach(body => {
+            body.collisionFilter = collisionItem
+        })
+        this.controller.draw.addCatterpillar(catterpillar)
+        this.launcherCatapillers.push(catterpillar)
+    }
 
     loop() {
         if (this.phase1 === undefined) {
@@ -47,9 +117,29 @@ class CatapultStory extends Story {
         } else if (this.phase3 === "done" && this.phase4 !== "done") {
             this.cameraFollowBall()
             this.floorFollowBall()
+            
+            this.generateLauncherLoop()
+            this.launcherLoop()
+
             this.score = this.ball.x - this.catterpillar.x 
             this.startPhase4()
         }
+    }
+
+    generateLauncherLoop() {
+        console.log(this.launchPositions.length)
+        if (this.launchPositions.length < 1) {
+            this.generateLaunchPositions()
+        }   
+
+        this.launchPositions.forEach((position, index) => {
+            if (this.ball.x > position - this.controller.ref.renderer.options.width*2) {
+                // remove positions from launch array
+                this.launchPositions.splice(index, 1)
+                // create new catterpillar launcher
+                this.createCatterpillarLauncher(position)
+            }
+        })
     }
 
     async startPhase1() {
@@ -186,8 +276,12 @@ class CatapultStory extends Story {
             })
         } })
 
+        this.launcherCatapillers.forEach(catterpillar => {
+            catterpillar.destroy()
+        })
+
         // Update joy
-        const joy = Math.floor(this.score / 1000)
+        const joy = Math.min(Math.floor(this.score / 1000), 10)
         await this.actionStore.add(this.identityStore.current.id, "joy", joy)
         gsap.to(this.identityStore.current, { joy: this.identityStore.current.joy + joy, duration: 1 })
 
@@ -224,6 +318,43 @@ class CatapultStory extends Story {
         setTimeout(() => {
             this.catterpillar.turnAround()
         }, 2000)
+    }
+
+    launcherLoop() {
+        
+        this.launcherCatapillers.forEach(catterpillar => {
+
+            // Check for collision with ball in order to launch it
+            if (this.ball.x < catterpillar.head.x + catterpillar.thickness && 
+                this.ball.x > catterpillar.head.x - catterpillar.thickness &&
+                this.ball.y - this.ball.size/2 < catterpillar.head.y + catterpillar.thickness * 2 &&
+                this.ball.y + this.ball.size/2 > catterpillar.head.y - catterpillar.thickness * 2
+            ) {
+
+                const power = catterpillar.length/2
+                const xRandomizer = Math.random() * .8 + .2
+                
+                const pos = {
+                    x: catterpillar.head.x + catterpillar.thickness * (power * xRandomizer),
+                    y: catterpillar.head.y - catterpillar.thickness * power
+                }
+
+                catterpillar.standUp(0, .16)
+                this.startPosition = Matter.Vector.create(pos.x, pos.y)
+                this.launchBall(Math.min(this.ball.composite.bodies[0].speed / 24, 1))
+            }
+
+
+            // Remove launcher catterpillars that are off screen
+            if (catterpillar.x < this.controller.ref.renderer.bounds.min.x - 100) {
+                this.controller.draw.removeCatterpillarById(catterpillar.composite.id.toString())
+                catterpillar.destroy()
+                this.launcherCatapillers = reject(this.launcherCatapillers, (c) => c === catterpillar)
+                // Remove from array
+            }
+        })
+
+
     }
      
     launchBall(forceMultiplier: number) {
@@ -288,6 +419,7 @@ class CatapultStory extends Story {
             x: this.ball.composite.bodies[0].position.x,
             y: floorY
         })
+        
     }
 
     async createBall() {
@@ -329,7 +461,7 @@ class CatapultStory extends Story {
                 const ballBody = this.ball.composite.bodies[0]
                 if ((pair.bodyA === ballBody && pair.bodyB === this.extraFloor) ||
                     (pair.bodyB === ballBody && pair.bodyA === this.extraFloor)) {
-                    ballBody.frictionAir += 0.0005
+                    ballBody.frictionAir += 0.00024
                 }
             })
         })
@@ -347,7 +479,7 @@ class CatapultStory extends Story {
         const height = this.controller.ref.renderer.options.height
         const offsetY = this.controller.config.offsetBottom
 
-        this.extraFloor = Matter.Bodies.rectangle(width/2, height - offsetY + 100, width*2, 200, {
+        this.extraFloor = Matter.Bodies.rectangle(width/2, height - offsetY + 100, width*20, 200, {
             isStatic: true,
             label: "floor",
             collisionFilter: collisionWall,

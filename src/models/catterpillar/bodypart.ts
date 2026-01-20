@@ -91,22 +91,23 @@ export class BodyPart {
     #loop() {
         this.x = this.body.position.x
         this.y = this.body.position.y
+        
+        // Does not seem relevant (also causes issues with catapult story, deployment of launcherwurmpjes )
+        // if (this.world) {
+        //     const boundaries = this.#getWorldBoundaries()
+        //     // check of body binnen de world boundaries is
+        //     const inside = this.y >= boundaries.top &&
+        //                this.x >= boundaries.left &&
+        //                this.x <= boundaries.right &&
+        //                this.y <= boundaries.bottom
 
-        if (this.world) {
-            const boundaries = this.#getWorldBoundaries()
-            // check of body binnen de world boundaries is
-            const inside = this.y >= boundaries.top &&
-                       this.x >= boundaries.left &&
-                       this.x <= boundaries.right &&
-                       this.y <= boundaries.bottom
-
-            // update collisionFilter.mask dynamisch
-            if (inside) {
-                this.body.collisionFilter.mask = collisionBodyPart.mask // standaard mask, bv CATEGORY_WALL
-            } else {
-                this.body.collisionFilter.mask = 0 // bots met niets
-            }
-        }
+        //     // update collisionFilter.mask dynamisch
+        //     if (inside) {
+        //         this.body.collisionFilter.mask = collisionBodyPart.mask // standaard mask, bv CATEGORY_WALL
+        //     } else {
+        //         this.body.collisionFilter.mask = 0 // bots met niets
+        //     }
+        // }
         
 
         requestAnimationFrame(() => this.#loop())
