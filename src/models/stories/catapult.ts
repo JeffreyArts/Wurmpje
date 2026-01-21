@@ -250,7 +250,7 @@ class CatapultStory extends Story {
         const width  = render.options.width
         const height = render.options.height
         render.bounds.min.x = 0
-        this.controller.draw.removeObjectById(this.ball.composite.id)
+        // this.controller.draw.removeObjectById(this.ball.composite.id)
 
         this.phase1 = "waiting"
         
@@ -279,6 +279,9 @@ class CatapultStory extends Story {
         this.launcherCatapillers.forEach(catterpillar => {
             catterpillar.destroy()
         })
+
+        this.ball.destroy()
+
 
         // Update joy
         const joy = Math.min(Math.floor(this.score / 1000), 10)
@@ -330,12 +333,11 @@ class CatapultStory extends Story {
                 this.ball.y - this.ball.size/2 < catterpillar.head.y + catterpillar.thickness * 2 &&
                 this.ball.y + this.ball.size/2 > catterpillar.head.y - catterpillar.thickness * 2
             ) {
-
                 const power = catterpillar.length/2
                 const xRandomizer = Math.random() * .8 + .2
                 
                 const pos = {
-                    x: catterpillar.head.x + catterpillar.thickness * (power * xRandomizer),
+                    x: catterpillar.head.x + catterpillar.thickness * (Math.min(power * xRandomizer, 1)),
                     y: catterpillar.head.y - catterpillar.thickness * power
                 }
 
@@ -347,7 +349,7 @@ class CatapultStory extends Story {
 
             // Remove launcher catterpillars that are off screen
             if (catterpillar.x < this.controller.ref.renderer.bounds.min.x - 100) {
-                this.controller.draw.removeCatterpillarById(catterpillar.composite.id.toString())
+                this.controller.draw.removeObjectById(catterpillar.composite.id)
                 catterpillar.destroy()
                 this.launcherCatapillers = reject(this.launcherCatapillers, (c) => c === catterpillar)
                 // Remove from array
@@ -502,7 +504,7 @@ class CatapultStory extends Story {
 
         if (this.ball) {
             this.ball.destroy()
-            this.controller.draw.removeObjectById(this.ball.composite.id)
+            // this.controller.draw.removeObjectById(this.ball.composite.id)
         }
     }
 }

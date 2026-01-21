@@ -11,6 +11,7 @@ export class Ball {
     rotation: number = 0
     isMoving: boolean = false
     isMovingTimeout: NodeJS.Timeout | number = 0
+    destroyed: boolean = false
 
     constructor(options: {
         x: number,
@@ -81,6 +82,7 @@ export class Ball {
     }
 
     destroy() {
+        this.destroyed = true
         Matter.World.remove(this.world, this.composite)
     }
 }

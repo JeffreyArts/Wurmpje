@@ -1,7 +1,6 @@
 // @ts-nocheck
 import CatterpillarModel from "@/models/catterpillar"
 import Chroma from "chroma-js"
-import gsap from "gsap"
 import Two from "two.js"
 import { reverse } from "lodash"
 
@@ -46,13 +45,18 @@ export const availableBodyPartTextures = [
 ]
 type objectModel = {
     id: number,
-    type: "food" | "catterpillar" | "speechBubble",
-    model: FoodModel | CatterpillarModel | SpeechBubble,
+    type: "food" | "catterpillar" | "speechBubble" | "ball" | "plank",
+    model: FoodModel | CatterpillarModel | SpeechBubble | BallModel | PlankModel,
     layers: Layers
 }
 
+type EyeGroup = Two.Group & {
+    pupil: Two.Circle
+    lid: Two.Path
+}
+
 type Layers = {
-    [key: number]: Two.Shape[]; // key = laagnummer, value = array van Two.Shape
+    [key: number]: Two.Shape[] | Two.Shape; // key = laagnummer, value = array van Two.Shape
 }
 
 export class Draw {
@@ -60,7 +64,6 @@ export class Draw {
     objects: Array<{ shape: Two.Shape, pos: { x: number, y: number }, updateVertices?: () => Array<{ x: number, y: number }> }> = []
     layers: Two.Group[] = []
     newObjects: Array<objectModel> = []
-    catterpillars: CatterpillarModel[] = []
     renderer?: Matter.Render | undefined
 
     constructor(two: Two, renderer?: Matter.Render) {
@@ -88,21 +91,21 @@ export class Draw {
 
         }
 
-        this.catterpillars.forEach(catterpillar => {
-            if (catterpillar.speechBubble) {
-                const exists = this.objects.find(obj => obj.name == `speechBubble,${catterpillar.speechBubble.composite.id}`)
-                if (exists) return
-                this.#drawSpeechBubble(catterpillar.speechBubble)
-            }
-        })
-
         this.newObjects.forEach(obj => {
             if (obj.type == "food") {
                 this.drawFood(obj)
             } else if (obj.type == "ball") {
-                this.drawBall(obj)
+                if (!this.drawBall(obj))  {
+                    this.removeBall(obj)
+                    this.newObjects = this.newObjects.filter(o => o.id !== obj.id)
+                }
             } else if (obj.type == "plank") {
                 this.drawPlank(obj)
+            } else if (obj.type == "catterpillar") {
+                if (!this.drawCatterpillar(obj)) {
+                    this.removeCatterpillar(obj)
+                    this.newObjects = this.newObjects.filter(o => o.id !== obj.id)
+                }
             }
         })
         
@@ -113,6 +116,7 @@ export class Draw {
 
             if (obj.updateVertices) {
                 const verts = obj.updateVertices()
+                
                 if (!verts) {
                     obj.shape.remove()          // 1. uit Two.js scene halen
                     this.objects.splice(i, 1)   // 2. uit je eigen collectie halen
@@ -131,7 +135,7 @@ export class Draw {
         requestAnimationFrame(this.#draw.bind(this))
     }
 
-    #drawSpeechBubble = (speechBubble: SpeechBubble) => {
+    drawSpeechBubble = (speechBubble: SpeechBubble) => {
         const composites = speechBubble.composite.composites
         const leftSide = composites.find((c) => c.label === "leftside")
         const rightSide = composites.find((c) => c.label === "rightside")
@@ -263,7 +267,7 @@ export class Draw {
                 height: parseFloat(viewBox[3]),
             }
             svgItem.position.set(-bounds.width/2, -bounds.height/2)
-            const group = two.makeGroup(svgItem)
+            const group = new Two.Group(svgItem)
         
             if (!group) {
                 throw new Error("Could not interpret SVG element into a Two.Group")
@@ -282,10 +286,7 @@ export class Draw {
             if (options.rotate) {
                 group.rotation = options.rotate * (Math.PI / 180)
             }
-        
-            // 5. Toevoegen aan de scene
-            two.add(group) 
-            two.update() 
+            
             return group
 
         } catch (error) {
@@ -294,68 +295,35 @@ export class Draw {
         }
     }
 
-    addCircle(
-        pos: { x: number, y: number },
-        options: { radius: number, color: string, name?: string, strokeWidth?: number, strokeColor?: string },
-        layer?: Two.Group
-    ): Two.Circle {
-        const { radius, color } = options
-        let { name } = options
-        if (!name) {
-            name = `circle-${Date.now()}`
-        }
-        const circle = this.two.makeCircle(pos.x, pos.y, radius)
-        circle.fill = color
-        circle.noStroke()
-        if (options.strokeWidth && options.strokeColor) {
-            circle.stroke = options.strokeColor
-            circle.linewidth = options.strokeWidth
-        }
-        this.objects.push({ shape: circle, pos: pos, name })
-
-        if (layer) {
-            layer.add(circle)
-        }
-        return circle
-    }
-
-    addSVG(
-        pos: { x: number, y: number },
-        svgItem: Two.Shape,
-        options?: { name?: string, rotation?: boolean },
-        layer?: Two.Group
-    ): Two.Shape {
-        svgItem.position.set(pos.x, pos.y)
-        // this.objects.push({ shape: svgItem, pos: pos })
-        let { name } = options
-        if (!name) {
-            name = `svg-${Date.now()}`
-        }
-        
-
-        this.objects.push({ shape: svgItem, pos: pos, name })
-
-        if (layer) {
-            layer.add(svgItem)
-        }
-
-        return svgItem
-    }
-
     addCatterpillar = async (catterpillar: CatterpillarModel) => {
         const texturePromises = []
         const bodyParts = catterpillar.bodyParts
-        this.catterpillars.push(catterpillar)
-        const newBodyParts = []
-        for (let index = 0; index < bodyParts.length; index++) {
-            const newBodyPart = {
-                circle: null,
-                textures: [] as Two.Group[],
-                mouth: null as Two.Group | null,
-                leftEye: null as { eyeGroup: Two.Group, eyelid: Two.Path, pupil: Two.Circle } | null,
-                rightEye: null as { eyeGroup: Two.Group, eyelid: Two.Path, pupil: Two.Circle } | null,
-            }
 
+        const catterpillarObj = {
+            type: "catterpillar",
+            id: catterpillar.composite.id,
+            model: catterpillar,
+            layers:{ 
+                10: [{
+                    mouth: {
+                        model: catterpillar.mouth,
+                        path: null as Two.Path | null
+                    },
+                    leftEye: {
+                        model: catterpillar.leftEye,
+                        group: null as Two.Group | null,
+                    },
+                    rightEye:  {
+                        model: catterpillar.rightEye,
+                        group: null as Two.Group | null,
+                    },
+                    bodyParts: []
+                }]
+            }
+        } as objectModel
+
+
+        for (let index = 0; index < bodyParts.length; index++) {
             const part = bodyParts[index]
             const diameter = catterpillar.thickness * 1.25
             let primaryColor = Chroma(catterpillar.primaryColor)
@@ -412,17 +380,18 @@ export class Draw {
                 primaryColor.darken(offset)
                 secondaryColor.darken(offset)
             }
-            // Add to canvas
+
+            // Create bodypart circle
             const circleOptions = {
                 radius: diameter / 2,
                 strokeWidth: catterpillar.stroke,
                 strokeColor: secondaryColor.hex(),
                 color: primaryColor.hex(),
-                name: `${catterpillar.composite.label}-bodyPart-${index}`
+                name: `${catterpillar.composite.id},bodyPart`
             }
 
             if (part.type == "head") {
-                
+                circleOptions.name += ",head"
                 // Add stroke to head if color is almost white
                 if (Math.round(primaryColor.get("hsl")[2] * 100)/100 >= 0.9) {
                     circleOptions.strokeWidth = catterpillar.thickness * 0.05
@@ -433,52 +402,125 @@ export class Draw {
                     circleOptions.strokeWidth = catterpillar.thickness * 0.05
                     circleOptions.strokeColor = secondaryColor.hex()
                 }
+            }
 
+            const newBodyParts = catterpillarObj.layers[10][0].bodyParts
+            const bodyPart = new Two.Circle(part.x, part.y, circleOptions.radius)
+            bodyPart.fill = circleOptions.color
+            bodyPart.noStroke()
+            if (circleOptions.strokeWidth && circleOptions.strokeColor) {
+                bodyPart.stroke = circleOptions.strokeColor
+                bodyPart.linewidth = circleOptions.strokeWidth
+            }
+            const newBodyPart = {
+                circle: bodyPart,
+                textures: textures,
             }
             
-            newBodyPart.circle = this.addCircle(part, circleOptions)
-            if (index !== 0) {
-                newBodyPart.textures = []
-                textures.forEach(svgItem => {
-                    newBodyPart.textures.push(this.addSVG(part, svgItem, { name: `bodypart-${index}-texture` }))
-                })
-            }
-
-            if (index === 0) {
-                newBodyPart.mouth = this.addMouth(part,catterpillar.mouth,{ fill: "#000" })
-
-                newBodyPart.leftEye = this.addEye( part, catterpillar.leftEye, this.layers[2])
-                newBodyPart.rightEye = this.addEye( part, catterpillar.rightEye, this.layers[2])
-            }
             newBodyParts.push(newBodyPart)
         }
 
-        // Loop through newBodyParts and voeg alles toe aan de gewenste layer
-        reverse(newBodyParts).forEach(bodyPart => {
-            const layer = this.layers[1]
+        // Wait for all textures to load
+        await Promise.all(texturePromises)
+        
+        const head = catterpillar.bodyParts[0]
+        const layer = this.layers[10]
+        
+
+        // Add bodyParts
+        this.newObjects.push(catterpillarObj)
+        catterpillarObj.layers[10][0].bodyParts = reverse(catterpillarObj.layers[10][0].bodyParts)
+        
+        const reverseBodyParts = reverse(catterpillarObj.layers[10][0].bodyParts)
+        reverseBodyParts.forEach(bodyPart => {
             if (bodyPart.circle) {
+                bodyPart.circle.name = `${catterpillar.composite.id},bodyPart`
                 layer.add(bodyPart.circle)
             }
-
+            
             bodyPart.textures.forEach((texture: Two.Group) => {
+                texture.name = `${catterpillar.composite.id},bodyPart,texture`
                 layer.add(texture)
             })
+        })
 
-            if (bodyPart.mouth) {
-                layer.add(bodyPart.mouth)
+        // Add mouth
+        const mouth = this.addMouth(head,catterpillar.mouth,{ fill: "#000" })
+        catterpillarObj.layers[10][0].mouth.path = mouth
+        layer.add(catterpillarObj.layers[10][0].mouth.path)
+        
+        
+        // Add left eye
+        const leftEye = this.addEye( head, catterpillar.leftEye)
+        catterpillarObj.layers[10][0].leftEye.group = leftEye
+        layer.add(catterpillarObj.layers[10][0].leftEye.group)
+        
+        
+        // Add right eye
+        const rightEye = this.addEye( head, catterpillar.rightEye)
+        catterpillarObj.layers[10][0].rightEye.group = rightEye
+        layer.add(catterpillarObj.layers[10][0].rightEye.group)
+
+        // Add to newObjects
+        this.newObjects.push(catterpillarObj)
+    }
+
+    drawCatterpillar = (catterpillar: objectModel) => {
+        if (catterpillar.model.destroyed) {
+            return false
+        }
+
+        const bodyParts = catterpillar.model.bodyParts
+        bodyParts.forEach((part, index) => {
+            const bodyPartObj = catterpillar.layers[10][0].bodyParts[index]
+            // Update circle position
+            if (bodyPartObj.circle) {
+                bodyPartObj.circle.position.set(part.x, part.y)
             }
             
-            if (bodyPart.leftEye) {
-                layer.add(bodyPart.leftEye.eyeGroup)
-                layer.add(bodyPart.leftEye.eyelid)
-                layer.add(bodyPart.leftEye.pupil)
-            }
-            if (bodyPart.rightEye) {
-                layer.add(bodyPart.rightEye.eyeGroup)
-                layer.add(bodyPart.rightEye.eyelid)
-                layer.add(bodyPart.rightEye.pupil)
+            // Update textures position
+            if (bodyPartObj.textures) {
+                bodyPartObj.textures.forEach((texture: Two.Group) => {
+                    if (!texture) return      
+                    
+                    texture.position.set(part.x, part.y)
+                })
             }
         })
+
+        const mouth = catterpillar.layers[10][0].mouth
+        const leftEye = catterpillar.layers[10][0].leftEye
+        const rightEye = catterpillar.layers[10][0].rightEye
+
+        // Update mouth position 
+        if (mouth) {
+            this.drawMouth(mouth)
+        }
+
+
+        if (rightEye.model && rightEye.group) {
+            if (!this.drawEye(rightEye)) {
+                rightEye.group.remove()  // 1. uit Two.js scene halen
+                rightEye.model = null         // 2. uit je eigen collectie halen
+            }
+        }
+
+        if (leftEye.model && leftEye.group) {
+            if (!this.drawEye(leftEye)) {
+                leftEye.group.remove()  // 1. uit Two.js scene halen
+                leftEye.model = null         // 2. uit je eigen collectie halen
+            }
+        }
+
+
+        if (catterpillar.speechBubble) {
+            const exists = this.objects.find(obj => obj.name == `speechBubble,${catterpillar.speechBubble.composite.id}`)
+            if (exists) return true
+            this.drawSpeechBubble(catterpillar.speechBubble)
+        }
+
+        return true
+
     }
 
 
@@ -504,6 +546,7 @@ export class Draw {
 
     addBall = async (ball: BallModel) => {
         const svg = await this.#importSVGAsync("./ball.svg", { width: ball.size * 2 , height: ball.size * 2 } )
+        const layer = this.layers[10]
 
         const obj = {
             type: "ball",
@@ -516,14 +559,12 @@ export class Draw {
                 }]
             }
         }
-
+        layer.add(svg)
         this.newObjects.push(obj)
         this.drawBall(obj)
     }
 
     addPlank = async (plank: PlankModel) => {
-        
-
         const obj = {
             type: "plank",
             id: plank.body.id,
@@ -539,9 +580,8 @@ export class Draw {
         this.newObjects.push(obj)
         this.drawPlank(obj)
     }
-
+    
     drawPlank = (plank: objectModel) => {
-
         const numSquares = Math.ceil(plank.model.width / 18)
         if (numSquares != plank.layers[10][0].squares.length) {
             // Recreate squares
@@ -572,8 +612,13 @@ export class Draw {
     }
 
     drawBall = (ball: objectModel) => {
+        if (!ball.model || ball.model.destroyed) {
+            return false
+        }
         ball.layers[10][0].svg.position.set(ball.model.x, ball.model.y)
         ball.layers[10][0].svg.rotation = ball.model.rotation
+
+        return true
     }
 
     drawFood = (food: objectModel) => {
@@ -585,7 +630,6 @@ export class Draw {
         pos: { x: number, y: number },
         mouth: Mouth,
         options: { stroke?: string; strokeWidth?: number; fill?: string } = {},
-        layer: Two.Group
     ) {
         const anchors = mouth.coordinates.map(p => new Two.Anchor(p.x, p.y))
 
@@ -607,34 +651,34 @@ export class Draw {
         path.curved = true
         path.closed = true
 
-        // Voeg toe aan Draw.objects voor realtime update
-        this.objects.push({
-            shape: path,
-            pos: mouth,
-            name: "mouth",
-            updateVertices: () => {
-                return mouth.coordinates.map(p => ({ x: p.x, y: p.y }))
-            }
-        })
-
-        if (layer) {
-            layer.add(path)
-        }
         return path
+    }
+
+    drawMouth = (mouth: { model: Mouth, path: Two.Path }) => {
+        if (!mouth.model) {
+            mouth.path.remove()  // 1. uit Two.js scene halen
+            mouth = null         // 2. uit je eigen collectie halen
+        }
+        mouth.path.position.set(mouth.model.x, mouth.model.y)
+
+        const verts = mouth.model.coordinates.map(p => ({ x: p.x, y: p.y }))
+        mouth.path.vertices.forEach((v, i) => {
+            v.x = verts[i].x
+            v.y = verts[i].y
+        })
     }
 
     addEye(
         pos: { x: number, y: number },
         eye: Eye,
-        layer: Two.Group
-    ) {
+    ) : EyeGroup {
         // 1. Maak eyelid path
         const anchors = eye.lid.map(p => new Two.Anchor(p.x, p.y))
         const eyelid = new Two.Path(anchors, true, true)
         eyelid.fill = "#fff"
         
         // 2. Maak pupil
-        const pupil = this.two.makeCircle(
+        const pupil = new Two.Circle(
             eye.pupil.x,
             eye.pupil.y,
             Math.max(eye.width, eye.height) / 5
@@ -645,52 +689,116 @@ export class Draw {
         // 3. Maak group die gemaskt wordt
         const eyeGroup = new Two.Group()
         const eyelidMask = eyelid.clone()
+        eyeGroup.add(eyelid)
         eyeGroup.add(pupil)
         eyeGroup.mask = eyelidMask
 
-        // 4. Voeg toe aan Draw.objects voor realtime update
-        this.objects.push({
-            shape: eyelid,
-            pos: eye,
-            name: "eyelid",
-            updateVertices: () => eye.lid.map(p => ({ x: p.x, y: p.y }))
-        })
-        this.objects.push({
-            shape: eyelidMask,
-            pos: eye,
-            name: "eyelid",
-            updateVertices: () => eye.lid.map(p => ({ x: p.x, y: p.y }))
-        })
+        eyeGroup.lid = eyelid
+        eyeGroup.pupil = pupil
 
-        this.objects.push({
-            shape: pupil,
-            pos: eye.pupil,
-            name: "pupil",
-        })
-
-        // 5. Voeg toe aan layers, zodat ze ook zichtbaar zijn
-        if (layer) {
-            layer.add(eyelid)
-            layer.add(eyeGroup)
-        }
-        return { eyeGroup, eyelid, pupil }
+        return eyeGroup
     }
+
+    drawEye = (eye: { model: Eye, group: EyeGroup }) => {
+        const eyeGroup = eye.group as EyeGroup
+        const eyeObj = eye.model as Eye
+
+        if (!eyeObj) {
+            eyeGroup.remove()  // 1. uit Two.js scene halen
+            return false
+        }
+        
+        const lid = eyeGroup.lid as Two.Path
+        const pupil = eyeGroup.pupil as Two.Circle
+        
+        const pupilX = eyeObj.pupil.x - eyeObj.x 
+        const pupilY = eyeObj.pupil.y - eyeObj.y 
+        
+        eyeGroup.position.set(eyeObj.x, eyeObj.y)
+        pupil.position.set(pupilX, pupilY)
+        
+        const verts = eyeObj.lid.map(p => ({ x: p.x, y: p.y }))
+        lid.vertices.forEach((v, i) => {
+            v.x = verts[i].x
+            v.y = verts[i].y
+        })
+        return true
+    }
+    
+    removeBall(ball: objectModel) {
+        if (!ball) return
+        // Remove from Draw.objects
+        for (const i in ball.layers) { 
+            const layer = ball.layers[i]
+            layer.forEach(layerObj => {
+                if (layerObj.svg) {
+                    layerObj.svg.remove()
+                }
+            })
+        }
+
+        if (ball.model) {
+            ball.model.destroy()
+            ball.model = undefined
+        }
+        ball = undefined
+    }
+
+    removeCatterpillar(catterpillarObj: objectModel) {
+        if (!catterpillarObj) return
+
+        // Remove from Draw.objects
+        for (const i in catterpillarObj.layers) { 
+            const layer = catterpillarObj.layers[i]
+            layer.forEach(layerObj => {
+                // remove bodyparts
+                if (layerObj.bodyParts) {
+                    layerObj.bodyParts.forEach((bodyPart: { circle: Two.Circle, textures: Two.Group[] }) => {
+                        if (bodyPart.circle) {
+                            bodyPart.circle.remove() 
+                        }
+                        bodyPart.textures.forEach((texture: Two.Group) => {
+                            texture.remove()
+                        })
+                    })
+                }
+                // remove eyes and mouth
+                if (layerObj.leftEye && layerObj.leftEye.group) {
+                    layerObj.leftEye.group.remove()
+                }
+                if (layerObj.rightEye && layerObj.rightEye.group) {
+                    layerObj.rightEye.group.remove()
+                }
+                if (layerObj.mouth && layerObj.mouth.path) {
+                    layerObj.mouth.path.remove()
+                }
+            })
+        }
+
+        if (catterpillarObj.model) {
+            catterpillarObj.model.destroy()
+            catterpillarObj.model = undefined
+        }
+        catterpillarObj = undefined
+    }
+
 
     removeObjectById(id: number) {
         const obj = this.newObjects.find(o => o.id === id)
-        console.log("obj:", obj, this.newObjects)
         this.newObjects = this.newObjects.filter(o => o.id !== id)
         if (!obj) return
+
+        if (obj.type == "catterpillar") {
+            this.removeCatterpillar(obj)
+            return
+        }
 
         // Remove from Draw.objects
         for (const i in obj.layers) { 
             const layer = obj.layers[i]
             layer.forEach(layerObj => {
-                
                 if (layerObj.svg) {
-                    // Not a real solution, but the remove method throws an error
-                    layerObj.svg.position.set(-9999, -9999)
-                    // this.two.remove(layerObj.svg)
+                    layerObj.svg.remove()
                 }
             })
         }
