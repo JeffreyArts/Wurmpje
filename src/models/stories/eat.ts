@@ -4,6 +4,7 @@ import type Catterpillar from "../catterpillar"
 import type { Draw } from "@/tamagotchi/draw"
 import FoodModel from "@/models/food"
 import gsap from "gsap"
+import { markRaw } from "vue"
 
 class EatStory extends Story {
     type = "action" as const
@@ -18,7 +19,7 @@ class EatStory extends Story {
     start() {
         console.info("Eat story started", this.identityStore)
 
-        this.draw = this.controller.draw
+        this.draw = markRaw(this.controller.draw)
 
         this.controller.ref.addClickEvent(this.addFood.bind(this), "addFood")
         

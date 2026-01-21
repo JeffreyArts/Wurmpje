@@ -1,4 +1,5 @@
 import Matter from "matter-js"
+import { markRaw } from "vue"
 import { MatterSetup } from "./setup"
 import { Draw } from "./draw"
 
@@ -53,7 +54,7 @@ export class ThumbnailController {
         }
         
         
-        this.draw = new Draw(this.ref.two)
+        this.draw = markRaw(new Draw(this.ref.two))
         
         let startPosition = { x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }
         if (options?.catterpillarPos) {
