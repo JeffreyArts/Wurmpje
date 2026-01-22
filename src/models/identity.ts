@@ -10,22 +10,19 @@ export type IdentityField = {
 }
 
 
-// Generate and encode identity to QR-ready Base45 string of 29 + 192 + 10 + 10 + 4 + 1 + 5 + 6 = 257 bits
+// Generate and encode identity to QR-ready Base45 string of 29 + 96 + 10 + 10 + 4 + 5 + 5 + 1= 160 bits
 class Identity {
     private static readonly BASE45_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:"
-    
+
     // --- Generate 29-bit ID ---
     generateId(): number {
         const now = new Date()
         const yearStart = new Date(now.getFullYear(), 0, 1)
         const secondsSinceYear = Math.floor((now.getTime() - yearStart.getTime()) / 1000)
-        const secondsDiv4 = Math.floor(secondsSinceYear / 4) // 23 bits
-        const random6 = Math.floor(Math.random() * 64)       // 6 bits
-    
-        // Combineer 23-bit seconds/4 in de hogere bits met 6-bit random in de lagere bits tot één 29-bit ID
-        return (secondsDiv4 << 6) | random6                  // combine to 29-bit ID
+        const secondsDiv4 = Math.floor(secondsSinceYear / 4)
+        const random6 = Math.floor(Math.random() * 64)
+        return (secondsDiv4 << 6) | random6
     }
-
 
     // Encoding
     encode(json: IdentityField): string {
@@ -40,7 +37,6 @@ class Identity {
         const bytes = this.base45Decode(encoded)
         return this.bitUnpack(bytes)
     }
-
 
     // --- Generate Identity from String ---
     async deriveIdentityFromHash(string: string): Promise<IdentityField> {
@@ -58,15 +54,14 @@ class Identity {
             }
             return val
         }
-        const textureIndex = readBits(10)      // 0-1023
-        const colorSchemeIndex = readBits(10)  // 0-1023
-        const offset = readBits(4)             // 0-15
-        const gender = readBits(1)             // 0 of 1
-        const length = readBits(5)             // 0-31
-        const thickness = readBits(6)          // 0-63
 
+        const textureIndex = readBits(10)
+        const colorSchemeIndex = readBits(10)
+        const offset = readBits(4)
+        const gender = readBits(1)
+        const length = readBits(4) + 3
+        const thickness = readBits(5) + 8
 
-        
         return {
             id: this.generateId(),
             name: "",
@@ -74,122 +69,94 @@ class Identity {
             colorSchemeIndex,
             offset,
             gender,
-            length: length,                 // 3-18
-            thickness: thickness,           // 8-39
+            length,
+            thickness,
         }
     }
 
     stringToId(str: string): number {
         let hash = 0
         for (let i = 0; i < str.length; i++) {
-            hash = (hash * 31 + str.charCodeAt(i)) >>> 0 // 32-bit unsigned
+            hash = (hash * 31 + str.charCodeAt(i)) >>> 0
         }
-        // Limiteer tot 29 bits
-        return hash & 0x1FFFFFFF // 29 bits mask: 2^29 - 1
+        return hash & 0x1FFFFFFF
     }
 
-    // Encoding
-    private validateIdentityJSON(json: IdentityField): IdentityField {
-        if (typeof json !== "object" || json === null) {
-            throw new Error("Input must be a non-null object")
-        }
+    // ---------------- VALIDATION ----------------
 
+    private validateIdentityJSON(json: IdentityField): IdentityField {
         const { id, name, textureIndex, colorSchemeIndex, offset, gender, length, thickness } = json
 
-        // Check id
-        if (typeof id !== "number" || id < 0 || id > 0x1FFFFFFF) {
-            throw new Error("Invalid id: must be 0-536870911 (29-bit)")
-        }
+        if (typeof id !== "number" || id < 0 || id > 0x1FFFFFFF)
+            throw new Error("Invalid id")
+
+        if (typeof name !== "string" || name.length > 32)
+            throw new Error("Invalid name")
+
+        if (!/^[A-Za-z ]*$/.test(name))
+            throw new Error("Invalid name chars")
+
+        if (textureIndex < 0 || textureIndex > 1023)
+            throw new Error("Invalid textureIndex")
+
+        if (colorSchemeIndex < 0 || colorSchemeIndex > 1023)
+            throw new Error("Invalid colorSchemeIndex")
+
+        if (offset < 0 || offset > 15)
+            throw new Error("Invalid offset")
+
         
-        // Check name 
-        if (typeof name !== "string" || name.length > 32) {
-            throw new Error("Invalid name: must be string of max 32 chars")
-        }
+        if (gender !== 0 && gender !== 1)
+            throw new Error("Invalid gender")
 
-        if (!/^[A-Za-z ]*$/.test(name)) {
-            throw new Error("Invalid name: must contain only letters A-Z/a-z or space")
-        }
+        if (length < 3 || length > 24)
+            throw new Error("Invalid length")
 
-        // Check textureIndex
-        if (typeof textureIndex !== "number" || textureIndex < 0 || textureIndex > 1023) {
-            throw new Error("Invalid textureIndex: must be 0-1023")
-        }
+        if (thickness < 8 || thickness > 40)
+            throw new Error("Invalid thickness")
 
-        // Check colorSchemeIndex
-        if (typeof colorSchemeIndex !== "number" || colorSchemeIndex < 0 || colorSchemeIndex > 1023){
-            throw new Error("Invalid colorSchemeIndex: must be 0-1023")
-        }
-
-        // Check offset
-        if (typeof offset !== "number" || offset < 0 || offset > 15) {
-            throw new Error("Invalid offset: must be 0-15")
-        }
-
-        // Check gender
-        if (gender != 0 && gender != 1) {
-            throw new Error("Invalid gender: must be 0 (male) or 1 (female)")
-        }
-        
-        // Check length
-        if (typeof length !== "number" || length < 3 || length > 24) {
-            throw new Error("Invalid length: must be 3-24")
-        }
-
-        // Check thickness
-        if (typeof thickness !== "number" || thickness < 8 || thickness > 64) {
-            throw new Error("Invalid thickness: must be 8-64")
-        }
-
-        return { id, name, textureIndex, colorSchemeIndex, offset, gender, length, thickness }
+        return json
     }
 
-    // Decoding
     validateIdentityString(encodedString: string): string {
-        const BASE45_CHARS = Identity.BASE45_CHARS
-
         for (const c of encodedString) {
-            if (!BASE45_CHARS.includes(c)) {
-                throw new Error(`Invalid character in Base45 string: '${c}'`)
+            if (!Identity.BASE45_CHARS.includes(c)) {
+                throw new Error(`Invalid Base45 character: '${c}'`)
             }
         }
 
-        // UPDATE: Totaal is nu 257 bits (was 147)
-        // 257 bits / 8 = 32.125 bytes → afgerond naar 33 bytes
-        const minBytes = Math.ceil(257 / 8) // 33 bytes
-        
-        const minLength = Math.ceil(minBytes * 3 / 2) 
-        if (encodedString.length < minLength) {
-            throw new Error(`Base45 string too short: expected at least ${minLength} characters`)
+        if (encodedString.length !== 50) {
+            throw new Error("Invalid Base45 length")
         }
 
         return encodedString
     }
 
-    // Encoding
+    // ---------------- CHAR CODING ----------------
+
     private encodeChar(c: string): number {
         if (c === " ") return 0
         if (c >= "A" && c <= "Z") return c.charCodeAt(0) - 64
-        if (c >= "a" && c <= "z") return c.charCodeAt(0) - 70 // a-z => 27-52
+        if (c >= "a" && c <= "z") return c.charCodeAt(0) - 70
         throw new Error(`Invalid char: ${c}`)
     }
 
-    // Decoding
     private decodeChar(code: number): string {
         if (code === 0) return " "
-        if (code >= 1 && code <= 26) return String.fromCharCode(code + 64) // A-Z
-        if (code >= 27 && code <= 52) return String.fromCharCode(code + 70) // a-z
+        if (code >= 1 && code <= 26) return String.fromCharCode(code + 64)
+        if (code >= 27 && code <= 52) return String.fromCharCode(code + 70)
         throw new Error(`Invalid char code: ${code}`)
     }
 
-    // Encoding
+    // ---------------- BIT PACKING ----------------
+
     private push(bits: number[], value: number, size: number): void {
         for (let i = size - 1; i >= 0; i--) {
             bits.push((value >> i) & 1)
         }
     }
 
-    // Decoding
-    private unPush(bits: number[], cursor: number, size: number): { value: number; cursor: number } {
+    private unPush(bits: number[], cursor: number, size: number) {
         let val = 0
         for (let i = 0; i < size; i++) {
             val = (val << 1) | bits[cursor++]
@@ -197,40 +164,24 @@ class Identity {
         return { value: val, cursor }
     }
 
-    // Encoding
     private bitPack(identity: IdentityField): Uint8Array {
         const bits: number[] = []
 
-        // ID: 29 bits
         this.push(bits, identity.id, 29)
 
-        // Name: 32 × 6 bits
         const name = identity.name.padEnd(32, " ")
-        for (const c of name) {
-            this.push(bits, this.encodeChar(c), 6)
-        }
+        for (const c of name) this.push(bits, this.encodeChar(c), 6)
 
-        // textureIndex: 10 bits
         this.push(bits, identity.textureIndex, 10)
-
-        // colorSchemeIndex: 10 bits
         this.push(bits, identity.colorSchemeIndex, 10)
-
-        // offset: 4 bits
         this.push(bits, identity.offset, 4)
-
-        // gender: 1 bit
         this.push(bits, identity.gender, 1)
-
-        // length: 5 bits
         this.push(bits, identity.length, 5)
-
-        // thickness: 6 bits
         this.push(bits, identity.thickness, 6)
 
-        // --- Convert bits to bytes (veilig voor niet-voud van 8) ---
         const bytes = new Uint8Array(Math.ceil(bits.length / 8))
         let byte = 0
+
         for (let i = 0; i < bits.length; i++) {
             byte = (byte << 1) | bits[i]
             if (i % 8 === 7) {
@@ -238,97 +189,75 @@ class Identity {
                 byte = 0
             }
         }
-        // Voeg laatste byte toe als niet volle byte
+
         if (bits.length % 8 !== 0) {
             const pad = 8 - (bits.length % 8)
-            for (let i = 0; i < pad; i++) bits.push(0) // vul met nullen
+            byte <<= pad
+            bytes[bytes.length - 1] = byte
         }
+
         return bytes
     }
 
-    // Decoding
     private bitUnpack(bytes: Uint8Array): IdentityField {
         const bits: number[] = []
-        for (let i = 0; i < bytes.length; i++) {
-            const b = bytes[i]
+        for (const b of bytes) {
             for (let j = 7; j >= 0; j--) {
                 bits.push((b >> j) & 1)
             }
         }
 
         let cursor = 0
-        let result
+        let r
 
-        // ID: 29 bits
-        result = this.unPush(bits, cursor, 29)
-        const id = result.value
-        cursor = result.cursor
+        r = this.unPush(bits, cursor, 29)
+        const id = r.value; cursor = r.cursor
 
-        // Name: 32 × 6 bits
         let name = ""
         for (let i = 0; i < 32; i++) {
-            result = this.unPush(bits, cursor, 6)
-            name += this.decodeChar(result.value)
-            cursor = result.cursor
+            r = this.unPush(bits, cursor, 6)
+            name += this.decodeChar(r.value)
+            cursor = r.cursor
         }
         name = name.trimEnd()
 
-        // textureIndex: 10 bits
-        result = this.unPush(bits, cursor, 10)
-        const textureIndex = result.value
-        cursor = result.cursor
+        r = this.unPush(bits, cursor, 10)
+        const textureIndex = r.value; cursor = r.cursor
 
-        // colorSchemeIndex: 10 bits
-        result = this.unPush(bits, cursor, 10)
-        const colorSchemeIndex = result.value
-        cursor = result.cursor
+        r = this.unPush(bits, cursor, 10)
+        const colorSchemeIndex = r.value; cursor = r.cursor
 
-        // offset: 4 bits
-        result = this.unPush(bits, cursor, 4)
-        const offset = result.value
-        cursor = result.cursor
+        r = this.unPush(bits, cursor, 4)
+        const offset = r.value; cursor = r.cursor
 
-        // gender: 1 bit
-        result = this.unPush(bits, cursor, 1)
-        const gender = result.value
-        cursor = result.cursor
+        r = this.unPush(bits, cursor, 1)
+        const gender = r.value; cursor = r.cursor
 
-        // length: 5 bits
-        result = this.unPush(bits, cursor, 5)
-        const length = result.value
-        cursor = result.cursor
+        r = this.unPush(bits, cursor, 5)
+        const length = r.value; cursor = r.cursor
 
-        // thickness: 6 bits
-        result = this.unPush(bits, cursor, 6)
-        const thickness = result.value
-        cursor = result.cursor
+        r = this.unPush(bits, cursor, 6)
+        const thickness = r.value
 
         return { id, name, textureIndex, colorSchemeIndex, offset, gender, length, thickness }
     }
+
+    // ---------------- BASE45 ----------------
 
     private base45Encode(bytes: Uint8Array): string {
         const chars = Identity.BASE45_CHARS
         let result = ""
 
         for (let i = 0; i < bytes.length; i += 2) {
-            
             if (i + 1 < bytes.length) {
-                // Case 1: Twee bytes (16-bit X -> 3 Base45 karakters)
                 const x = (bytes[i] << 8) | bytes[i + 1]
-
-                const e = Math.floor(x / (45*45))
-                const d = Math.floor((x % (45*45)) / 45)
-                const c = x % 45
-                
-                result += chars[c] + chars[d] + chars[e]
+                result += chars[x % 45]
+                result += chars[Math.floor(x / 45) % 45]
+                result += chars[Math.floor(x / (45 * 45))]
             } else {
-                // Case 2: Eén resterende byte (8-bit X -> 2 Base45 karakters)
-                const x = bytes[i] // Correct: X is direct de byte waarde
-
-                const d = Math.floor(x / 45)
-                const c = x % 45
-
-                result += chars[c] + chars[d]
+                const x = bytes[i]
+                result += chars[x % 45]
+                result += chars[Math.floor(x / 45)]
             }
         }
 
@@ -341,33 +270,26 @@ class Identity {
 
         let i = 0
         while (i < str.length) {
-            // We hebben altijd minimaal 2 chars nodig voor 1 byte
-            const c = chars.indexOf(str[i++])
-            const d = chars.indexOf(str[i++])
-            
-            // Check of er een derde char is
-            const hasThirdChar = i < str.length
-            let e = 0
-            
-            if (hasThirdChar) {
-                e = chars.indexOf(str[i++])
-            }
+            const remaining = str.length - i
 
-            const x = c + d * 45 + e * 45 * 45
-
-            if (hasThirdChar) {
-                // 3 karakters gelezen = ALTIJD 2 bytes output
-                // Ook als de eerste byte 0x00 is (x <= 0xFF)
-                bytes.push((x >> 8) & 0xff)
-                bytes.push(x & 0xff)
+            if (remaining >= 3) {
+                const c = chars.indexOf(str[i++])
+                const d = chars.indexOf(str[i++])
+                const e = chars.indexOf(str[i++])
+                const x = c + d * 45 + e * 45 * 45
+                bytes.push((x >> 8) & 0xff, x & 0xff)
+            } else if (remaining === 2) {
+                const c = chars.indexOf(str[i++])
+                const d = chars.indexOf(str[i++])
+                bytes.push((c + d * 45) & 0xff)
             } else {
-                // 2 karakters gelezen = 1 byte output (restant)
-                bytes.push(x & 0xff)
+                throw new Error("Invalid Base45 data")
             }
         }
 
         return new Uint8Array(bytes)
     }
 }
+
 
 export default Identity

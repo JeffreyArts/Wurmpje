@@ -145,7 +145,7 @@ export default defineComponent ({
 
         } as IdentityField
 
-        this.updateWurmpje(true)
+        this.updateWurmpje(false)
     },
     methods: {
         getQRstring(){
