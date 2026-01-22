@@ -2,7 +2,12 @@
     <div class="helper">
         <article class="helper-container" v-if="wurmpje">
             <span class="wurmpje-name">{{ wurmpje.name }}</span>
-            <wurmpjeThumbnail type="curved" class="wurmpje" :identityField="wurmpje" :redrawKey="redrawKey"/>
+            <div class="thumbnail-wrapper">
+                <wurmpjeThumbnail type="curved" class="wurmpje" :identityField="wurmpje" :redrawKey="redrawKey"/>
+                <i class="catterpillar-gender" :class="wurmpje.gender === 0 ? '__isMale' : '__isFemale'">
+                    <jao-icon :name="wurmpje.gender === 0 ? 'male' : 'female'" size="large" active-color="currentColor" inactive-color="transparent"/>
+                </i>
+            </div>
             <div class="qr-container" v-html="svg"></div>
         </article>
         <div class="helper-form">
@@ -10,8 +15,8 @@
                 
                 <label for="wurmpje-name-input">Name:</label>
                 <div class="row">
-                    <input id="wurmpje-name-input" pattern="[A-Za-z ]{1,24}" validate type="text" v-model="wurmpje.name" @input="updateWurmpje(true)"/>
-                    <span class="wurmpje-name-length" :class="[wurmpje.name.length>=24 ? '__isTooLong': '']">[{{ wurmpje.name.length }}]</span>
+                    <input id="wurmpje-name-input" pattern="[A-Za-z ]{1,32}" validate type="text" v-model="wurmpje.name" @input="updateWurmpje(true)"/>
+                    <span class="wurmpje-name-length" :class="[wurmpje.name.length>=32 ? '__isTooLong': '']">[{{ wurmpje.name.length }}]</span>
                 </div>
                 <div class="row">
                     <table>
@@ -72,6 +77,7 @@
                 <label for="wurmpje-id-input">ID:</label>
                 <div class="row">
                     <input id="wurmpje-id-input" disabled type="number" v-model="wurmpje.id"/>
+                    <span @click="generateWurmpje">Regenerate 🔀</span>
                 </div>
             </form>
         </div>
@@ -88,11 +94,13 @@ import wurmpjeThumbnail from "@/components/wurmpje-thumbnail.vue";
 import Textures from "@/assets/default-textures"
 import ColorSchemes from "@/assets/default-color-schemes"
 import qrcode from "qrcode"
+import JaoIcon from "@/components/jao-icon.vue";
 
 export default defineComponent ({ 
     name: "helperPage",
     components: { 
         wurmpjeThumbnail,
+        JaoIcon
     },
     props: [],
     // watch: {
@@ -131,23 +139,25 @@ export default defineComponent ({
         if (!this.identity.isInitialized) {
             await this.identity.initialised
         }
-
-        const identity = new Identity()
-        this.wurmpje = {
-            id: identity.generateId(),
-            name: "Helper Wurmpje",
-            textureIndex: Math.floor(Math.random() * this.textures.length),
-            colorSchemeIndex: Math.floor(Math.random() * this.colorSchemes.length),
-            length: 6,
-            thickness: 10,
-            offset: Math.floor(Math.random() * 16),
-            gender: Math.round(Math.random())
-
-        } as IdentityField
-
-        this.updateWurmpje(false)
+        this.generateWurmpje()
     },
     methods: {
+        generateWurmpje() {
+            const identity = new Identity()
+            this.wurmpje = {
+                id: identity.generateId(),
+                name: "Helper Wurmpje",
+                textureIndex: Math.floor(Math.random() * this.textures.length),
+                colorSchemeIndex: Math.floor(Math.random() * this.colorSchemes.length),
+                length: 6,
+                thickness: 10,
+                offset: Math.floor(Math.random() * 16),
+                gender: Math.round(Math.random())
+
+            } as IdentityField
+
+            this.updateWurmpje(false)
+        },
         getQRstring(){
             let prefix = ""
             if (this.displayAs === "parent") {
@@ -297,4 +307,14 @@ export default defineComponent ({
     }
 }
 
+.thumbnail-wrapper {
+    position: relative;
+    .catterpillar-gender {
+        position: absolute;
+        right: 8px;
+        top: 8px;
+        /* translate: -50% -50%; */
+        width: 32px;
+    }
+}
 </style>
