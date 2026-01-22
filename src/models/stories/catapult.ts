@@ -328,22 +328,21 @@ class CatapultStory extends Story {
         this.launcherCatapillers.forEach(catterpillar => {
 
             // Check for collision with ball in order to launch it
-            if (this.ball.x < catterpillar.head.x + catterpillar.thickness && 
-                this.ball.x > catterpillar.head.x - catterpillar.thickness &&
+            if (this.ball.x - this.ball.size/2 < catterpillar.head.x + catterpillar.thickness && 
+                this.ball.x + this.ball.size/2 > catterpillar.head.x - catterpillar.thickness &&
                 this.ball.y - this.ball.size/2 < catterpillar.head.y + catterpillar.thickness * 2 &&
                 this.ball.y + this.ball.size/2 > catterpillar.head.y - catterpillar.thickness * 2
             ) {
-                const power = catterpillar.length/2
+                const ball = this.ball.composite.bodies[0]
+                const power = catterpillar.length
                 const xRandomizer = Math.random() * .8 + .2
                 
-                const pos = {
-                    x: catterpillar.head.x + catterpillar.thickness * (Math.min(power * xRandomizer, 1)),
-                    y: catterpillar.head.y - catterpillar.thickness * power
-                }
-
                 catterpillar.standUp(0, .16)
-                this.startPosition = Matter.Vector.create(pos.x, pos.y)
-                this.launchBall(Math.min(this.ball.composite.bodies[0].speed / 24, 1))
+                // Launch the ball via velocity change
+                Matter.Body.setVelocity(ball, {
+                    x: ball.velocity.x + power * xRandomizer,
+                    y: ball.velocity.y + (-(catterpillar.thickness * power)) / 16
+                })
             }
 
 
