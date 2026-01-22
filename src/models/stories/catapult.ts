@@ -255,6 +255,8 @@ class CatapultStory extends Story {
         this.phase1 = "waiting"
         
         this.storyStore.killStory("catapult")
+        this.actionStore.availableActions -= 1
+
         this.actionStore.isSelected = false
 
         const targetObject = { x: this.ball.x - width / 2, y: 0 }

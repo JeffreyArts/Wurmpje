@@ -231,6 +231,7 @@ class WordsOfAffirmationStory extends Story {
         
         setTimeout(async () => {
             this.storyStore.killStory("wof")
+
             this.destroy()
             const loveValue = Math.floor(this.gameScore/100)
             await this.actionStore.add(this.identityStore.current.id, "love", loveValue )

@@ -92,7 +92,6 @@ export default defineComponent ({
             // clickType: null as string | null,
             dev: false,
             action: "food",
-            // actionActive: false,
             foodQuantity: 0,
             iconTransitEffect: {
                 effect: "right-to-left" as "left-to-right" | "right-to-left" | "top-to-bottom" | "bottom-to-top" | "shuffle",
@@ -216,7 +215,16 @@ export default defineComponent ({
         this.loadAction(this.actionStore.activeAction)
     },
     methods: {
+        hasActiveActionStory() {
+            const hasActive = this.storyStore.activeStories.some(story => {
+                return (story.instance.type == "action")
+            });
+            return hasActive
+        },
         nextAction() {
+            if (this.hasActiveActionStory()) {
+                return
+            }
             if (this.actionStore.isSelected) {
                 return
             }
@@ -227,6 +235,9 @@ export default defineComponent ({
             this.loadAction(this.actionStore.activeAction)
         },
         prevAction() {
+            if (this.hasActiveActionStory()) {
+                return
+            }
             if (this.actionStore.isSelected) {
                 return
             }
@@ -255,9 +266,15 @@ export default defineComponent ({
         },
 
         actionContainerClicked() {
+            
             if (this.actionStore.availableActions <= 0 ) {
                 return
             }
+
+            if (this.hasActiveActionStory()) {
+                return
+            }
+
 
             this.actionStore.toggleSelected()
 
@@ -277,10 +294,14 @@ export default defineComponent ({
                 if (checkParentHasClass(e.target, "action-container")) {
                     return
                 }
+                
+                // Only deselect Food action for now
+                if (this.actionStore.activeAction == "Food") {
+                    e.preventDefault()
+                    this.actionStore.deselectAction()   
+                }
 
 
-                e.preventDefault()
-                this.actionStore.deselectAction()   
 
 
                 homeFooter.removeEventListener("click", removeActionActive)
