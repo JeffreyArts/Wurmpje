@@ -1,6 +1,6 @@
 import Matter from "matter-js"
-import Story from "@/models/story"
-import Catterpillar, { type Emote } from "../catterpillar"
+import Story from "@/stories/_base"
+import Catterpillar, { type Emote } from "@/models/catterpillar"
 import type { currentIdentity } from "@/stores/identity"
 
 class WallSlamStory extends Story {

@@ -1,4 +1,4 @@
-import Story from "@/models/story"
+import Story from "@/stories/_base"
 import gsap from "gsap"
 import { Icon } from "jao-icons"
 import { shuffle } from "lodash"

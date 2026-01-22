@@ -1,6 +1,6 @@
 import Matter from "matter-js"
-import Story from "@/models/story"
-import Catterpillar from "../catterpillar"
+import Story from "@/stories/_base"
+import Catterpillar from "@/models/catterpillar"
 import type { currentIdentity } from "@/stores/identity"
 import { collisionBrush } from "@/tamagotchi/collisions"
 

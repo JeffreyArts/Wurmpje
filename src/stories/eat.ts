@@ -1,8 +1,8 @@
 import Matter from "matter-js"
-import Story from "@/models/story"
-import type Catterpillar from "../catterpillar"
-import type { Draw } from "@/tamagotchi/draw"
+import Story from "@/stories/_base"
+import type Catterpillar from "@/models/catterpillar"
 import FoodModel from "@/models/food"
+import type { Draw } from "@/tamagotchi/draw"
 import gsap from "gsap"
 import { markRaw } from "vue"
 

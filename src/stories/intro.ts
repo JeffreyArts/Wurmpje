@@ -1,5 +1,5 @@
 import { watch } from "vue"
-import Story from "@/models/story"
+import Story from "@/stories/_base"
 
 class IntroStory extends Story {
     type = "conditional" as const

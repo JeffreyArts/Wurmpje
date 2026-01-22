@@ -1,5 +1,5 @@
 import Matter from "matter-js"
-import Story from "@/models/story"
+import Story from "@/stories/_base"
 import gsap from "gsap"
 import Catterpillar from "@/models/catterpillar"
 // import { Catterpillar as CatterpillarModel } from "@/tamagotchi/create/catterpillar"

@@ -1,7 +1,7 @@
 import Matter from "matter-js"
-import Story from "@/models/story"
-import type Catterpillar from "../catterpillar"
-import type { Emote } from "../catterpillar"
+import Story from "@/stories/_base"
+import type Catterpillar from "@/models/catterpillar"
+import type { Emote } from "@/models/catterpillar"
 import BallModel from "@/models/ball"
 import { type DBStory } from "@/stores/story"
 
