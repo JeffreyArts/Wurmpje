@@ -37,6 +37,7 @@ export type currentIdentity = {
     texture: textureInterface
     origin: string | [number, number]
     age: number,
+    created: number,
     death: number | undefined
     length: number
     thickness: number
@@ -324,6 +325,7 @@ const identity = defineStore("identity", {
                     offset: identity.offset,
                     texture: Textures[identity.textureIndex],
                     origin: identity.origin,
+                    created: identity.created,
                     age: this.calculateAgeInDays(identity.created, identity.death),
                     death: identity.death,
                     cooldown: identity.cooldown,

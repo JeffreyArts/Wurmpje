@@ -209,14 +209,6 @@ export default defineComponent ({
                 ceiling.collisionFilter.mask = collisionFilterMask
             }, 1600)
         }
-
-        // this.controller.on("foodCreated", (data) => {
-        // })
-
-
-        
-        this.actionStore.procesStartingHunger(this.identity.id)
-
     
         this.toggleDevMode()
         this.toggleDevMode()
@@ -597,13 +589,13 @@ export default defineComponent ({
     text-align: right;
 
     .healthbar {
-        transition: all .32s ease;
+        transition: scale .32s ease;
         transform-origin: center;
         scale: 1 1;
     }
     
     .healthbar-name {
-        transition: all .32s ease;
+        transition: opacity .32s ease;
         opacity: 0.64;
     }
     

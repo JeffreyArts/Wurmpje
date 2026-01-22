@@ -32,8 +32,8 @@
             <jao-icon class="dead-wurmpje-skull" ref="skull" name="skull" size="large" active-color="currentColor" inactive-color="transparent" />
 
             <div class="dead-wurmpje-age">
-                <h2 class="dead-wurmpje-age-days" ref="age-days">1 day old</h2>
-                <span class="dead-wurmpje-age-date" ref="age-date">03-01-2026</span>
+                <h2 class="dead-wurmpje-age-days" ref="age-days">{{age}}</h2>
+                <span class="dead-wurmpje-age-date" ref="age-date">{{ deathDate }} <br>{{bornDate}}</span>
             </div>
         </div>
 
@@ -102,7 +102,40 @@ export default defineComponent ({
         },
         memorialText(): string {
             return ""
-        }
+        },
+        bornDate(): string {
+            if (!this.identity) {
+                return
+            }
+            // use this.identity.created  to format date as dd-mm-yyyy
+            const date = new Date(this.identity.created)
+            const day = String(date.getDate()).padStart(2, "0")
+            const month = String(date.getMonth() + 1).padStart(2, "0")
+            const year = date.getFullYear() 
+            return `${day}-${month}-${year}`
+        },
+        deathDate(): string {
+            if (!this.identity) {
+                return
+            }
+            // use this.identity.deceased  to format date as dd-mm-yyyy
+            const date = new Date(this.identity.death)
+            const day = String(date.getDate()).padStart(2, "0")
+            const month = String(date.getMonth() + 1).padStart(2, "0")
+            const year = date.getFullYear() 
+            return `${day}-${month}-${year}`
+        },
+        age(): string {
+            if (!this.identity.age) {
+                return "-"
+            }
+            if (this.identity.age == 1) {
+                return "1 day old"
+            }
+            if (this.identity.age >= 2) {
+                return `${this.identity.age} days old`
+            }
+        },
     },
     async mounted() {
         gsap.registerPlugin(SplitText)
@@ -271,6 +304,7 @@ export default defineComponent ({
     font-size: 16px;
     font-weight: normal;
     opacity: 0.64;
+    line-height: 1.44;
 }
 
 

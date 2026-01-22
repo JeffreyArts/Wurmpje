@@ -91,6 +91,7 @@ export class MatterController {
             
             this.storyStore.setActiveStory("wall-slam")
             this.storyStore.setActiveStory("petting")
+            this.storyStore.setActiveStory("daily-hunger-update")
             
             await this.storyStore.updateConditionalStories()
             
