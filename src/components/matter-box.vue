@@ -41,15 +41,15 @@
             </footer>
         </div>
         <div class="stats">
-            <div class="healthbar-row" v-if="identity">
+            <div class="healthbar-row" v-if="identity" :class="[actionStore.activeAction == 'Catapult' ? '__isActive' : '']">
                 <healthbar :value="identity.joy" />
                 <span class="healthbar-name">joy</span>
             </div>
-            <div class="healthbar-row" v-if="identity">
+            <div class="healthbar-row" v-if="identity" :class="[actionStore.activeAction == 'Words of affirmation' ? '__isActive' : '']">
                 <healthbar :value="identity.love" />
                 <span class="healthbar-name">love</span>
             </div>
-            <div class="healthbar-row" v-if="identity">
+            <div class="healthbar-row" v-if="identity" :class="[actionStore.activeAction == 'Food' ? '__isActive' : '']">
                 <healthbar :value="identity.hunger" />
                 <span class="healthbar-name">hunger</span>
             </div>
@@ -586,6 +586,27 @@ export default defineComponent ({
     display: grid;
     grid-template-columns: auto 72px;
     text-align: right;
+
+    .healthbar {
+        transition: all .32s ease;
+        transform-origin: center;
+        scale: 1 1;
+    }
+    
+    .healthbar-name {
+        transition: all .32s ease;
+        opacity: 0.64;
+    }
+    
+    &.__isActive {
+        .healthbar-name {
+            opacity: 1;
+        }
+
+        .healthbar {
+            scale: 1 1.2;
+        }
+    }
 }
 
 .copyright {
