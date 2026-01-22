@@ -201,6 +201,15 @@ export default defineComponent ({
             offsetBottom: 128
         })
 
+        if (this.identity.age <= 1) {
+            const ceiling = this.controller.ref.world.bodies.find(b => b.label.split(",").includes("top"))
+            const collisionFilterMask = ceiling.collisionFilter.mask
+            ceiling.collisionFilter.mask = 0
+            setTimeout(() => {
+                ceiling.collisionFilter.mask = collisionFilterMask
+            }, 1600)
+        }
+
         // this.controller.on("foodCreated", (data) => {
         // })
 
