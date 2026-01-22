@@ -526,7 +526,8 @@ export class Draw {
 
     addFood = async (food: FoodModel) => {
         const svg = await this.#importSVGAsync("./leaf.svg", { width: food.size, height: food.size } )
-        
+        const layer = this.layers[10]
+
         const obj = {
             type: "food",
             id: food.composite.id,
@@ -540,6 +541,7 @@ export class Draw {
         }
         
 
+        layer.add(svg)
         this.newObjects.push(obj)
         this.drawFood(obj)
     }
