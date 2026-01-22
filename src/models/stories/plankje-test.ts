@@ -130,12 +130,11 @@ class PlankjeTestStory extends Story {
             return
         }
         
-        
         // Remove from draw controller
-        this.controller.draw.removeObjectById(plank.composite.id)
+        this.controller.draw.removeObjectById(plank.body.id)
         
         // Remove from Matter world
-        Matter.World.remove(this.controller.ref.world, plank.composite)
+        Matter.World.remove(this.controller.ref.world, plank.body)
 
         // Remove ball
         this.plank = undefined
