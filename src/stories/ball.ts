@@ -10,7 +10,6 @@ class BallStory extends Story {
     cooldown = 4 * 7 * 24 * 60 * 60 * 1000 // 4 weeks
     catterpillar = undefined as Catterpillar | undefined
     movementCooldown = 0
-    score = 1
     maxBalls = 1
     ball = undefined as BallModel | undefined
     balls: BallModel[] = []

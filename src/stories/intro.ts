@@ -9,7 +9,6 @@ class IntroStory extends Story {
     storyIndex: number = 0
     isTalking = false
     cooldown = 360 * 24 * 365 * 100 * 1000 // 100 years
-    score = 10
     storyLines = [
         `Hi! My name is: ${this.identityStore.current?.name}!`,
         "I am a wurmpje, a little caterpillar-like creature.",

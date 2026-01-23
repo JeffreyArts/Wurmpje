@@ -11,7 +11,6 @@ class EatStory extends Story {
     catterpillar = undefined as Catterpillar | undefined
     movementCooldown = 0
     cooldown = 1000 // 1 second
-    score = 1
     activeFood = []
     turnsWithoutFood = 0
     foodIndex = 0
