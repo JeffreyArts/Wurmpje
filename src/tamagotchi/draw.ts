@@ -141,40 +141,29 @@ export class Draw {
     }
     
     addSpeechBubble = (speechBubble: SpeechBubble) => {
-        const composites = speechBubble.composite.composites
-        const leftSide = composites.find((c) => c.label === "leftside")
-        const rightSide = composites.find((c) => c.label === "rightside")
-        const anchor = composites.find((c) => c.label === "anchor").bodies[0]
-        const leftPoints = leftSide.bodies.filter(body => body.label.startsWith("borderPoint"))
-        const rightPoints = rightSide.bodies.filter(body => body.label.startsWith("borderPoint"))
-        const points = [...new Set([...leftPoints, ...rightPoints])]
 
-        const vertices = []
-
-        for (let index = 1; index < points.length - 1; index++) {
-            const body = points[index]
-            vertices.push({ x: body.position.x, y: body.position.y })
-        }
+        // BUBBLE
+        const bubble = new Two.Path(speechBubble.bubble.outline.map(p => new Two.Anchor(p.x, p.y)), false, false) // false = niet closed
         
-        if (anchor) {
-            vertices.push({ x: leftPoints[0].position.x, y: leftPoints[0].position.y })
-            vertices.push({ x: anchor.position.x, y: anchor.position.y })
-            vertices.push({ x: anchor.position.x, y: anchor.position.y })
-            vertices.push({ x: rightPoints[rightPoints.length - 1].position.x, y: rightPoints[rightPoints.length - 1].position.y })
-        }
-
-        const anchors = vertices.map(p => new Two.Anchor(p.x, p.y))
-        const path = new Two.Path(anchors, false, false) // false = niet closed
-
-        path.noStroke()
-        path.fill = "#F8FADB"
+        bubble.noStroke()
+        bubble.fill = "#F8FADB"
         
-        path.curved = true
-        path.closed = false    
+        bubble.curved = true
+        bubble.closed = false    
+        
+        // ANCHOR
+        const anchor = new Two.Path([
+            new Two.Anchor(speechBubble.bubble.anchor.bodies[0].position.x, speechBubble.bubble.anchor.bodies[0].position.y),
+            new Two.Anchor(speechBubble.bubble.left.bodies[1].position.x, speechBubble.bubble.left.bodies[1].position.y),
+            new Two.Anchor(speechBubble.bubble.left.bodies[2].position.x, speechBubble.bubble.left.bodies[2].position.y),
+        ], false, false) // false = niet closed
+
+        anchor.noStroke()
+        anchor.fill = "#F8FADB"
 
         const layer = this.layers[11]
-
-        layer.add(path)
+        layer.add(bubble)
+        layer.add(anchor)
 
         return {
             type: "speechBubble",
@@ -182,7 +171,8 @@ export class Draw {
             model: speechBubble,
             layers:{ 
                 11: [{
-                    path: path
+                    bubble: bubble,
+                    anchor: anchor
                 }]
             }
         } as objectModel
@@ -193,110 +183,23 @@ export class Draw {
             return false
         }
 
-        const composites = speechBubble.model.composite.composites
-        const path = speechBubble.layers[11][0].path
+        // const composites = speechBubble.model.composite.composites
+        const bubble = speechBubble.layers[11][0].bubble
+        const anchor = speechBubble.layers[11][0].anchor
 
-        const leftSide = composites.find((c) => c.label === "leftside")
-        const rightSide = composites.find((c) => c.label === "rightside")
-        const anchor = composites.find((c) => c.label === "anchor").bodies[0]
-        const leftPoints = leftSide.bodies.filter(body => body.label.startsWith("borderPoint"))
-        const rightPoints = rightSide.bodies.filter(body => body.label.startsWith("borderPoint"))
-        const points = [...new Set([...leftPoints, ...rightPoints])]
-
-        const vertices = []
-
-        for (let index = 1; index < points.length - 1; index++) {
-            const body = points[index]
-            vertices.push({ x: body.position.x, y: body.position.y })
-        }
-        
-        if (anchor) {
-            vertices.push({ x: rightPoints[rightPoints.length - 1].position.x, y: rightPoints[rightPoints.length - 1].position.y })
-            vertices.push({ x: leftPoints[0].position.x, y: leftPoints[0].position.y })
-            vertices.push({ x: leftPoints[0].position.x, y: leftPoints[0].position.y })
-            vertices.push({ x: anchor.position.x, y: anchor.position.y })
-        }
-
-
-        if (vertices.length === 0) {
-            console.warn("No vertices found for speech bubble", speechBubble)
-        }
-
-        path.vertices.forEach((v, i) => {
-            v.x = vertices[i].x
-            v.y = vertices[i].y
+        bubble.vertices.forEach((v, i) => {
+            v.x = speechBubble.model.bubble.outline[i].position.x
+            v.y = speechBubble.model.bubble.outline[i].position.y
         })
 
+        anchor.vertices[0].x = speechBubble.model.bubble.anchor.bodies[0].position.x
+        anchor.vertices[0].y = speechBubble.model.bubble.anchor.bodies[0].position.y
+        anchor.vertices[1].x = speechBubble.model.bubble.left.bodies[1].position.x
+        anchor.vertices[1].y = speechBubble.model.bubble.left.bodies[1].position.y
+        anchor.vertices[2].x = speechBubble.model.bubble.left.bodies[2].position.x
+        anchor.vertices[2].y = speechBubble.model.bubble.left.bodies[2].position.y
+
         return true
-        // const composites = speechBubble.composite.composites
-        // const leftSide = composites.find((c) => c.label === "leftside")
-        // const rightSide = composites.find((c) => c.label === "rightside")
-        // const anchor = composites.find((c) => c.label === "anchor").bodies[0]
-        // const leftPoints = leftSide.bodies.filter(body => body.label.startsWith("borderPoint"))
-        // const rightPoints = rightSide.bodies.filter(body => body.label.startsWith("borderPoint"))
-
-        // const points = [...new Set([...leftPoints, ...rightPoints])]
-
-        // const vertices = []
-
-        // for (let index = 1; index < points.length - 1; index++) {
-        //     const body = points[index]
-        //     vertices.push({ x: body.position.x, y: body.position.y })
-        // }
-        
-        // if (anchor) {
-        //     vertices.push({ x: leftPoints[0].position.x, y: leftPoints[0].position.y })
-        //     vertices.push({ x: anchor.position.x, y: anchor.position.y })
-        //     vertices.push({ x: anchor.position.x, y: anchor.position.y })
-        //     vertices.push({ x: rightPoints[rightPoints.length - 1].position.x, y: rightPoints[rightPoints.length - 1].position.y })
-        // }
-
-        // const anchors = vertices.map(p => new Two.Anchor(p.x, p.y))
-        // const path = new Two.Path(anchors, false, false) // false = niet closed
-        
-        // //
-        // path.noStroke()
-        // path.fill = "#F8FADB"
-        
-        // path.curved = true
-        // path.closed = false        
-
-        // this.objects.push({
-        //     shape: path,
-        //     pos: { x:0, y:0 },
-        //     name: `speechBubble,${speechBubble.composite.id}`,
-        //     updateVertices: () => {
-        //         if (speechBubble.death) {
-        //             return null
-        //         }
-        //         const leftSide = speechBubble.composite.composites.find((c) => c.label === "leftside")
-        //         const rightSide = speechBubble.composite.composites.find((c) => c.label === "rightside")
-        //         const anchor = speechBubble.composite.composites.find((c) => c.label === "anchor").bodies[0]
-        //         const leftPoints = leftSide.bodies.filter(body => body.label.startsWith("borderPoint"))
-        //         const rightPoints = rightSide.bodies.filter(body => body.label.startsWith("borderPoint"))
-        //         const points = [...new Set([...leftPoints, ...rightPoints])]
-
-        //         const vertices = []
-
-        //         for (let index = 1; index < points.length - 1; index++) {
-        //             const body = points[index]
-        //             vertices.push({ x: body.position.x, y: body.position.y })
-        //         }
-        
-        //         if (anchor) {
-        //             vertices.push({ x: rightPoints[rightPoints.length - 1].position.x, y: rightPoints[rightPoints.length - 1].position.y })
-        //             vertices.push({ x: leftPoints[0].position.x, y: leftPoints[0].position.y })
-        //             vertices.push({ x: leftPoints[0].position.x, y: leftPoints[0].position.y })
-        //             vertices.push({ x: anchor.position.x, y: anchor.position.y })
-        //         }
-
-        //         return vertices
-        //     }
-        // })
-
-        // // Select last layer
-        // const layer = this.layers[this.layers.length -1]
-        // layer.add(path)
     }
 
     drawBG = (options?: { color?: string, blockSize?: number, offset?: number }) =>{

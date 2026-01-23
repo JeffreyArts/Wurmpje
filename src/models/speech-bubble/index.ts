@@ -119,7 +119,10 @@ class SpeechBubble  {
         }
         const centerPoint = Matter.Bodies.circle(x,y, 5, {
             label: "centerPoint",
-            isStatic: true
+            isStatic: true,
+            render: {
+                fillStyle: "#f90"
+            }
         })
 
         Matter.Composite.add(res, [centerPoint])
@@ -211,6 +214,9 @@ class SpeechBubble  {
             anchor: Matter.Composite.create({ label: "false" }),
             outline: []
         }
+        this.bubble.outline = [...this.bubble.left.bodies, ...this.bubble.right.bodies]
+        // Remove center points from outline
+        this.bubble.outline = this.bubble.outline.filter(body => body.label !== "centerPoint" && body.label !== "anchorPoint")
         this.bubble.left.label = "leftside"
         this.bubble.right.label = "rightside"
         this.bubble.anchor.label = "anchor"
@@ -258,6 +264,39 @@ class SpeechBubble  {
             Matter.Composite.add(this.composite, rightConstraint)
         }
 
+        let prevBody: Matter.Body | null = null
+        this.bubble.outline.forEach((body, index) => {
+            if (prevBody) {
+                const constraint = Matter.Constraint.create({
+                    bodyA: prevBody,
+                    bodyB: body,
+                    stiffness: .024,
+                    label: index == 5 ? "topConstraint" : "outlineConstraint",
+                    length: this.size / 2,
+                    render: {
+                        lineWidth: 2,
+                        strokeStyle: "#f09"
+                    }
+                })
+                Matter.Composite.add(this.composite, constraint)
+            }
+
+            prevBody = body
+        })
+
+        const constraint = Matter.Constraint.create({
+            bodyA: this.bubble.outline[0],
+            bodyB: this.bubble.outline[this.bubble.outline.length - 1],
+            stiffness: .8,
+            length: this.domElement.clientWidth,
+            label: "bottomConstraint",
+            render: {
+                lineWidth: 2,
+                strokeStyle: "#f09"
+            }
+        })
+        Matter.Composite.add(this.composite, constraint)
+        
 
         this.domElement.style.left = (this.x + this.anchor.width) + "px"
         this.domElement.style.top = (this.y - this.anchor.height - this.size / 2) + "px"
@@ -265,27 +304,22 @@ class SpeechBubble  {
         return this.bubble
     }
 
-    #updateTextPosition() {
-        const leftTop = this.bubble.left.bodies.find(b => b.label === "borderPoint-270")
-        const leftBottom = this.bubble.left.bodies.find(b => b.label === "borderPoint-90")
+    // #updateTextPosition() {
+    //     const leftTop = this.bubble.left.bodies.find(b => b.label === "borderPoint-270")
+    //     const leftBottom = this.bubble.left.bodies.find(b => b.label === "borderPoint-90")
         
-        if (leftTop && leftBottom) {
-            const x = leftTop.position.x
-            const y = Math.abs(leftTop.position.y + leftBottom.position.y)/2
-            this.domElement.style.top = y + "px"
-            this.domElement.style.left = x + "px"
-        }
-    }
+    //     if (leftTop && leftBottom) {
+    //         const x = leftTop.position.x
+    //         const y = Math.abs(leftTop.position.y + leftBottom.position.y)/2
+    //         this.domElement.style.top = y + "px"
+    //         this.domElement.style.left = x + "px"
+    //     }
+    // }
 
     #updateSize() {
-        const topConstraint = this.composite.constraints.find( c => c.label === "topConstraint" )
         const leftConstraint = this.composite.constraints.find( c => c.label === "leftConstraint" )
         const rightConstraint = this.composite.constraints.find( c => c.label === "rightConstraint" )
         
-        if (topConstraint) {
-            topConstraint.length = this.domElement.clientWidth
-        }
-
         if (leftConstraint) {
             leftConstraint.length = this.size
         }
@@ -300,6 +334,15 @@ class SpeechBubble  {
 
         this.bubble.right.constraints.forEach(constraint => {
             constraint.length = this.size/2
+        })
+
+        this.composite.constraints.forEach(constraint => {
+            if (constraint.label === "bottomConstraint") {
+                constraint.length = this.domElement.clientWidth
+            }
+            if (constraint.label === "topConstraint") {
+                constraint.length = this.domElement.clientWidth
+            }
         })
     }
 
@@ -325,7 +368,7 @@ class SpeechBubble  {
     }
     
     #pushBorderPoint(body: Matter.Body) {
-        const force = 3.6
+        const force = 3.2
         const angle = parseInt(body.label.split("-")[1], 10)
         if (!angle && angle !== 0) {
             throw new Error("Border point must have angle specified in label name eg. borderPoint-90 for 90 degrees")
@@ -405,12 +448,14 @@ class SpeechBubble  {
     updatePosition(instant = false) {
         let duration = 0
         if (!instant) {
-            duration = .64
+            duration = .32
         }
 
         const cpLeft = this.bubble.left.bodies.find(b => b.label === "centerPoint")
         const cpRight = this.bubble.right.bodies.find(b => b.label === "centerPoint")
         const anchor = this.bubble.anchor.bodies.find(b => b.label === "anchorPoint")
+    
+
         if (cpLeft) {
             const pos = { x: cpLeft.position.x, y: cpLeft.position.y }
             gsap.to(pos, {
@@ -419,6 +464,15 @@ class SpeechBubble  {
                 duration: duration,
                 onUpdate: () => {
                     Matter.Body.setPosition(cpLeft, Matter.Vector.create(pos.x, pos.y))
+                    if (this.domElement) {
+                        
+                        const dynamicHeight = this.bubble.left.bodies[1].position.y - this.bubble.left.bodies[5].position.y 
+                        const posY = this.bubble.left.bodies[5].position.y + dynamicHeight / 2
+
+                        this.domElement.style.left = pos.x + "px"
+                        this.domElement.style.top = posY + "px"
+                        // this.domElement.style.lineHeight = Math.min(Math.max(this.size/dynamicHeight, .2), 1.2) + ""
+                    }
                 }
             })
         }
