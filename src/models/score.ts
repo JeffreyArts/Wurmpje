@@ -28,7 +28,6 @@ class Score {
     }
 
     async start() {
-        this.createDisplay()
         this.#loop()
     }
 
@@ -48,7 +47,7 @@ class Score {
         gsap.to(scoreEl, { opacity: 1, duration: 1 })
     }
 
-    async createScorefix() {
+    async #createScorefix() {
         const bad = [ "Pathetic", "Weak", "Disappointing", "Bad", "Mediocre", "Awful"]
         const good = [ "Okay", "Decent", "Nice", "Good"]
         const great = [ "Amazing", "Incredible", "Brilliant", "Fantastic", "Wonderful", "Outstanding", "Spectacular", "Remarkable", "Exceptional", "Magnificent", "Phenomenal", "Great"]
@@ -96,10 +95,11 @@ class Score {
                 top: "33%",
                 right: "calc(50% - 64px)",
                 rotate: 0,
+                color: "#fff",
                 textAlign: "center",
                 duration: 1,
                 onComplete: () => {
-                    this.createScorefix()
+                    this.#createScorefix()
                     resolve()
                 }
             })

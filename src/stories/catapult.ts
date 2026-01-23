@@ -7,17 +7,19 @@ import BallModel from "@/models/ball"
 import { type DBStory } from "@/stores/story"
 import { collisionWall, collisionItem } from "@/tamagotchi/collisions"
 import { reject } from "lodash"
-import Identity, { type IdentityField } from "@/models/identity"
+import { type IdentityField } from "@/models/identity"
 import Leaderboard from "@/models/leaderboard"
 import Powerbar from "@/models/powerbar"
+import Score from "@/models/score"
 
 
 class CatapultStory extends Story {
     type = "action" as const
+    score = new Score("catapult-score", 1440 )
+    
     catterpillar = undefined as Catterpillar | undefined
     ball = undefined as BallModel | undefined
     ballConstraint = undefined as Matter.Constraint | undefined
-    score: number = 0
     dbStory = undefined as DBStory | undefined
     
     phase1 = undefined as "inProgress" | "done" | "waiting" |  undefined
@@ -123,7 +125,7 @@ class CatapultStory extends Story {
             this.generateLauncherLoop()
             this.launcherLoop()
 
-            this.score = this.ball.x - this.catterpillar.x 
+            this.score.value = Math.round((this.ball.x - this.catterpillar.x) / 10)
             this.startPhase4()
         }
     }
@@ -219,6 +221,7 @@ class CatapultStory extends Story {
         if (this.phase3 == "inProgress") { 
             return
         }
+
         this.phase3 = "inProgress"
         document.addEventListener("pointerdown", this.pointerDownEvent.bind(this))
     }
@@ -235,7 +238,8 @@ class CatapultStory extends Story {
 
         this.phase4 = "inProgress"
 
-        this.leaderboard = new Leaderboard("catapult-score", Math.floor(this.score / 10), this.restartStory.bind(this) )
+        this.score.showFinalScore()
+        this.leaderboard = new Leaderboard("catapult-score", Math.floor(this.score.value), this.restartStory.bind(this) )
 
         const rightWall = this.controller.ref.world.bodies.find(body => body.label.includes("wall,right"))
         if (rightWall) {
@@ -283,11 +287,13 @@ class CatapultStory extends Story {
         this.ball.destroy()
 
         // Update joy
-        const joy = Math.min(Math.floor(this.score / 1000), 10)
+        const joy = Math.min(Math.floor(this.score.value / 1000), 10)
         await this.actionStore.add(this.identityStore.current.id, "joy", joy)
         gsap.to(this.identityStore.current, { joy: this.identityStore.current.joy + joy, duration: 1 })
 
         // Remove story from action store
+        this.leaderboard.destroy()
+        this.score.destroy()
         this.storyStore.killStory("catapult")
         this.actionStore.availableActions -= 1
         this.destroy()
@@ -297,6 +303,8 @@ class CatapultStory extends Story {
         if (this.phase3 !== "inProgress") {
             return
         }  
+
+        this.score.createDisplay()
         new Powerbar(this.pointerUpEvent.bind(this))
         
         // Start pulling back the ball

@@ -129,7 +129,7 @@ class WordsOfAffirmationStory extends Story {
     noNewWords = false
     newWordTimeout = null as ReturnType<typeof setTimeout> | null
     leaderboard = undefined as Leaderboard | undefined
-    score = undefined as Score | undefined
+    score = new Score("wof-score", 666 )
 
     async start() {   
         console.info("Words of affirmation story started", this.identityStore)
@@ -137,7 +137,7 @@ class WordsOfAffirmationStory extends Story {
         this.createBackground()
         this.createWordsContainer()
         this.createtimer()
-        this.score = new Score("wof-score", 666 )
+        this.createScoreDisplay()
 
         this.startTime = Date.now()
         this.actionStore.isSelected = false
@@ -517,6 +517,10 @@ class WordsOfAffirmationStory extends Story {
     }
 
     createScoreDisplay() {
+        this.score.createDisplay()
+        setTimeout(() => {
+            gsap.set(".score-display", { color: "#fff" })
+        })
     }
 
     // createScorefix() {
