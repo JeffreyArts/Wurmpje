@@ -26,6 +26,7 @@ export class Eye  {
         x: number
         y: number
     }
+    id: string = crypto.randomUUID()
     width: number
     height: number
     pupil: Point
@@ -33,6 +34,7 @@ export class Eye  {
     lid: Array<Point>
     isFollowing: gsap.core.Tween | null = null
     isLooking: gsap.core.Tween | null = null
+    isDestroyed: boolean = false
     disableBlink: boolean = false
    
     target: { x: number, y: number } | null = null
@@ -59,6 +61,10 @@ export class Eye  {
     }
 
     #loop() {
+        if (this.isDestroyed) {
+            return
+        }
+
         this.x = this.ref.x + this.offset.x 
         this.y = this.ref.y + this.offset.y
 
@@ -69,6 +75,10 @@ export class Eye  {
     }
 
     followObject(target?: { x: number, y: number }) {
+        if (this.isDestroyed) {
+            return
+        }
+
         if (typeof target === "object") {
             this.target = target
         }
@@ -210,6 +220,18 @@ export class Eye  {
             await this.open(duration / 2)
             resolve()
         })
+    }
+
+    destroy() {
+        if (this.isFollowing) { this.isFollowing.kill() }
+        if (this.isLooking) { this.isLooking.kill() }
+        this.isDestroyed = true
+
+        for (const key in this) {
+            if (typeof this[key] === "object") {
+                this[key] = undefined
+            }
+        }
     }
 }
 

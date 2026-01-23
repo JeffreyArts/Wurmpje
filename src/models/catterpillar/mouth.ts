@@ -77,8 +77,10 @@ export class Mouth  {
         center: Point,
         right: Point,
     }
+    id: string = crypto.randomUUID()
     #animation: null | gsap.TweenTarget
     #inTransition: boolean
+    isDestroyed: boolean = false
     scale: number
     size: number
     state: MouthState
@@ -141,6 +143,9 @@ export class Mouth  {
     }
 
     #loop() {
+        if (this.isDestroyed) {
+            return
+        }
         this.x = this.ref.x + this.offset.x 
         this.y = this.ref.y + this.offset.y
         requestAnimationFrame(this.#loop.bind(this))
@@ -358,10 +363,6 @@ export class Mouth  {
         this.bottomLip.right.y = this.y + (finalState.bottomLip.right.y * perc)
                 
         // this.paper.smooth({ type: "continuous" })
-    }
-
-    remove() {
-        // this.paper.remove()
     }
     
     #getPosition(state?: MouthState) : MouthPoints{
@@ -745,6 +746,18 @@ export class Mouth  {
             this.moveToState(this.state)
         }
         // console.log("Chewing finished", this.state)
+    }
+
+
+
+    destroy() {
+        this.isDestroyed = true
+
+        for (const key in this) {
+            if (typeof this[key] === "object") {
+                this[key] = undefined
+            }
+        }
     }
 }
 
