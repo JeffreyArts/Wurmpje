@@ -90,7 +90,7 @@ class IntroStory extends Story {
     moveToNextStoryLine() {
         clearTimeout(this.storyLineTimeout)
         if (!this.storyLines[this.storyIndex]) {
-            this.controller.catterpillar.speechBubble?.remove()
+            this.controller.catterpillar.speechBubble?.destroy()
             // Set story as completed
             this.storyStore.completeStory("intro")
             return

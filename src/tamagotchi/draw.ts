@@ -1,7 +1,12 @@
-// @ts-nocheck
-import CatterpillarModel from "@/models/catterpillar"
+import type CatterpillarModel from "@/models/catterpillar"
+import type FoodModel from "@/models/food"
+import type SpeechBubble from "@/models/speech-bubble"
+import type BallModel from "@/models/ball"
+import type PlankModel from "@/models/plank"
+
 import Chroma from "chroma-js"
 import Two from "two.js"
+
 import { reverse } from "lodash"
 
 import { Eye } from "@/models/catterpillar/eye"
@@ -43,35 +48,76 @@ export const availableBodyPartTextures = [
     "/bodyparts/vert/v6",
     "/bodyparts/vert/polkadots",
 ]
-type objectModel = {
-    id: number,
-    type: "food" | "catterpillar" | "speechBubble" | "ball" | "plank" | "eye" | "mouth",
-    model: FoodModel | CatterpillarModel | SpeechBubble | BallModel | PlankModel,
-    layers: Layers
+
+type TwoGroup = InstanceType<typeof Two.Group>
+type TwoCircle = InstanceType<typeof Two.Circle>
+type TwoPath = InstanceType<typeof Two.Path>
+
+interface FoodObjectModel {
+    type: "food";
+    id: number;
+    model: FoodModel;
+    two: { svg: TwoGroup };
 }
 
-type EyeGroup = Two.Group & {
-    pupil: Two.Circle
-    lid: Two.Path
+interface BallObjectModel {
+    type: "ball";
+    id: number;
+    model: BallModel;
+    two: { svg: TwoGroup };
 }
 
-type Layers = {
-    [key: number]: Two.Shape[] | Two.Shape; // key = laagnummer, value = array van Two.Shape
+interface PlankObjectModel {
+    type: "plank";
+    id: number;
+    model: PlankModel;
+    two: { squares: TwoGroup };
+}
+
+interface EyeObjectModel {
+    type: "eye";
+    id: string;
+    model: Eye;
+    two: { group: TwoGroup; pupil: TwoCircle; lid: TwoPath };
+}
+
+interface MouthObjectModel {
+    type: "mouth";
+    id: string;
+    model: Mouth;
+    two: { path: TwoPath };
+}
+
+interface CatterpillarObjectModel {
+    type: "catterpillar";
+    id: number;
+    model: CatterpillarModel;
+    two: {
+        bodyParts: Array<{ circle: TwoCircle; textures: TwoGroup[] }>;
+        leftEye?: EyeObjectModel;
+        rightEye?: EyeObjectModel;
+        mouth?: MouthObjectModel;
+    };
+}
+
+interface SpeechBubbleObjectModel {
+    type: "speechBubble";
+    id: number;
+    model: SpeechBubble;
+    two: { bubble: TwoPath; anchor: TwoPath };
 }
 
 export class Draw {
     two: Two
-    objects: Array<{ shape: Two.Shape, pos: { x: number, y: number }, updateVertices?: () => Array<{ x: number, y: number }> }> = []
-    layers: Two.Group[] = []
-    newObjects: Array<objectModel> = []
+    layers: TwoGroup[] = []
+    objects: Array<FoodObjectModel | BallObjectModel | PlankObjectModel | CatterpillarObjectModel | SpeechBubbleObjectModel> = []
     renderer?: Matter.Render | undefined
 
     constructor(two: Two, renderer?: Matter.Render) {
         this.two = two
         this.renderer = renderer
         for (let i = 0; i < 16; i++) {
-            const layer = this.two.makeGroup() as Two.Group
-            layer.name = `layer-${i}`
+            const layer = this.two.makeGroup() as TwoGroup
             this.layers.push(layer)
             this.two.add(layer)
         }
@@ -91,52 +137,28 @@ export class Draw {
 
         }
 
-        this.newObjects.forEach(obj => {
+        this.objects.forEach(obj => {
             if (obj.type == "food") {
                 this.drawFood(obj)
             } else if (obj.type == "ball") {
                 if (!this.drawBall(obj))  {
-                    this.removeBall(obj)
-                    this.newObjects = this.newObjects.filter(o => o.id !== obj.id)
+                    this.#removeBall(obj)
+                    this.objects = this.objects.filter(o => o.id !== obj.id)
                 }
             } else if (obj.type == "plank") {
                 this.drawPlank(obj)
             } else if (obj.type == "catterpillar") {
                 if (!this.drawCatterpillar(obj)) {
-                    this.removeCatterpillar(obj)
-                    this.newObjects = this.newObjects.filter(o => o.id !== obj.id)
+                    this.#removeCatterpillar(obj)
                 }
             } else if (obj.type == "speechBubble") {
                 if (!this.drawSpeechBubble(obj)) {
-                    this.removeSpeechBubble(obj)
-                    this.newObjects = this.newObjects.filter(o => o.id !== obj.id)
+                    this.#removeSpeechBubble(obj)
+                    this.objects = this.objects.filter(o => o.id !== obj.id)
                 }
             }
         })
         
-        for (let i = this.objects.length - 1; i >= 0; i--) {
-            const obj = this.objects[i]
-
-            obj.shape.position.set(obj.pos.x, obj.pos.y)
-
-            if (obj.updateVertices) {
-                const verts = obj.updateVertices()
-                
-                if (!verts) {
-                    obj.shape.remove()          // 1. uit Two.js scene halen
-                    this.objects.splice(i, 1)   // 2. uit je eigen collectie halen
-                    continue
-                }
-
-                obj.shape.vertices.forEach((v, i) => {
-                    v.x = verts[i].x
-                    v.y = verts[i].y
-                })
-            }
-        }
-
-        // Remove speech bubbles from the objects array
-        // this.objects = this.objects.filter(obj => !obj.name=="speechBubble")
         requestAnimationFrame(this.#draw.bind(this))
     }
 
@@ -174,7 +196,7 @@ export class Draw {
     // De retourwaarde is nu een Promise<Two.Group>, aangezien SVG's in Two.js vaak als een groep worden geïmporteerd.
     // 'Two' en 'Two.Group' typen vereisen dat je de Two.js typendefinities (bijv. @types/two.js) hebt geïnstalleerd.
 
-    async #importSVGAsync (urlOrString: string, options: { width: number, height: number, rotate?: number }) : Promise<Two.Group> {
+    async #importSVGAsync (urlOrString: string, options: { width: number, height: number, rotate?: number }) : Promise<TwoGroup> {
         const two = this.two as Two 
 
         try {
@@ -242,19 +264,13 @@ export class Draw {
             type: "catterpillar",
             id: catterpillar.composite.id,
             model: catterpillar,
-            layers:{ 
-                10: [{
-                    mouth: {
-                        model: catterpillar.mouth,
-                        path: null as Two.Path | null
-                    },
-                    leftEye: undefined as objectModel | undefined,
-                    rightEye:  undefined as objectModel | undefined,
-                    bodyParts: []
-                }]
+            two:{ 
+                mouth: undefined as MouthObjectModel | undefined,
+                leftEye: undefined as EyeObjectModel | undefined,
+                rightEye:  undefined as EyeObjectModel | undefined,
+                bodyParts: []
             }
-        } as objectModel
-
+        } as CatterpillarObjectModel
 
         for (let index = 0; index < bodyParts.length; index++) {
             const part = bodyParts[index]
@@ -337,7 +353,7 @@ export class Draw {
                 }
             }
 
-            const newBodyParts = catterpillarObj.layers[10][0].bodyParts
+            const newBodyParts = catterpillarObj.two.bodyParts
             const bodyPart = new Two.Circle(part.x, part.y, circleOptions.radius)
             bodyPart.fill = circleOptions.color
             bodyPart.noStroke()
@@ -357,36 +373,36 @@ export class Draw {
         await Promise.all(texturePromises)        
 
         // Add bodyParts
-        this.newObjects.push(catterpillarObj)
-        catterpillarObj.layers[10][0].bodyParts = reverse(catterpillarObj.layers[10][0].bodyParts)
+        this.objects.push(catterpillarObj)
+        catterpillarObj.two.bodyParts = reverse(catterpillarObj.two.bodyParts)
         
-        const reverseBodyParts = reverse(catterpillarObj.layers[10][0].bodyParts)
+        const reverseBodyParts = reverse(catterpillarObj.two.bodyParts)
         reverseBodyParts.forEach(bodyPart => {
             if (bodyPart.circle) {
-                bodyPart.circle.name = `${catterpillar.composite.id},bodyPart`
+                // bodyPart.circle.name = `${catterpillar.composite.id},bodyPart`
                 layer.add(bodyPart.circle)
             }
             
-            bodyPart.textures.forEach((texture: Two.Group) => {
-                texture.name = `${catterpillar.composite.id},bodyPart,texture`
+            bodyPart.textures.forEach((texture: TwoGroup) => {
+                // texture.name = `${catterpillar.composite.id},bodyPart,texture`
                 layer.add(texture)
             })
         })
 
         // Add mouth
         const mouth = this.addMouth(catterpillar.mouth)
-        catterpillarObj.layers[10][0].mouth = mouth
+        catterpillarObj.two.mouth = mouth
         
         // Add left eye
         const leftEye = this.addEye( catterpillar.leftEye)
-        catterpillarObj.layers[10][0].leftEye = leftEye
+        catterpillarObj.two.leftEye = leftEye
         
         // Add right eye
         const rightEye = this.addEye( catterpillar.rightEye)
-        catterpillarObj.layers[10][0].rightEye = rightEye
+        catterpillarObj.two.rightEye = rightEye
 
-        // Add to newObjects
-        this.newObjects.push(catterpillarObj)
+        // Add to objects
+        this.objects.push(catterpillarObj)
     }
     
     addFood = async (food: FoodModel, layerIndex = 10) => {
@@ -397,17 +413,13 @@ export class Draw {
             type: "food",
             id: food.composite.id,
             model: food,
-            layers:{ 
-                10: [{
-                    level: 0,
-                    svg
-                }]
+            two: {
+                svg
             }
-        }
+        } as FoodObjectModel
         
-
         layer.add(svg)
-        this.newObjects.push(obj)
+        this.objects.push(obj)
         this.drawFood(obj)
     }
 
@@ -419,35 +431,30 @@ export class Draw {
             type: "ball",
             id: ball.composite.id,
             model: ball,
-            layers:{ 
-                10: [{
-                    level: 0,
-                    svg
-                }]
+            two: { 
+                svg
             }
-        }
+        } as BallObjectModel
+
         layer.add(svg)
-        this.newObjects.push(obj)
+        this.objects.push(obj)
         this.drawBall(obj)
     }
 
     addPlank = (plank: PlankModel, layerIndex = 10) => {
         const layer = this.layers[layerIndex]
-
+        const squares = new Two.Group()
         const obj = {
             type: "plank",
             id: plank.body.id,
             model: plank,
-            layers:{ 
-                10: [{
-                    level: 0,
-                    squares: []
-                }]
+            two:{ 
+                squares
             }
-        }
+        } as PlankObjectModel
 
-        layer.add(svg)
-        this.newObjects.push(obj)
+        layer.add(squares)
+        this.objects.push(obj)
         this.drawPlank(obj)
     }
 
@@ -475,21 +482,16 @@ export class Draw {
         eyeGroup.add(pupil)
         eyeGroup.mask = eyelidMask
 
-        eyeGroup.lid = eyelid
-        eyeGroup.pupil = pupil
-
         const obj = {
             type: "eye",
             id: eye.id,
             model: eye,
-            layers:{ 
-                10: [{
-                    group: eyeGroup,
-                    lid: eyelid,
-                    pupil: pupil
-                }]
+            two: { 
+                group: eyeGroup,
+                lid: eyelid,
+                pupil: pupil
             }   
-        } as objectModel
+        } as EyeObjectModel
 
         layer.add(eyeGroup)
         
@@ -512,12 +514,10 @@ export class Draw {
             type: "mouth",
             id: mouth.id,
             model: mouth,
-            layers:{ 
-                10: [{
-                    path
-                }]
+            two:{ 
+                path
             }   
-        } as objectModel
+        } as MouthObjectModel
 
         layer.add(path)
 
@@ -528,7 +528,8 @@ export class Draw {
         const layer = this.layers[layerIndex]
 
         // BUBBLE
-        const bubble = new Two.Path(speechBubble.bubble.outline.map(p => new Two.Anchor(p.x, p.y)), false, false) // false = niet closed
+        const bubblePath = speechBubble.bubble.outline.map(body => new Two.Anchor(body.position.x, body.position.y))
+        const bubble = new Two.Path(bubblePath, false, false) // false = niet closed
         
         bubble.noStroke()
         bubble.fill = "#F8FADB"
@@ -553,13 +554,11 @@ export class Draw {
             type: "speechBubble",
             id: speechBubble.composite.id,
             model: speechBubble,
-            layers:{ 
-                11: [{
-                    bubble: bubble,
-                    anchor: anchor
-                }]
+            two: {
+                bubble: bubble,
+                anchor: anchor
             }
-        } as objectModel
+        } as SpeechBubbleObjectModel
     }
 
 
@@ -568,24 +567,24 @@ export class Draw {
 
 
 
-    drawBall = (ball: objectModel) => {
-        if (!ball.model || ball.model.destroyed) {
+    drawBall = (ball: BallObjectModel) => {
+        if (!ball.model || ball.model.isDestroyed) {
             return false
         }
-        ball.layers[10][0].svg.position.set(ball.model.x, ball.model.y)
-        ball.layers[10][0].svg.rotation = ball.model.rotation
+        ball.two.svg.position.set(ball.model.x, ball.model.y)
+        ball.two.svg.rotation = ball.model.rotation
 
         return true
     }
 
-    drawCatterpillar = (catterpillar: objectModel) => {
-        if (catterpillar.model.destroyed) {
+    drawCatterpillar = (catterpillar: CatterpillarObjectModel) => {
+        if (!catterpillar.model || catterpillar.model.isDestroyed) {
             return false
         }
 
         const bodyParts = catterpillar.model.bodyParts
         bodyParts.forEach((part, index) => {
-            const bodyPartObj = catterpillar.layers[10][0].bodyParts[index]
+            const bodyPartObj = catterpillar.two.bodyParts[index]
             // Update circle position
             if (bodyPartObj.circle) {
                 bodyPartObj.circle.position.set(part.x, part.y)
@@ -593,7 +592,7 @@ export class Draw {
             
             // Update textures position
             if (bodyPartObj.textures) {
-                bodyPartObj.textures.forEach((texture: Two.Group) => {
+                bodyPartObj.textures.forEach((texture: TwoGroup) => {
                     if (!texture) return      
                     
                     texture.position.set(part.x, part.y)
@@ -601,9 +600,9 @@ export class Draw {
             }
         })
 
-        const mouth = catterpillar.layers[10][0].mouth
-        const leftEye = catterpillar.layers[10][0].leftEye
-        const rightEye = catterpillar.layers[10][0].rightEye
+        const mouth = catterpillar.two.mouth
+        const leftEye = catterpillar.two.leftEye
+        const rightEye = catterpillar.two.rightEye
 
         // Update mouth position 
         if (mouth) {
@@ -611,11 +610,17 @@ export class Draw {
         }
 
         if (rightEye) {
-            this.drawEye(rightEye)
+            if (!this.drawEye(rightEye)) {
+                this.#removeEye(rightEye)
+                catterpillar.two.rightEye = null
+            }
         }
 
         if (leftEye) {
-            this.drawEye(leftEye)
+            if (!this.drawEye(leftEye)) {
+                this.#removeEye(leftEye)
+                catterpillar.two.leftEye = null
+            }
         }
         
 
@@ -624,36 +629,31 @@ export class Draw {
                 catterpillar.model.speechBubble = undefined
                 return true
             }
-            const exists = this.newObjects.find(obj => obj.id == catterpillar.model.speechBubble.composite.id)
+            const exists = this.objects.find(obj => obj.id == catterpillar.model.speechBubble.composite.id)
             if (exists) return true
-            this.newObjects.push(this.addSpeechBubble(catterpillar.model.speechBubble))
+            this.objects.push(this.addSpeechBubble(catterpillar.model.speechBubble))
         }
 
         return true
 
     }
 
-    drawEye = (eye: objectModel) => {
-        const eyeLayer = eye.layers[10][0]
-
-        const eyeGroup = eyeLayer.group as EyeGroup
-        const eyeModel = eye.model as Eye
-
-        if (!eyeModel || eyeModel.isDestroyed) {
-            this.removeEye(eye)
+    drawEye = (eye: EyeObjectModel) => {
+        if (!eye.model || eye.model.isDestroyed) {
+            this.#removeEye(eye)
             return false
         }
-        
-        const lid = eyeGroup.lid as Two.Path
-        const pupil = eyeGroup.pupil as Two.Circle
 
-        const pupilX = eyeModel.pupil.x - eyeModel.x 
-        const pupilY = eyeModel.pupil.y - eyeModel.y 
+        const lid = eye.two.lid 
+        const pupil = eye.two.pupil
+
+        const pupilX = eye.model.pupil.x - eye.model.x 
+        const pupilY = eye.model.pupil.y - eye.model.y 
         
-        eyeGroup.position.set(eyeModel.x, eyeModel.y)
+        eye.two.group.position.set(eye.model.x, eye.model.y)
         pupil.position.set(pupilX, pupilY)
         
-        const verts = eyeModel.lid.map(p => ({ x: p.x, y: p.y }))
+        const verts = eye.model.lid.map(p => ({ x: p.x, y: p.y }))
         lid.vertices.forEach((v, i) => {
             v.x = verts[i].x
             v.y = verts[i].y
@@ -661,55 +661,50 @@ export class Draw {
         return true
     }
 
-    drawFood = (food: objectModel) => {
-        food.layers[10][0].svg.position.set(food.model.x, food.model.y)
-        food.layers[10][0].svg.rotation = food.model.rotation
+    drawFood = (food: FoodObjectModel) => {
+        food.two.svg.position.set(food.model.x, food.model.y)
+        food.two.svg.rotation = food.model.rotation
     }
 
-    drawMouth = (mouth: objectModel) => {
-        const mouthLayer = mouth.layers[10][0]
-        // { model: Mouth, path: Two.Path }
+    drawMouth = (mouth: MouthObjectModel) => {
+        const mouthTwo = mouth.two 
+        
         if (!mouth.model || mouth.model.isDestroyed) {
-            mouthLayer.path.remove()
-            mouthLayer.path = null
-
-            mouth.model.destroy()
-            mouth.model = null
+            this.#removeMouth(mouth)
             return
         }
         
-        mouthLayer.path.position.set(mouth.model.x, mouth.model.y)
+        mouthTwo.path.position.set(mouth.model.x, mouth.model.y)
 
         const verts = mouth.model.coordinates.map(p => ({ x: p.x, y: p.y }))
-        mouthLayer.path.vertices.forEach((v, i) => {
+        mouthTwo.path.vertices.forEach((v, i) => {
             v.x = verts[i].x
             v.y = verts[i].y
         })
     }
     
-    drawPlank = (plank: objectModel) => {
+    drawPlank = (plank: PlankObjectModel) => {
         const numSquares = Math.ceil(plank.model.width / 18)
-        if (numSquares != plank.layers[10][0].squares.length) {
+        if (numSquares != plank.two.squares.length) {
             // Recreate squares
-            plank.layers[10][0].squares.forEach(square => {
-                this.two.remove(square)
+            plank.two.squares.children.forEach(child => {
+                child.remove()
             })
-            plank.layers[10][0].squares = []
+            
             const offsetX = 0
             for (let i = 0; i < numSquares; i++) {
                 const x = offsetX + i * 18 + 9
                 const y = plank.model.y + 2
                 const size = 16
-                const square = this.two.makeRectangle(x, y, size, size)
+                const square = new Two.Rectangle(x, y, size, size)
                 square.fill = plank.model.color
                 square.noStroke()
-                plank.layers[10][0].squares.push(square)
+                plank.two.squares.add(square)
                 this.two.add(square) 
-                // this.layers[10].add(square)
             }
         }
 
-        plank.layers[10][0].squares.forEach((square, index) => {
+        plank.two.squares.children.forEach((square, index) => {
             const offsetX = -plank.model.width / 2
             const x = offsetX + plank.model.x + index * 18 + 9
             const y = plank.model.y + 2
@@ -717,15 +712,15 @@ export class Draw {
         })
     }
 
-    drawSpeechBubble = (speechBubble: objectModel) => {
+    drawSpeechBubble = (speechBubble: SpeechBubbleObjectModel) => {
         if (!speechBubble.model || speechBubble.model.isDestroyed) {
             return false
         }
 
         // const composites = speechBubble.model.composite.composites
-        const bubble = speechBubble.layers[11][0].bubble
-        const anchor = speechBubble.layers[11][0].anchor
-
+        const bubble = speechBubble.two.bubble
+        const anchor = speechBubble.two.anchor
+        
         bubble.vertices.forEach((v, i) => {
             v.x = speechBubble.model.bubble.outline[i].position.x
             v.y = speechBubble.model.bubble.outline[i].position.y
@@ -745,109 +740,141 @@ export class Draw {
     // REMOVE METHODS
 
 
-    removeBall(ball: objectModel) {
+    #removeBall(ball: BallObjectModel) {
         if (!ball) return
-        // Remove from Draw.objects
-        for (const i in ball.layers) { 
-            const layer = ball.layers[i]
-            layer.forEach(layerObj => {
-                if (layerObj.svg) {
-                    layerObj.svg.remove()
-                }
-            })
+        if (ball.type != "ball") { console.error("Invalid objectModel for #removeBall"); return }
+
+        if (ball.two.svg) {
+            ball.two.svg.remove()
+            ball.two.svg = null
         }
 
         if (ball.model) {
             ball.model.destroy()
-            ball.model = undefined
+            ball.model = null
         }
-        ball = undefined
     }
 
-    removeCatterpillar(catterpillarObj: objectModel) {
-        if (!catterpillarObj) return
+    #removeCatterpillar(catterpillarObj: CatterpillarObjectModel) {
+        if (!catterpillarObj) return 
+        if (catterpillarObj.type != "catterpillar") { console.error("Invalid objectModel for #removeCatterpillar"); return }
+        if (!catterpillarObj.two) return
 
-        // Remove from Draw.objects
-        for (const i in catterpillarObj.layers) { 
-            const layer = catterpillarObj.layers[i]
-            layer.forEach(layerObj => {
-                // remove bodyparts
-                if (layerObj.bodyParts) {
-                    layerObj.bodyParts.forEach((bodyPart: { circle: Two.Circle, textures: Two.Group[] }) => {
-                        if (bodyPart.circle) {
-                            bodyPart.circle.remove() 
-                        }
-                        bodyPart.textures.forEach((texture: Two.Group) => {
-                            texture.remove()
-                        })
-                    })
+        // remove bodyparts
+        if (catterpillarObj.two.bodyParts) {
+            catterpillarObj.two.bodyParts.forEach((bodyPart: { circle: TwoCircle, textures: TwoGroup[] }) => {
+                if (bodyPart.circle) {
+                    bodyPart.circle.remove() 
                 }
-                // remove eyes and mouth
-                if (layerObj.leftEye && layerObj.leftEye.group) {
-                    this.removeEye(layerObj.leftEye)
-                }
-                if (layerObj.rightEye && layerObj.rightEye.group) {
-                    layerObj.rightEye.group.remove()
-                }
-                if (layerObj.mouth && layerObj.mouth.path) {
-                    layerObj.mouth.path.remove()
-                }
+                bodyPart.textures.forEach((texture: TwoGroup) => {
+                    texture.remove()
+                })
             })
         }
+
+        // remove eyes
+        if (catterpillarObj.two.leftEye) {
+            this.#removeEye(catterpillarObj.two.leftEye)
+            catterpillarObj.two.leftEye = null
+        }
+        if (catterpillarObj.two.rightEye) {
+            this.#removeEye(catterpillarObj.two.rightEye)
+            catterpillarObj.two.rightEye = null
+        }
+        
+        // remove mouth 
+        if (catterpillarObj.two.mouth) {
+            this.#removeMouth(catterpillarObj.two.mouth)
+            catterpillarObj.two.mouth = null
+        }
+
+        this.objects = this.objects.filter(o => o.id !== catterpillarObj.id)
+
+        catterpillarObj.two = null
 
         if (catterpillarObj.model) {
             catterpillarObj.model.destroy()
-            catterpillarObj.model = undefined
+            catterpillarObj.model = null
         }
-        catterpillarObj = undefined
     }
     
-    removeEye(eyeObj: objectModel) {
-        eyeObj.
-            eyeGroup.remove()  // 1. uit Two.js scene halen
-        eye.group = null   // 2. uit je eigen collectie halen
-        eye.model.destroy()// 3. destroy model (if not already destroyed)
+    #removeEye(eyeObj: EyeObjectModel) {
+        if (!eyeObj) return 
+        if (eyeObj.type != "eye") { console.error("Invalid objectModel for #removeEye"); return }
+
+        if (eyeObj.two.group) {
+            eyeObj.two.lid.remove()
+            eyeObj.two.lid = null
+
+            eyeObj.two.pupil.remove()
+            eyeObj.two.pupil = null
+
+            eyeObj.two.group.remove()
+            eyeObj.two.group = null
+        }
+
+        if (eyeObj.model) {
+            eyeObj.model.destroy()
+            eyeObj.model = null
+        }
+    }
+    
+    #removeMouth(mouthObj: MouthObjectModel) {
+        if (!mouthObj) return 
+        if (mouthObj.type != "mouth") { console.error("Invalid objectModel for #removeMouth"); return }
+
+        if (mouthObj.two.path) {
+            mouthObj.two.path.remove()
+            mouthObj.two.path = null
+        }
+
+        if (mouthObj.model) {
+            mouthObj.model.destroy()
+            mouthObj.model = null
+        }
     }
 
-    removeSpeechBubble(speechBubble: objectModel) {
+    #removeSpeechBubble(speechBubble: SpeechBubbleObjectModel) {
         if (!speechBubble) return
-        // Remove from Draw.objects
-        for (const i in speechBubble.layers) { 
-            const layer = speechBubble.layers[i]
-            layer.forEach(layerObj => {
-                if (layerObj.path) {
-                    layerObj.path.remove()
-                }
-            })
+        if (speechBubble.type != "speechBubble") { console.error("Invalid objectModel for #removeSpeechBubble"); return }
+
+        if (speechBubble.two.bubble) {
+            speechBubble.two.bubble.remove()
+            speechBubble.two.bubble = null
+        }
+        
+        if (speechBubble.two.anchor) {
+            speechBubble.two.anchor.remove()
+            speechBubble.two.anchor = null
         }
 
         if (speechBubble.model) {
             speechBubble.model.destroy()
-            speechBubble.model = undefined
+            speechBubble.model = null
         }
 
-        speechBubble = undefined
     }
 
-    removeObjectById(id: number) {
-        const obj = this.newObjects.find(o => o.id === id)
-        this.newObjects = this.newObjects.filter(o => o.id !== id)
+    removeObjectById = (id: number) => {
+        const obj = this.objects.find(o => o.id === id)
+        this.objects = this.objects.filter(o => o.id !== id)
         if (!obj) return
 
         if (obj.type == "catterpillar") {
-            this.removeCatterpillar(obj)
+            this.#removeCatterpillar(obj)
             return
         }
 
-        // Remove from Draw.objects
-        for (const i in obj.layers) { 
-            const layer = obj.layers[i]
-            layer.forEach(layerObj => {
-                if (layerObj.svg) {
-                    layerObj.svg.remove()
-                }
-            })
+        if (obj.type == "ball") {
+            this.#removeBall(obj)
+            return
         }
+        
+        if (obj.type == "speechBubble") {
+            this.#removeSpeechBubble(obj)
+            return
+        }
+        
     }
 
 }

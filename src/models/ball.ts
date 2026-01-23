@@ -9,9 +9,10 @@ export class Ball {
     size: number
     color: string
     rotation: number = 0
+
     isMoving: boolean = false
     isMovingTimeout: NodeJS.Timeout | number = 0
-    destroyed: boolean = false
+    isDestroyed: boolean = false
 
     constructor(options: {
         x: number,
@@ -40,11 +41,6 @@ export class Ball {
             // density: .2,
             render: {
                 fillStyle: "orange",
-                // sprite: {
-                //     texture: "render-circle-helper.png",
-                //     xScale: (this.size * 2) / 512,
-                //     yScale: (this.size * 2) / 512,
-                // }
             }
         })
         
@@ -54,6 +50,10 @@ export class Ball {
     }
 
     #loop() {
+        if (this.isDestroyed) {
+            return
+        }
+        
         const targetBody = this.composite.bodies[0]
 
         if (Math.abs(this.x - targetBody.position.x) > 0.1 ||
@@ -71,7 +71,6 @@ export class Ball {
         this.y = targetBody.position.y
         this.rotation = targetBody.angle
 
-
         if (this.y < 100) {
             targetBody.collisionFilter.group = -1
         } else {
@@ -82,7 +81,7 @@ export class Ball {
     }
 
     destroy() {
-        this.destroyed = true
+        this.isDestroyed = true
         Matter.World.remove(this.world, this.composite)
     }
 }

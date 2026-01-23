@@ -194,6 +194,7 @@ export class Eye  {
     open(duration = .2) {
         return new Promise<void>(resolve => {
             this.disableBlink = false
+            
             const ease = "power2.out"
             gsap.to(this.lid[1], {
                 y: 0,
@@ -227,11 +228,14 @@ export class Eye  {
         if (this.isLooking) { this.isLooking.kill() }
         this.isDestroyed = true
 
-        for (const key in this) {
-            if (typeof this[key] === "object") {
-                this[key] = undefined
-            }
+        for (const lidPoint of this.lid) {
+            gsap.killTweensOf(lidPoint) 
         }
+
+        this.target = null
+        this.pupil = null
+        this.ref = null
+        this.offset = null
     }
 }
 

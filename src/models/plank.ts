@@ -10,6 +10,7 @@ export class Plank {
     height: number
     color: string = "orange"
     isMovable: boolean = false
+    isDestroyed: boolean = false
 
     constructor(options: {
         x: number,
@@ -44,6 +45,9 @@ export class Plank {
     }
 
     #loop() {
+        if (this.isDestroyed) {
+            return
+        }
         const targetBody = this.body
 
         this.x = targetBody.position.x

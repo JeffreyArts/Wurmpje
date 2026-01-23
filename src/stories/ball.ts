@@ -384,7 +384,7 @@ class BallStory extends Story {
             await this.catterpillar.say(message)
             
             setTimeout(() => {
-                this.controller.catterpillar.speechBubble?.remove()
+                this.controller.catterpillar.speechBubble?.destroy()
             }, 3200)
             this.makeCatterpillarMoveToBall()
         }, 500)
@@ -418,7 +418,7 @@ class BallStory extends Story {
             await this.catterpillar.say(message)
 
             setTimeout(() => {
-                this.controller.catterpillar.speechBubble?.remove()
+                this.controller.catterpillar.speechBubble?.destroy()
                 this.resettingEyesTimeout = undefined
             }, 3200)
             this.makeCatterpillarMoveToBall()

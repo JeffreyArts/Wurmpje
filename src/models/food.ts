@@ -9,6 +9,7 @@ export class Food {
     size: number
     color: string
     rotation: number = 0
+    isDestroyed: boolean = false
 
     constructor(options: {
         x: number,
@@ -41,6 +42,10 @@ export class Food {
     }
 
     #loop() {
+        if (this.isDestroyed) {
+            return
+        }
+        
         const targetBody = this.composite.bodies[0]
         this.x = targetBody.position.x
         this.y = targetBody.position.y

@@ -134,25 +134,23 @@ class EatStory extends Story {
         }, 240)
         
         // fade out food
-        const drawObject = this.draw.newObjects.find(o => o.id.toString() === food.composite.id.toString())
-        if (drawObject) {
-            for (const layer in drawObject.layers) {
-                const svg = drawObject.layers[layer][0].svg
-                gsap.to(svg, { 
-                    opacity: 0,
-                    duration: 1,
-                    onComplete: () => {
-                        this.draw.newObjects = this.draw.newObjects.filter(o => o.id.toString() !== food.composite.id.toString())
-                        Matter.Composite.remove(this.controller.ref.world, food.composite)
-                    } 
-                })
-        
-                gsap.to(this.identityStore.current, {
-                    hunger: this.identityStore.current.hunger + 10,
-                    duration: 1,
-                    ease: "power1.out",
-                })
-            }
+        const drawObject = this.draw.objects.find(o => o.id.toString() === food.composite.id.toString())
+        if (drawObject && drawObject.type === "food") {
+            const svg = drawObject.two.svg
+            gsap.to(svg, { 
+                opacity: 0,
+                duration: 1,
+                onComplete: () => {
+                    this.draw.objects = this.draw.objects.filter(o => o.id.toString() !== food.composite.id.toString())
+                    Matter.Composite.remove(this.controller.ref.world, food.composite)
+                } 
+            })
+    
+            gsap.to(this.identityStore.current, {
+                hunger: this.identityStore.current.hunger + 10,
+                duration: 1,
+                ease: "power1.out",
+            })
         }
 
         // Remove food from active foods
