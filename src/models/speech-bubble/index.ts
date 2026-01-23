@@ -25,12 +25,12 @@ class SpeechBubble  {
     parentElement: HTMLElement
     x: number
     y: number
-    death: boolean
     text: string
     animatedText: string = ""
     domElement: HTMLDivElement
     composite: Matter.Composite
     world: Matter.World
+    isDestroyed: boolean = false
 
     constructor (
         world: Matter.World,
@@ -40,7 +40,7 @@ class SpeechBubble  {
             text: "..."
         } as SpeechBubbleOptions) {
         this.id = Date.now()
-        this.death = false
+        this.isDestroyed = false
         this.world = world
         this.text = options.text ? options.text : "..."
         this.parentElement = document.body
@@ -304,7 +304,7 @@ class SpeechBubble  {
     }
 
     #loop(){
-        if (this.death){ 
+        if (this.isDestroyed) { 
             return
         }
         const borderPointsLeft = this.composite.composites[0].bodies.filter(body => {
@@ -389,7 +389,7 @@ class SpeechBubble  {
 
     updateText = (text: string, speed = 100) =>{
         if (!this.domElement) {
-            console.warn("Missing domElement", this.death)
+            console.warn("Missing domElement", this.isDestroyed)
             return
         }
         this.animatedText = text
@@ -440,24 +440,14 @@ class SpeechBubble  {
             gsap.to(anchor.position, {
                 x: this.x,
                 y: this.y,
-                duration: duration,
-            })
-        }
-
-        // Update DOM element position
-        if (this.domElement) {
-            gsap.killTweensOf(this.domElement.style)
-            gsap.to(this.domElement.style, {
-                left: (this.x + this.anchor.width) + "px",
-                top: (this.y - this.anchor.height - this.size / 2) + "px",
-                duration: duration,
+                duration: 0,
             })
         }
     }
 
-    remove() {
+    destroy() {
+        this.isDestroyed = true
         this.text = ""
-        this.death = true
         Matter.Composite.remove(this.world, this.composite)
         this.domElement.remove()
         const el = document.getElementById("speech-bubble-" + this.id.toString())

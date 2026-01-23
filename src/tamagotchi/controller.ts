@@ -108,7 +108,7 @@ export class MatterController {
         if (this.catterpillar.x < 0 || this.catterpillar.x > this.ref.renderer.options.width  ||
             this.catterpillar.y > this.ref.renderer.options.height ) {
             // Re-center Catterpillar
-            this.catterpillar.remove()
+            this.catterpillar.destroy()
             this.createCatterpillar({ x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }, { identity: this.identity })  
         }
 

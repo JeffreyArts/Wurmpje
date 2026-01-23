@@ -25,7 +25,6 @@ class DailyHungerUpdateStory extends Story {
 
         const lastActions = await this.actionStore.loadLastActionsFromDB(this.identity.id, "hungerLoss", 1)
         const lastAction = lastActions[0]
-        console.log("Last hungerLoss action:", lastAction   )
         const wurmpje = await this.actionStore.loadWurmpjeById(this.identity.id)
 
         if (!wurmpje) {
@@ -44,9 +43,9 @@ class DailyHungerUpdateStory extends Story {
                 amountOfHoursWithoutFood = (now - created) / (1000 * 60 * 60)
             }
         }
-        
+
+        // Lose 19 food per 24 hours, rounded (24 * .75), so dies within ~5 days without food
         const hungerSubtraction = Math.round(amountOfHoursWithoutFood * .75)
-        console.log("hungerSubtraction", hungerSubtraction)
         wurmpje.hunger -= hungerSubtraction
 
         gsap.to(this.identityStore.current, {
@@ -65,20 +64,6 @@ class DailyHungerUpdateStory extends Story {
             this.actionStore.add(this.identity.id,"food", -hungerSubtraction)
             this.actionStore.add(this.identity.id,"hungerLoss", hungerSubtraction)
             this.identityStore.updateIdentityInDatabase(this.identity.id, { hunger: wurmpje.hunger })
-            // // Add new hungerLoss action to db
-            // const actionTx = this.actionStore.db.transaction("actions", "readwrite")
-            // const actionStore = actionTx.objectStore("actions")
-            // const timestamp = Date.now()
-            // const dbAction = {
-            //     created: timestamp,
-            //     identityId: this.identity.id,
-            //     action: "hungerLoss" as actionTypes,
-            //     value: hungerSubtraction,
-            // }
-            // actionStore.add(dbAction)
-
-            // // await identityTx.done
-            // await actionTx.done
         }
         
     }

@@ -36,10 +36,12 @@ class CatapultStory extends Story {
         
         this.catterpillar = this.controller.catterpillar
 
+        if (this.catterpillar.speechBubble) {
+            this.catterpillar.speechBubble.destroy()
+        }
+
         this.dbStory = await this.storyStore.getLatestDatabaseEntry("catapult")
 
-        // document.addEventListener("click", this.createCatterpillarLauncher.bind(this))
-        console.log("Registering catapult try in action store", this.controller.ref.world)
         await this.actionStore.add(this.identityStore.current.id, "catapult", 1) // register a try, value is irrelevant
     }
 
@@ -127,7 +129,6 @@ class CatapultStory extends Story {
     }
 
     generateLauncherLoop() {
-        console.log(this.launchPositions.length)
         if (this.launchPositions.length < 1) {
             this.generateLaunchPositions()
         }   

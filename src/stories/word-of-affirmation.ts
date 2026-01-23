@@ -148,7 +148,6 @@ class WordsOfAffirmationStory extends Story {
         // }
         this.controller.disableDragging = true
 
-
         await this.actionStore.add(this.identityStore.current.id, "wof", 1) // register a try, value is irrelevant
         await this.actionStore.loadAvailableWOFtries(this.identityStore.current.id)
     }
@@ -222,21 +221,20 @@ class WordsOfAffirmationStory extends Story {
         gsap.to(".wof-timer", { opacity: 0, duration: 1 })
     }
 
-    endStory() {
+    async endStory() {
         gsap.to(".wof-leaderboard tr", { opacity: 0, duration: .8, stagger: 0.1 })
         
         gsap.to(".wof-scorefix-score", { opacity: 0, duration: .8, delay: 0 })
         gsap.to(".wof-score-display", { opacity: 0, duration: .8, delay: 0.2 })
-        gsap.to(".wof-scorefix-title", { opacity: 0, duration: .8, delay: 0.4 })
-        
-        setTimeout(async () => {
-            this.storyStore.killStory("wof")
-
+        gsap.to(".wof-scorefix-title", { opacity: 0, duration: .8, delay: 0.4 , onComplete: () => {
             this.destroy()
-            const loveValue = Math.floor(this.gameScore/100)
-            await this.actionStore.add(this.identityStore.current.id, "love", loveValue )
             this.identityStore.current.love = Math.min(this.identityStore.current.love + loveValue, 100)
-        }, 2000)
+        } })
+        
+        this.storyStore.killStory("wof")
+        const loveValue = Math.floor(this.gameScore/100)
+        await this.actionStore.add(this.identityStore.current.id, "love", loveValue )
+        
     }
 
     pickRandomWord() {
@@ -284,6 +282,10 @@ class WordsOfAffirmationStory extends Story {
 
     addNewWord() {
         if (this.noNewWords) {
+            return
+        }
+        const container = document.querySelector(".wof-words-container")!
+        if (!container) {
             return
         }
 

@@ -45,6 +45,7 @@ export class Catterpillar {
     isMoving: boolean = false
     isScared: boolean = false
     isDead: boolean = false
+    isDestroyed: boolean = false
     isTalking: boolean = false
     isOnSolidGround: boolean = false
     
@@ -141,6 +142,9 @@ export class Catterpillar {
     }
 
     #loop() {
+        if (this.isDestroyed) {
+            return
+        }
 
         // Set X & Y values based on the center body part
         const centerIndex = Math.round(this.bodyParts.length / 2)
@@ -868,7 +872,7 @@ export class Catterpillar {
         this.isTalking = true
 
         if (this.speechBubble) {
-            this.speechBubble.remove()
+            this.speechBubble.destroy()
             this.speechBubble = undefined
         }
 
@@ -919,10 +923,6 @@ export class Catterpillar {
         this.pins = this.pins.filter(pin => pin !== pinConstraint)
     }
 
-    remove() {
-        Matter.Composite.remove(this.world, this.composite)
-    }
-
     emote(state: Emote, duration = 1) {
         if (!state){
             throw new Error("Catterpillar.emote: state is required")
@@ -950,7 +950,16 @@ export class Catterpillar {
     }
 
     destroy() { 
-        this.remove()
+        this.isDestroyed = true
+        if (this.contraction) { this.#removeContraction() }
+        if (this.blinkTimeout) { clearTimeout(this.blinkTimeout) }
+        if (this.scared.timeout) { clearTimeout(this.scared.timeout) }
+        if (this.scared.timeoutAction) { clearTimeout(this.scared.timeoutAction) }
+        if (this.leftEye) { this.leftEye.destroy() }
+        if (this.rightEye) { this.rightEye.destroy() }
+        if (this.mouth) { this.mouth.destroy() }    
+        if (this.speechBubble) {this.speechBubble.destroy() }
+        Matter.Composite.remove(this.world, this.composite)
     }
 }
 

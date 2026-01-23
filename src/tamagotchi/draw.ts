@@ -106,6 +106,11 @@ export class Draw {
                     this.removeCatterpillar(obj)
                     this.newObjects = this.newObjects.filter(o => o.id !== obj.id)
                 }
+            } else if (obj.type == "speechBubble") {
+                if (!this.drawSpeechBubble(obj)) {
+                    this.removeSpeechBubble(obj)
+                    this.newObjects = this.newObjects.filter(o => o.id !== obj.id)
+                }
             }
         })
         
@@ -134,15 +139,14 @@ export class Draw {
         // this.objects = this.objects.filter(obj => !obj.name=="speechBubble")
         requestAnimationFrame(this.#draw.bind(this))
     }
-
-    drawSpeechBubble = (speechBubble: SpeechBubble) => {
+    
+    addSpeechBubble = (speechBubble: SpeechBubble) => {
         const composites = speechBubble.composite.composites
         const leftSide = composites.find((c) => c.label === "leftside")
         const rightSide = composites.find((c) => c.label === "rightside")
         const anchor = composites.find((c) => c.label === "anchor").bodies[0]
         const leftPoints = leftSide.bodies.filter(body => body.label.startsWith("borderPoint"))
         const rightPoints = rightSide.bodies.filter(body => body.label.startsWith("borderPoint"))
-
         const points = [...new Set([...leftPoints, ...rightPoints])]
 
         const vertices = []
@@ -161,50 +165,138 @@ export class Draw {
 
         const anchors = vertices.map(p => new Two.Anchor(p.x, p.y))
         const path = new Two.Path(anchors, false, false) // false = niet closed
-        
-        //
+
         path.noStroke()
         path.fill = "#F8FADB"
         
         path.curved = true
-        path.closed = false        
+        path.closed = false    
 
-        this.objects.push({
-            shape: path,
-            pos: { x:0, y:0 },
-            name: `speechBubble,${speechBubble.composite.id}`,
-            updateVertices: () => {
-                if (speechBubble.death) {
-                    return null
-                }
-                const leftSide = speechBubble.composite.composites.find((c) => c.label === "leftside")
-                const rightSide = speechBubble.composite.composites.find((c) => c.label === "rightside")
-                const anchor = speechBubble.composite.composites.find((c) => c.label === "anchor").bodies[0]
-                const leftPoints = leftSide.bodies.filter(body => body.label.startsWith("borderPoint"))
-                const rightPoints = rightSide.bodies.filter(body => body.label.startsWith("borderPoint"))
-                const points = [...new Set([...leftPoints, ...rightPoints])]
+        const layer = this.layers[11]
 
-                const vertices = []
+        layer.add(path)
 
-                for (let index = 1; index < points.length - 1; index++) {
-                    const body = points[index]
-                    vertices.push({ x: body.position.x, y: body.position.y })
-                }
-        
-                if (anchor) {
-                    vertices.push({ x: rightPoints[rightPoints.length - 1].position.x, y: rightPoints[rightPoints.length - 1].position.y })
-                    vertices.push({ x: leftPoints[0].position.x, y: leftPoints[0].position.y })
-                    vertices.push({ x: leftPoints[0].position.x, y: leftPoints[0].position.y })
-                    vertices.push({ x: anchor.position.x, y: anchor.position.y })
-                }
-
-                return vertices
+        return {
+            type: "speechBubble",
+            id: speechBubble.composite.id,
+            model: speechBubble,
+            layers:{ 
+                11: [{
+                    path: path
+                }]
             }
+        } as objectModel
+    }
+
+    drawSpeechBubble = (speechBubble: objectModel) => {
+        if (!speechBubble.model || speechBubble.model.isDestroyed) {
+            return false
+        }
+
+        const composites = speechBubble.model.composite.composites
+        const path = speechBubble.layers[11][0].path
+
+        const leftSide = composites.find((c) => c.label === "leftside")
+        const rightSide = composites.find((c) => c.label === "rightside")
+        const anchor = composites.find((c) => c.label === "anchor").bodies[0]
+        const leftPoints = leftSide.bodies.filter(body => body.label.startsWith("borderPoint"))
+        const rightPoints = rightSide.bodies.filter(body => body.label.startsWith("borderPoint"))
+        const points = [...new Set([...leftPoints, ...rightPoints])]
+
+        const vertices = []
+
+        for (let index = 1; index < points.length - 1; index++) {
+            const body = points[index]
+            vertices.push({ x: body.position.x, y: body.position.y })
+        }
+        
+        if (anchor) {
+            vertices.push({ x: rightPoints[rightPoints.length - 1].position.x, y: rightPoints[rightPoints.length - 1].position.y })
+            vertices.push({ x: leftPoints[0].position.x, y: leftPoints[0].position.y })
+            vertices.push({ x: leftPoints[0].position.x, y: leftPoints[0].position.y })
+            vertices.push({ x: anchor.position.x, y: anchor.position.y })
+        }
+
+
+        if (vertices.length === 0) {
+            console.warn("No vertices found for speech bubble", speechBubble)
+        }
+
+        path.vertices.forEach((v, i) => {
+            v.x = vertices[i].x
+            v.y = vertices[i].y
         })
 
-        // Select last layer
-        const layer = this.layers[this.layers.length -1]
-        layer.add(path)
+        return true
+        // const composites = speechBubble.composite.composites
+        // const leftSide = composites.find((c) => c.label === "leftside")
+        // const rightSide = composites.find((c) => c.label === "rightside")
+        // const anchor = composites.find((c) => c.label === "anchor").bodies[0]
+        // const leftPoints = leftSide.bodies.filter(body => body.label.startsWith("borderPoint"))
+        // const rightPoints = rightSide.bodies.filter(body => body.label.startsWith("borderPoint"))
+
+        // const points = [...new Set([...leftPoints, ...rightPoints])]
+
+        // const vertices = []
+
+        // for (let index = 1; index < points.length - 1; index++) {
+        //     const body = points[index]
+        //     vertices.push({ x: body.position.x, y: body.position.y })
+        // }
+        
+        // if (anchor) {
+        //     vertices.push({ x: leftPoints[0].position.x, y: leftPoints[0].position.y })
+        //     vertices.push({ x: anchor.position.x, y: anchor.position.y })
+        //     vertices.push({ x: anchor.position.x, y: anchor.position.y })
+        //     vertices.push({ x: rightPoints[rightPoints.length - 1].position.x, y: rightPoints[rightPoints.length - 1].position.y })
+        // }
+
+        // const anchors = vertices.map(p => new Two.Anchor(p.x, p.y))
+        // const path = new Two.Path(anchors, false, false) // false = niet closed
+        
+        // //
+        // path.noStroke()
+        // path.fill = "#F8FADB"
+        
+        // path.curved = true
+        // path.closed = false        
+
+        // this.objects.push({
+        //     shape: path,
+        //     pos: { x:0, y:0 },
+        //     name: `speechBubble,${speechBubble.composite.id}`,
+        //     updateVertices: () => {
+        //         if (speechBubble.death) {
+        //             return null
+        //         }
+        //         const leftSide = speechBubble.composite.composites.find((c) => c.label === "leftside")
+        //         const rightSide = speechBubble.composite.composites.find((c) => c.label === "rightside")
+        //         const anchor = speechBubble.composite.composites.find((c) => c.label === "anchor").bodies[0]
+        //         const leftPoints = leftSide.bodies.filter(body => body.label.startsWith("borderPoint"))
+        //         const rightPoints = rightSide.bodies.filter(body => body.label.startsWith("borderPoint"))
+        //         const points = [...new Set([...leftPoints, ...rightPoints])]
+
+        //         const vertices = []
+
+        //         for (let index = 1; index < points.length - 1; index++) {
+        //             const body = points[index]
+        //             vertices.push({ x: body.position.x, y: body.position.y })
+        //         }
+        
+        //         if (anchor) {
+        //             vertices.push({ x: rightPoints[rightPoints.length - 1].position.x, y: rightPoints[rightPoints.length - 1].position.y })
+        //             vertices.push({ x: leftPoints[0].position.x, y: leftPoints[0].position.y })
+        //             vertices.push({ x: leftPoints[0].position.x, y: leftPoints[0].position.y })
+        //             vertices.push({ x: anchor.position.x, y: anchor.position.y })
+        //         }
+
+        //         return vertices
+        //     }
+        // })
+
+        // // Select last layer
+        // const layer = this.layers[this.layers.length -1]
+        // layer.add(path)
     }
 
     drawBG = (options?: { color?: string, blockSize?: number, offset?: number }) =>{
@@ -512,11 +604,16 @@ export class Draw {
             }
         }
 
+        
 
-        if (catterpillar.speechBubble) {
-            const exists = this.objects.find(obj => obj.name == `speechBubble,${catterpillar.speechBubble.composite.id}`)
+        if (catterpillar.model.speechBubble) {
+            if (catterpillar.model.speechBubble.isDestroyed) {
+                catterpillar.model.speechBubble = undefined
+                return true
+            }
+            const exists = this.newObjects.find(obj => obj.id == catterpillar.model.speechBubble.composite.id)
             if (exists) return true
-            this.drawSpeechBubble(catterpillar.speechBubble)
+            this.newObjects.push(this.addSpeechBubble(catterpillar.model.speechBubble))
         }
 
         return true
@@ -744,6 +841,26 @@ export class Draw {
             ball.model = undefined
         }
         ball = undefined
+    }
+    
+    removeSpeechBubble(speechBubble: objectModel) {
+        if (!speechBubble) return
+        // Remove from Draw.objects
+        for (const i in speechBubble.layers) { 
+            const layer = speechBubble.layers[i]
+            layer.forEach(layerObj => {
+                if (layerObj.path) {
+                    layerObj.path.remove()
+                }
+            })
+        }
+
+        if (speechBubble.model) {
+            speechBubble.model.destroy()
+            speechBubble.model = undefined
+        }
+
+        speechBubble = undefined
     }
 
     removeCatterpillar(catterpillarObj: objectModel) {

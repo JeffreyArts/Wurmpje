@@ -88,7 +88,7 @@ class BallStory extends Story {
 
         // Check if cooldown is set 
         const isCompleted = prevStory && prevStory.cooldown && (Date.now() - prevStory.created) < prevStory.cooldown
-        console.log("Ball story completed:", isCompleted)
+
         if (isCompleted) {
             return false
         }
@@ -361,7 +361,6 @@ class BallStory extends Story {
         if (!this.isLookingAtBall) {
             return
         }
-        console.log("Resetting eyes")
 
         this.catterpillar.leftEye.blink()
         this.catterpillar.rightEye.blink()
