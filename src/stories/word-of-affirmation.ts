@@ -3,6 +3,7 @@ import gsap from "gsap"
 import { Icon } from "jao-icons"
 import { shuffle } from "lodash"
 import Leaderboard from "@/models/leaderboard"
+import Score from "@/models/score"
 
 const affirmativeWords = [
     "Fantastic",
@@ -116,7 +117,6 @@ const hurtfulWords = [
 
 class WordsOfAffirmationStory extends Story {
     type = "action" as const
-    gameScore = 0
     elements: Array<HTMLElement> = []
     wordScores = [] as Array<{ word: string, score: 1 | 0, svgEl: SVGElement | undefined, x: number, y: number }>
     affirmativeWords = affirmativeWords
@@ -129,23 +129,19 @@ class WordsOfAffirmationStory extends Story {
     noNewWords = false
     newWordTimeout = null as ReturnType<typeof setTimeout> | null
     leaderboard = undefined as Leaderboard | undefined
+    score = undefined as Score | undefined
 
     async start() {   
         console.info("Words of affirmation story started", this.identityStore)
 
         this.createBackground()
         this.createWordsContainer()
-        this.createScoreDisplay()
         this.createtimer()
+        this.score = new Score("wof-score", 666 )
 
         this.startTime = Date.now()
         this.actionStore.isSelected = false
 
-        // for (let i = 0; i < this.maxWords; i++) {
-        //     setTimeout(() => {
-        //         this.addNewWord()
-        //     }, i * 800 + Math.random() * 400)
-        // }
         this.controller.disableDragging = true
 
         await this.actionStore.add(this.identityStore.current.id, "wof", 1) // register a try, value is irrelevant
@@ -199,31 +195,18 @@ class WordsOfAffirmationStory extends Story {
             }
         })
 
-
-        // Animate score display to center
-        gsap.to(".wof-score-display", { 
-            fontWeight: "500",
-            letterSpacing: "0px",
-            top: "33%",
-            right: "calc(50% - 64px)",
-            rotate: 0,
-            textAlign: "center",
-            duration: 1,
-            onComplete: () => {
-                this.createScorefix()
-                this.leaderboard = new Leaderboard("wof-score", this.gameScore, this.endStory.bind(this), { fadeInBackground: false } )
-                const bg = document.querySelector(".wof-background") as HTMLElement
-                bg.style.opacity = "0"
-            }
-        })
-
         // Fade out timer
         gsap.to(".wof-timer", { opacity: 0, duration: 1 })
+
+        await this.score.showFinalScore()
+
+        this.leaderboard = new Leaderboard("wof-score", this.score.value, this.endStory.bind(this), { fadeInBackground: false } )
+        const bg = document.querySelector(".wof-background") as HTMLElement
+        bg.style.opacity = "0"
+
     }
 
-    async endStory() {
-        gsap.to(".wof-leaderboard tr", { opacity: 0, duration: .8, stagger: 0.1 })
-        
+    async endStory() {        
         gsap.to(".wof-scorefix-score", { opacity: 0, duration: .8, delay: 0 })
         gsap.to(".wof-score-display", { opacity: 0, duration: .8, delay: 0.2 })
         gsap.to(".wof-scorefix-title", { opacity: 0, duration: .8, delay: 0.4 , onComplete: () => {
@@ -231,14 +214,15 @@ class WordsOfAffirmationStory extends Story {
             this.identityStore.current.love = Math.min(this.identityStore.current.love + loveValue, 100)
         } })
         
+        this.score.destroy()
+        this.leaderboard.destroy()
         this.storyStore.killStory("wof")
-        const loveValue = Math.floor(this.gameScore/100)
+        const loveValue = Math.floor(this.score.value/100)
         await this.actionStore.add(this.identityStore.current.id, "love", loveValue )
         
     }
-
+    
     pickRandomWord() {
-
         const totalScore = this.wordScores.reduce((acc, curr) => acc + curr.score, 0)
         let newWord = { word: "", score: 0 as 0 | 1, svgEl: undefined as SVGElement | undefined } 
 
@@ -374,7 +358,6 @@ class WordsOfAffirmationStory extends Story {
     }
 
     fadeOutWord(wordEl: SVGElement) {
-
         const onComplete = () => {
             if (wordEl.parentNode) {
                 wordEl.parentNode.removeChild(wordEl)
@@ -436,7 +419,8 @@ class WordsOfAffirmationStory extends Story {
             if (wordData) {
                 const multiplier = gsap.getProperty(clickedWordEl, "scale") as number
                 const wordScore = wordData.score * 20 - 10
-                this.gameScore +=  Math.round(wordScore * multiplier)
+                this.score.value +=  Math.round(wordScore * multiplier)
+                
                 // remove word from screen and add new word at same position
                 gsap.killTweensOf(clickedWordEl)
                 let color = "currentColor"
@@ -447,16 +431,7 @@ class WordsOfAffirmationStory extends Story {
                 gsap.to(clickedWordEl, { opacity: 0, duration: 0.5, color, ease: "power2.out", onComplete: () => {
                     this.addNewWord()
                 } })
-
-                this.updateScoreDisplay()
             }
-        }
-    }
-
-    updateScoreDisplay() {
-        const scoreEl = document.querySelector(".wof-score-display") as HTMLElement
-        if (scoreEl) {
-            scoreEl.innerText = `${this.gameScore}`
         }
     }
 
@@ -483,10 +458,6 @@ class WordsOfAffirmationStory extends Story {
             if (timerString.length < 2) {
                 timerString = "0" + timerString
             }
-            
-            
-            // Update icons
-            // secondsEl.innerHTML = ""
             
             const seconds = timerString[1]
             const newSecondsSVG = Icon(seconds, "small")
@@ -546,52 +517,46 @@ class WordsOfAffirmationStory extends Story {
     }
 
     createScoreDisplay() {
-        const scoreEl = document.createElement("div")
-        scoreEl.classList.add("wof-score-display")
-        scoreEl.innerText = `${this.gameScore}`
-        document.body.appendChild(scoreEl)
-        this.elements.push(scoreEl)
-        gsap.to(scoreEl, { opacity: 1, duration: 1 })
     }
 
-    createScorefix() {
-        const bad = [ "Pathetic", "Weak", "Disappointing", "Bad", "Mediocre", "Awful"]
-        const good = [ "Okay", "Decent", "Nice", "Good"]
-        const great = [ "Amazing", "Incredible", "Brilliant", "Fantastic", "Wonderful", "Outstanding", "Spectacular", "Remarkable", "Exceptional", "Magnificent", "Phenomenal", "Great"]
-        const prefixes = [ "Pretty", "You are", "That was"]
+    // createScorefix() {
+    //     const bad = [ "Pathetic", "Weak", "Disappointing", "Bad", "Mediocre", "Awful"]
+    //     const good = [ "Okay", "Decent", "Nice", "Good"]
+    //     const great = [ "Amazing", "Incredible", "Brilliant", "Fantastic", "Wonderful", "Outstanding", "Spectacular", "Remarkable", "Exceptional", "Magnificent", "Phenomenal", "Great"]
+    //     const prefixes = [ "Pretty", "You are", "That was"]
 
-        const maxScore = this.timer * this.maxWords 
-        let randomAffirmative = ""
+    //     const maxScore = this.timer * this.maxWords 
+    //     let randomAffirmative = ""
         
-        if (this.gameScore < (maxScore * 0.4)) {
-            randomAffirmative = bad[Math.floor(Math.random() * bad.length)]
-        } else if (this.gameScore < (maxScore * 0.8)) {
-            randomAffirmative = good[Math.floor(Math.random() * good.length)]
-        } else {
-            randomAffirmative = great[Math.floor(Math.random() * great.length)] + "!"
-        }
+    //     if (this.gameScore < (maxScore * 0.4)) {
+    //         randomAffirmative = bad[Math.floor(Math.random() * bad.length)]
+    //     } else if (this.gameScore < (maxScore * 0.8)) {
+    //         randomAffirmative = good[Math.floor(Math.random() * good.length)]
+    //     } else {
+    //         randomAffirmative = great[Math.floor(Math.random() * great.length)] + "!"
+    //     }
 
         
-        const scorefixEl = document.createElement("div")
-        scorefixEl.classList.add("wof-scorefix")
-        document.body.appendChild(scorefixEl)
+    //     const scorefixEl = document.createElement("div")
+    //     scorefixEl.classList.add("wof-scorefix")
+    //     document.body.appendChild(scorefixEl)
 
-        // Create title
-        const titleEl = document.createElement("h1")
-        titleEl.classList.add("wof-scorefix-title")
-        const prefix = prefixes[Math.floor(Math.random() * prefixes.length)]
-        titleEl.innerHTML = `${prefix}<br />${randomAffirmative}`
-        scorefixEl.appendChild(titleEl)
+    //     // Create title
+    //     const titleEl = document.createElement("h1")
+    //     titleEl.classList.add("wof-scorefix-title")
+    //     const prefix = prefixes[Math.floor(Math.random() * prefixes.length)]
+    //     titleEl.innerHTML = `${prefix}<br />${randomAffirmative}`
+    //     scorefixEl.appendChild(titleEl)
 
-        // Create score
-        const scoreEl = document.createElement("strong")
-        scoreEl.classList.add("wof-scorefix-score")
-        scoreEl.innerText = "Points"
-        scorefixEl.appendChild(scoreEl)
+    //     // Create score
+    //     const scoreEl = document.createElement("strong")
+    //     scoreEl.classList.add("wof-scorefix-score")
+    //     scoreEl.innerText = "Points"
+    //     scorefixEl.appendChild(scoreEl)
 
-        this.elements.push(scorefixEl)
-        gsap.fromTo(scorefixEl, { opacity: 0 }, { opacity: 1, duration: 1 })
-    }
+    //     this.elements.push(scorefixEl)
+    //     gsap.fromTo(scorefixEl, { opacity: 0 }, { opacity: 1, duration: 1 })
+    // }
 
     // async createLeaderboard() {
 

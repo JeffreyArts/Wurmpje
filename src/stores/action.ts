@@ -24,11 +24,11 @@ const Action = defineStore("action", {
         availableActions: 3,
         isSelected: false,
         storyStore: undefined as ReturnType<typeof useStoryStore> | undefined,
-        activeAction: "Catapult" as actionTypes,
+        activeAction: "Words of affirmation" as actionTypes,
         possibleActions: ["Food", "Words of affirmation", "Catapult"] as actionTypes[],
 
         // Set maximums
-        maxWofGames: 5,
+        maxWofGames: 511,
         maxFood: 5,
         maxCatapultGames: 5
     }),

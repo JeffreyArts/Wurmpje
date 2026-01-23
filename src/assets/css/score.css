@@ -1,0 +1,42 @@
+.score-display {
+    position: fixed;
+    top: 48px;
+    right: -32px;
+    text-align: right;
+    rotate: -90deg;
+    width: 128px;
+    z-index: 200;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 48px;
+    font-weight: 100;
+    transform-origin: center center;
+    letter-spacing: 4px;
+}
+
+.scorefix {
+    position: fixed;
+    top: 19%;
+    color: #fff;
+    width: calc(100% - 64px);
+    max-width: 400px;
+    text-align: center;
+    left: 50%;
+    translate: -50% 0;
+    z-index: 1;
+}
+
+.scorefix-title {
+    font-weight: 800;
+    font-size: 48px;
+    margin: 0;
+    display: block;
+    margin: auto;
+    margin-bottom: 80px;
+}
+
+.scorefix-score {
+    font-size: 32px;
+    margin: 0 0 0;
+    font-weight: 200;
+}
