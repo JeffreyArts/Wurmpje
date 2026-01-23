@@ -60,7 +60,7 @@ class CatapultStory extends Story {
         //     return
         // }
         
-        const thickness = 16
+        const thickness = Math.random() * 8 + 8
         const id = Math.floor(Math.random()*10)
         const identity = {
             id,
@@ -93,7 +93,7 @@ class CatapultStory extends Story {
             x: position.x,
             y: position.y,
             length: identity.length,
-            thickness: identity.thickness,
+            thickness: identity.thickness ,
             primaryColor: "#f90",
             secondaryColor: "#111",
             offset: identity.offset,
@@ -254,9 +254,6 @@ class CatapultStory extends Story {
         // this.controller.draw.removeObjectById(this.ball.composite.id)
 
         this.phase1 = "waiting"
-        
-        this.storyStore.killStory("catapult")
-        this.actionStore.availableActions -= 1
 
         this.actionStore.isSelected = false
 
@@ -285,12 +282,14 @@ class CatapultStory extends Story {
 
         this.ball.destroy()
 
-
         // Update joy
         const joy = Math.min(Math.floor(this.score / 1000), 10)
         await this.actionStore.add(this.identityStore.current.id, "joy", joy)
         gsap.to(this.identityStore.current, { joy: this.identityStore.current.joy + joy, duration: 1 })
 
+        // Remove story from action store
+        this.storyStore.killStory("catapult")
+        this.actionStore.availableActions -= 1
         this.destroy()
     }
 
@@ -344,7 +343,7 @@ class CatapultStory extends Story {
                 // Launch the ball via velocity change
                 Matter.Body.setVelocity(ball, {
                     x: ball.velocity.x + power * xRandomizer,
-                    y: ball.velocity.y + (-(catterpillar.thickness * power)) / 16
+                    y: ball.velocity.y + (-(catterpillar.thickness / 2 * power)) / 16
                 })
             }
 
