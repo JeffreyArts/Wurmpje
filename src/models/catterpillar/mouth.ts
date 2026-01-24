@@ -750,13 +750,12 @@ export class Mouth  {
 
 
 
-    destroy() {
+    destroy = () => {
         this.isDestroyed = true
 
-        for (const key in this) {
-            if (typeof this[key] === "object") {
-                this[key] = undefined
-            }
+        this.#inTransition = false
+        if (this.#animation) {
+            gsap.killTweensOf(this.#animation)
         }
     }
 }

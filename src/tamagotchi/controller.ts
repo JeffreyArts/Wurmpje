@@ -88,18 +88,6 @@ export class MatterController {
         this.storyStore.initialised.then(async () => {
             this.storyStore.setController(this)
             this.storyStore.setIdentity(this.identity)
-            
-            this.storyStore.setActiveStory("wall-slam")
-            this.storyStore.setActiveStory("petting")
-            this.storyStore.setActiveStory("daily-hunger-update")
-            
-            await this.storyStore.updateConditionalStories()
-            
-            // Add conditial story
-            const conditionalStory = this.storyStore.conditionalStories[0]
-            if (conditionalStory) {
-                this.storyStore.setActiveStory(conditionalStory.name)
-            }
         })
         
         requestAnimationFrame(this.#loop.bind(this))

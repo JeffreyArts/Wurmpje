@@ -16,7 +16,7 @@
                     {{ identity.name }}
                 </span>
 
-                <span class="catterpillar-switch" @click="showSelectIdentityModal = true">
+                <span class="catterpillar-switch" @click="showSelectIdentityModalClick()">
                     <jao-icon name="switch" size="large" inactive-color="transparent"/>
                 </span>
             </h1>
@@ -67,7 +67,7 @@
             </div>
         </footer>
 
-        <select-identity-modal :is-open="showSelectIdentityModal" @close="showSelectIdentityModal = false"/>
+        <select-identity-modal :is-open="showSelectIdentityModal" @close="showSelectIdentityModal = false" @submit="start"/>
     </div>
 </template>
 
@@ -189,33 +189,11 @@ export default defineComponent ({
         },
         async mounted() {
             
-            if (this.identity?.death) {
-                const classes = [".catterpillar-name",
-                ".catterpillar-age",
-                ".speech-bubble",
-                ".matterbox-footer",
-                ".actions-container",
-                ".healthbar-row",
-                "canvas",
-                "#two-js"
-                ]
-                
-                gsap.set(classes.map(c => `#catterpillar-container ${c}`), 
-                { opacity: 0}
-                )
-                return
-            }
-            
             // let startPosition = { x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - this.config.offsetBottom - catterpillarOptions.identity.thickness }
             const offsetBottom = 128
             const startPosition = { 
                 x: window.innerWidth / 2,
                 y: window.innerHeight - offsetBottom - this.identity.thickness 
-            }
-            
-            // Change startPosition if the catterpillar is new, so it falls from the sky
-            if (this.identity.age <= 1) {
-                startPosition.y = -200
             }
             
             this.controller = new MatterController( this.$refs["catterpillar"] as HTMLElement, {
@@ -224,19 +202,12 @@ export default defineComponent ({
                 offsetBottom: 128
             })
             
+            // Change startPosition if the catterpillar is new, so it falls from the sky
             if (this.identity.age <= 1) {
-                const ceiling = this.controller.ref.world.bodies.find(b => b.label.split(",").includes("top"))
-                const collisionFilterMask = ceiling.collisionFilter.mask
-                ceiling.collisionFilter.mask = 0
-                setTimeout(() => {
-                    ceiling.collisionFilter.mask = collisionFilterMask
-                }, 1600)
+                startPosition.y = -200
             }
-            
-            this.toggleDevMode()
-            this.toggleDevMode()
-            
-            this.loadAction(this.actionStore.activeAction)
+
+            this.start()
         },
         unmounted() {
             if (this.actionStore.isSelected) {
@@ -249,6 +220,61 @@ export default defineComponent ({
             }
         },
         methods: {
+            async start() {
+                await this.storyStore.initialised
+                if (this.identity?.death) {
+                    const classes = [".catterpillar-name",
+                    ".catterpillar-age",
+                    ".speech-bubble",
+                    ".matterbox-footer",
+                    ".actions-container",
+                    ".healthbar-row",
+                    "canvas",
+                    "#two-js"
+                    ]
+                    
+                    gsap.set(classes.map(c => `#catterpillar-container ${c}`), 
+                    { opacity: 0}
+                    )
+                    return
+                }
+                
+                
+                
+                if (this.identity.age <= 1) {
+                    const ceiling = this.controller.ref.world.bodies.find(b => b.label.split(",").includes("top"))
+                    const collisionFilterMask = ceiling.collisionFilter.mask
+                    ceiling.collisionFilter.mask = 0
+                    setTimeout(() => {
+                        ceiling.collisionFilter.mask = collisionFilterMask
+                    }, 1600)
+                }
+                
+                this.toggleDevMode()
+                this.toggleDevMode()
+                
+                this.loadAction(this.actionStore.activeAction)
+                
+                this.storyStore.setActiveStory("wall-slam")
+                this.storyStore.setActiveStory("petting")
+                this.storyStore.setActiveStory("daily-hunger-update")
+                
+                await this.storyStore.updateConditionalStories()
+                
+                // Add conditial story
+                const conditionalStory = this.storyStore.conditionalStories[0]
+                if (conditionalStory) {
+                    this.storyStore.setActiveStory(conditionalStory.name)
+                }
+            },
+            showSelectIdentityModalClick() {
+                this.showSelectIdentityModal = true
+                // kill all active stories
+                this.storyStore.activeStories.forEach(story => {
+                    story.instance.destroy()
+                })
+                this.storyStore.activeStories = []
+            },
             hasActiveActionStory() {
                 const hasActive = this.storyStore.activeStories.some(story => {
                     return (story.instance.type == "action" && story.name != "eat")
