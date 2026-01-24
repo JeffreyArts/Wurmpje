@@ -274,7 +274,8 @@ export default defineComponent ({
             return gender
         },
         checkPartnerValidity() {
-            if (!this.selectedParent2Index) {
+            
+            if (typeof this.selectedParent2Index !== "number") {
                 return
             }
             const partner = this.optionalParents[this.selectedParent2Index]
