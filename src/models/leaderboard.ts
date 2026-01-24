@@ -7,6 +7,7 @@ class Leaderboard {
     elements: Array<HTMLElement> = []
     actionStore: ReturnType<typeof ActionStore>
     targetAction: actionStates
+    isLoaded: boolean = false
     onClose: () => void
 
     constructor(targetAction: actionStates, gameScore: number, onClose: () => void, options?: { fadeInBackground?: boolean }) {   
@@ -31,11 +32,12 @@ class Leaderboard {
     }
 
     fadeOut() {
-        setTimeout(() => {
-            this.onClose()
-        }, 2000)
+        if (!this.isLoaded) return
+
         gsap.to(".leaderboard tr", { opacity: 0, duration: .8, stagger: 0.1 })            
-        gsap.to(".leaderboard-bg", { opacity: 0, duration: 2, delay: 1, ease: "power3.out", onComplete: () => {
+        gsap.to(".leaderboard-bg", { opacity: 0, duration: 1, delay: 1, ease: "power3.in", onComplete: () => {
+            this.onClose()
+
             const bg = this.elements.find(el => el.classList.contains("leaderboard-bg"))
             if (bg && bg.parentNode) {
                 bg.removeEventListener("click", this.fadeOut.bind(this))
@@ -47,7 +49,10 @@ class Leaderboard {
     fadeIn() {
         gsap.fromTo(".leaderboard tr", { opacity: 0 }, { opacity: 1, duration: .8, stagger: { 
             each: 0.1,
-            from: "end"
+            from: "end",
+            onComplete: () => {
+                this.isLoaded = true
+            }
         }, delay: 1 })
     }
 

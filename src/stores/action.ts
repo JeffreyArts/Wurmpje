@@ -28,7 +28,7 @@ const Action = defineStore("action", {
         possibleActions: ["Food", "Words of affirmation", "Catapult"] as actionTypes[],
 
         // Set maximums
-        maxWofGames: 511,
+        maxWofGames: 5,
         maxFood: 5,
         maxCatapultGames: 5
     }),
