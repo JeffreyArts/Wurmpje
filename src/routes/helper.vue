@@ -207,11 +207,12 @@ export default defineComponent ({
             this.generateQR()
             this.redrawKey ++;
             this.wurmpje.id = identity.generateId()
-
+            
             if (ignoreName) {
                 return
             }
             this.wurmpje.name = this.identity.getLatinName(this.wurmpje.colorSchemeIndex,this.wurmpje.textureIndex)
+            this.generateQR()
         }
     },
 })
