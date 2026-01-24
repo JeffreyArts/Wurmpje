@@ -268,12 +268,17 @@ export default defineComponent ({
                 }
             },
             showSelectIdentityModalClick() {
-                this.showSelectIdentityModal = true
+                this.actionStore.deselectAction()
+
                 // kill all active stories
+            
+                // Add delay as a dirty solution for eatStory issue with food still falling in background
                 this.storyStore.activeStories.forEach(story => {
                     story.instance.destroy()
                 })
                 this.storyStore.activeStories = []
+                
+                this.showSelectIdentityModal = true
             },
             hasActiveActionStory() {
                 const hasActive = this.storyStore.activeStories.some(story => {

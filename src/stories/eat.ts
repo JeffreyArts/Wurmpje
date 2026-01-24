@@ -25,6 +25,11 @@ class EatStory extends Story {
     }
 
     async addFood(position: { x: number, y: number }) {
+
+        if (this.isDestroyed) {
+            return
+        }
+
         // Do nothing if action is not selected
         if (!this.actionStore.isSelected) {
             return
@@ -49,8 +54,12 @@ class EatStory extends Story {
         this.movementCooldown = 120
         await this.actionStore.add(this.identityStore.current.id, "food", 10)
         await this.actionStore.loadAvailableFood(this.identityStore.current.id)
+        
+        // Food can be destroyed in de meantime, so check that first
+        if (this.isDestroyed) { return }
         this.draw.addFood(food)
         this.activeFood.push(food)
+
 
         if (this.actionStore.availableActions <= 0) {
             // This meot nog ff gefixed worden. Is om de matter-box te laten weten dat er geen food meer is
@@ -60,6 +69,7 @@ class EatStory extends Story {
             this.controller.switchClickEvent("none")
             this.controller.ref.removeClickEvent( "addFood")
         }
+        
     }
 
     loop() {
@@ -181,9 +191,9 @@ class EatStory extends Story {
     destroy() {
         super.destroy()
         this.controller.ref.removeClickEvent( "addFood")
+        this.controller.switchClickEvent("none")
         this.activeFood.forEach(food => {
-            Matter.Composite.remove(this.controller.ref.world, food.composite)
-            food = undefined
+            food.destroy()
         })
         this.activeFood = []
     }

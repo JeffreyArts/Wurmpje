@@ -247,7 +247,7 @@ const story = defineStore("story", {
             // If not found, try with wurmpjeId 1 (default)
             if (!activeStory) { wurmpjeId = 1 }
             activeStory = this.activeStories.find(s => s.name === name && s.wurmpjeId === wurmpjeId)
-            console.log("Removing active story:", name, wurmpjeId, activeStory, this.activeStories)
+
             if (activeStory) {
                 activeStory.instance.destroy()
                 this.activeStories = this.activeStories.filter(s => s.name !== name || s.wurmpjeId !== wurmpjeId)

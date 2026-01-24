@@ -285,7 +285,7 @@ export default defineComponent ({
 
 .dead-wurmpje-age {
     position: absolute;
-    bottom: calc(12.5% - 24px);
+    bottom: calc(12.5% - 40px);
     left: 50%;
     translate: -50% 0; 
     text-align: center;
