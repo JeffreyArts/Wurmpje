@@ -218,6 +218,16 @@ export default defineComponent ({
 
         this.loadAction(this.actionStore.activeAction)
     },
+    unmounted() {
+        if (this.actionStore.isSelected) {
+            this.actionStore.deselectAction()
+        }
+        
+        if (this.controller) {
+            this.controller.destroy()
+            this.controller = null
+        }
+    },
     methods: {
         hasActiveActionStory() {
             const hasActive = this.storyStore.activeStories.some(story => {
