@@ -260,7 +260,7 @@ const identity = defineStore("identity", {
         async saveIdentityToDatabase(input: IdentityField | string, options : { 
             cooldownDays?: number,
             selectable?: boolean,
-            origin: string | [number, number] 
+            origin: string 
         } ) {
 
             const { cooldownDays = 30 } = options
