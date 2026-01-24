@@ -139,7 +139,10 @@ export class Draw {
 
         this.objects.forEach(obj => {
             if (obj.type == "food") {
-                this.drawFood(obj)
+                if (!this.drawFood(obj)) {
+                    this.#removeFood(obj)
+                    this.objects = this.objects.filter(o => o.id !== obj.id)
+                }
             } else if (obj.type == "ball") {
                 if (!this.drawBall(obj))  {
                     this.#removeBall(obj)
@@ -662,8 +665,15 @@ export class Draw {
     }
 
     drawFood = (food: FoodObjectModel) => {
+        // console.log("Draw food", food)
+        if (!food.model || food.model.isDestroyed) {
+            this.#removeFood(food)
+            return false
+        }
+        
         food.two.svg.position.set(food.model.x, food.model.y)
         food.two.svg.rotation = food.model.rotation
+        return true
     }
 
     drawMouth = (mouth: MouthObjectModel) => {
@@ -816,6 +826,22 @@ export class Draw {
         if (eyeObj.model) {
             eyeObj.model.destroy()
             eyeObj.model = null
+        }
+    }
+
+    #removeFood(foodObj: FoodObjectModel) {
+        console.log("Removing food", foodObj)
+        if (!foodObj) return 
+        if (foodObj.type != "food") { console.error("Invalid objectModel for #removeFood"); return }
+
+        if (foodObj.two.svg) {
+            foodObj.two.svg.remove()
+            foodObj.two.svg = null
+        }
+
+        if (foodObj.model) {
+            foodObj.model.destroy()
+            foodObj.model = null
         }
     }
     

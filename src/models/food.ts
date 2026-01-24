@@ -53,6 +53,10 @@ export class Food {
         requestAnimationFrame(this.#loop.bind(this))
     }
 
+    destroy() {
+        this.isDestroyed = true
+        Matter.World.remove(this.world, this.composite)
+    }
 }
 
 export default Food

@@ -181,6 +181,11 @@ class EatStory extends Story {
     destroy() {
         super.destroy()
         this.controller.ref.removeClickEvent( "addFood")
+        this.activeFood.forEach(food => {
+            Matter.Composite.remove(this.controller.ref.world, food.composite)
+            food = undefined
+        })
+        this.activeFood = []
     }
 }
 
