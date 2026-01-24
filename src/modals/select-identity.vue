@@ -140,7 +140,7 @@ export default defineComponent ({
         const allAliveIdentities = await this.identityStore.getAllAliveIdentitiesFromDatabase()
         this.allIdentityOptions = allAliveIdentities.filter(identity => identity.origin !== "parent")
         this.currentIndex = 0
-        if (this.identityStore.current) {
+        if (this.identityStore.current && !this.identityStore.current.death) {
             // get index of current identity
             this.currentIndex = this.allIdentityOptions.findIndex(id => id.id === this.identityStore.current?.id)
         }

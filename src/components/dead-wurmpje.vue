@@ -1,10 +1,15 @@
 <template>
     <div class="dead-wurmpje-container">
 
-        <router-link to="/scan" class="dead-wurmpje-header" v-if="identity">
+        <router-link to="/scan" class="dead-wurmpje-header __isQR" v-if="identity">
             <jao-icon name="camera" size="large" active-color="currentColor" inactive-color="transparent" />
-            <span>Go look for another wurmpje to take care for</span>
+            <span>Find another wurmpje </span>
         </router-link>
+        
+        <div class="dead-wurmpje-header __isSelectOther" @click="showSelectIdentityModal = true" v-if="identity">
+            <jao-icon name="switch" size="large" active-color="currentColor" inactive-color="transparent" />
+            <span>Select another wurmpje</span>
+        </div>
         
 
         <div class="dead-wurmpje-center">
@@ -43,6 +48,7 @@
         </footer>
 
 
+        <select-identity-modal :is-open="showSelectIdentityModal" @close="showSelectIdentityModal = false" />
     </div>
 </template>
 
@@ -57,6 +63,7 @@ import { type currentIdentity} from "@/stores/identity"
 import WurmpjeThumbnail from "@/components/wurmpje-thumbnail.vue";
 import { type DBIdentity } from "@/stores/identity";
 import type { MatterController } from "@/tamagotchi/controller";
+import selectIdentityModal from "@/modals/select-identity.vue";
 
 export default defineComponent ({ 
     props: {
@@ -72,10 +79,12 @@ export default defineComponent ({
     },
     components: {
         jaoIcon,
-        WurmpjeThumbnail
+        WurmpjeThumbnail,
+        selectIdentityModal
     },
     data() {
         return {
+            showSelectIdentityModal: false
         }
     },
     setup() {
@@ -318,11 +327,22 @@ export default defineComponent ({
     font-size: 12px;
     font-family: var(--accent-font);
     position: absolute;
-    left: 16px;
     top: 8px;
     width: 112px;
     text-align: center;
     text-decoration: none;
+
+    &.__isSelectOther {
+        right: 16px;
+        svg {
+            rotate: 90deg;
+            scale: -1 1;
+        }
+    }
+
+    &.__isQR {
+        left: 16px;
+    }
 
     svg {
         width: 63px;

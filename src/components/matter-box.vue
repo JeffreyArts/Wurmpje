@@ -138,6 +138,7 @@ export default defineComponent ({
                     this.controller.createCatterpillar({ x: this.controller.ref.renderer.options.width / 2, y: this.controller.ref.renderer.options.height - 200 }, { identity: this.identity })  
                     this.loadAction(this.actionStore.activeAction)
                 }
+                this.start()
             },
             "identity.death"(newVal, oldVal) {
                 if (newVal) {
