@@ -14,9 +14,9 @@ export type DBIdentity =  {
     gender: number;             // 0-1
     created: number;            // timestamp
     cooldown: number;           // timestamp
-    death: number | undefined    // timestamp of death
+    death: number | undefined   // timestamp of death
     selectable: boolean
-    origin: string | [number, number]  // qr code or wurmpjes id
+    origin: string              // encodedIdentity | "url" | "mom:ID,dad:ID"
     thickness: number           // 8-64
     length: number              // 5-18
     hunger?: number             // 0-100
@@ -35,7 +35,7 @@ export type currentIdentity = {
     colorSchemeIndex: number;   // 0-1023
     offset: number
     texture: textureInterface
-    origin: string | [number, number]
+    origin: string
     age: number,
     created: number,
     death: number | undefined
@@ -213,6 +213,19 @@ const identity = defineStore("identity", {
             
             return await this.saveIdentityToDatabase(newIdentity, { origin, selectable: true, cooldownDays: 7 })
         },
+
+        async getAllAliveIdentitiesFromDatabase(): Promise<DBIdentity[]> {
+            if (!this.db) {
+                throw new Error("Database not initialized") 
+            }
+
+            const tx = this.db.transaction("identities", "readonly")
+            const store = tx.objectStore("identities")
+
+            const allIdentities = await store.getAll() as DBIdentity[]
+            return allIdentities.filter(identity => !identity.death)
+        },
+            
         async updateIdentityInDatabase(id: number, updates: Partial<DBIdentity>) {
             if (!this.db) {
                 throw new Error("Database not initialized") 

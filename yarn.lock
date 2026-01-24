@@ -1167,10 +1167,10 @@ isexe@^2.0.0:
   resolved "https://registry.yarnpkg.com/isexe/-/isexe-2.0.0.tgz#e8fbf374dc556ff8947a10dcb0572d633f2cfa10"
   integrity sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==
 
-jao-icons@^1.5.7:
-  version "1.5.7"
-  resolved "https://registry.yarnpkg.com/jao-icons/-/jao-icons-1.5.7.tgz#78e6fe8118653b21916dc7a0b552adf372aea913"
-  integrity sha512-p94SEqbxywINlk9MdximyMkjy14YZ1myhtownBP0/YOTmGI9rvafKHPAWx1q3GNeMLkHRKiVDwSGekyY9iSZOA==
+jao-icons@^1.5.8:
+  version "1.5.8"
+  resolved "https://registry.yarnpkg.com/jao-icons/-/jao-icons-1.5.8.tgz#edb8c1f1ba129c4ba13c6d14673cd96b5bf0f1f4"
+  integrity sha512-7sXya6siX2LPVOJHGBAOILJATagrvR13nhzh7CYXJ7mu4UcKJNvEU+qy9uK5EmxJWXuKKuxJMApO31Y7pfTDaw==
   dependencies:
     typescript-eslint "^8.1.0"
 

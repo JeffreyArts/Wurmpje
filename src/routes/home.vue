@@ -3,10 +3,8 @@
         <favicon class="thumbnail-helper" v-if="identity.current" :identity="identity.current"/>
         <matter-box class="matter-box" v-if="identity.current" :identity="identity.current" />
         <deadWurmpje v-if="identity.current?.death" :identity="identity.current" :animate="true" />
-
         <invalid-parent-id-modal :is-open="invalidParentId" @close-immediate="invalidParentId = false"  @close="removeQueryFromUrl"/>
         <breeding-modal :is-open="showBreedingModal" @close="removeQueryFromUrl" :parent="breedingIdentity" v-if="breedingIdentity"/>
-
     </div>
 </template>
 
