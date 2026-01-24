@@ -31,7 +31,6 @@ class EatStory extends Story {
         }
         
         if (this.actionStore.availableActions <= 0) {
-            this.storyStore.killStory("eat")
             return
         }
         
@@ -67,8 +66,24 @@ class EatStory extends Story {
         this.catterpillar = this.controller.catterpillar
         const head = this.catterpillar.bodyParts[0].body
         const foods = this.activeFood
-        
         const food = foods[this.foodIndex]
+
+
+        
+        // Loop through foods and consume if close to head
+        foods.forEach(food => {
+            const distance = Math.hypot(head.position.x - food.x, head.position.y - food.y)
+            if (distance < this.catterpillar.thickness) {
+                // Eat the food
+                this.consumeFood(food)
+            }
+        })
+
+        // When the story is inActive, stop chasing for food, also when its not hungry
+        if (this.actionStore.activeAction != "Food" || this.identityStore.current.hunger >= 100) {
+            return
+        }
+        
         
         if (food) {
             this.catterpillar.leftEye.lookAt(food)
@@ -103,17 +118,6 @@ class EatStory extends Story {
             }
             this.movementCooldown = 80 + Math.floor(Math.random() * 40)
         }
-        
-        
-        // Loop through foods and consume if close to head
-        foods.forEach(food => {
-            const distance = Math.hypot(head.position.x - food.x, head.position.y - food.y)
-            if (distance < this.catterpillar.thickness) {
-                // Eat the food
-
-                this.consumeFood(food)
-            }
-        })
         
         this.movementCooldown -= 1
     }
@@ -150,6 +154,11 @@ class EatStory extends Story {
                 duration: 1,
                 ease: "power1.out",
             })
+
+
+            if (this.actionStore.availableActions <= 0) {
+                this.storyStore.killStory("eat")
+            }
         }
 
         // Remove food from active foods

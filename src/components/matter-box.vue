@@ -218,7 +218,7 @@ export default defineComponent ({
     methods: {
         hasActiveActionStory() {
             const hasActive = this.storyStore.activeStories.some(story => {
-                return (story.instance.type == "action")
+                return (story.instance.type == "action" && story.name != "eat")
             });
             return hasActive
         },
