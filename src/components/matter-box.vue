@@ -113,6 +113,9 @@ export default defineComponent ({
     },
     watch: {
         "identity.defaultState"(newVal, oldVal) {
+            if (!newVal) {
+                return
+            }
             this.controller.catterpillar.defaultState = newVal
             this.controller.catterpillar.emote(newVal)
         },

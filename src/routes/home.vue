@@ -15,6 +15,7 @@
 import { defineComponent } from "vue"
 import useIdentityStore from "@/stores/identity"
 import Identity, {type IdentityField } from "@/models/identity";
+import useStoryStore from "@/stores/story";
 import matterBox from "@/components/matter-box.vue";
 import Favicon from "@/components/favicon.vue";
 import invalidParentIdModal from "@/modals/invalid-parent-id.vue";
@@ -34,9 +35,11 @@ export default defineComponent ({
     setup() {
         try {
             const identityStore = useIdentityStore()
-            
+            const storyStore = useStoryStore()
+
             return {
-                identity: identityStore
+                identity: identityStore,
+                storyStore
             }
         } catch (e) {
             console.error("Failed to initialise identity store:", e)
@@ -80,6 +83,13 @@ export default defineComponent ({
             return
         }
     },
+    unmounted() {
+        // Kill all active stories
+        this.storyStore.activeStories.forEach(story => {
+            story.instance.destroy()
+        })
+        this.storyStore.activeStories = []
+    },
     methods: {
         async checkForParentInUrl() {
             const queryString = this.$route.query.parent as string | undefined
@@ -105,6 +115,8 @@ export default defineComponent ({
                 this.invalidParentId = true
                 return
             }
+
+            this.identity.current = undefined
                         
             const existingIdentity = await this.identity.findIdentityInDatabase("id", parentIdentity.id);
             let storedInDB = undefined;

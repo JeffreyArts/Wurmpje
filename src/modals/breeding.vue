@@ -288,7 +288,6 @@ export default defineComponent ({
                 this.hasError = true
                 return
             }
-            
             // Check for age
             if (this.isCoolingDown(partner)) {
                 this.errorMessage = "This wurmpje needs some time before it can make love again."

@@ -8,6 +8,7 @@ class IntroStory extends Story {
     touchingGroundCounter = 0
     storyIndex: number = 0
     isTalking = false
+    onPointerDown: () => void
     cooldown = 360 * 24 * 365 * 100 * 1000 // 100 years
     storyLines = [
         `Hi! My name is: ${this.identityStore.current?.name}!`,
@@ -41,25 +42,22 @@ class IntroStory extends Story {
                 this.moveToNextStoryLine()
             }
         })
-        
-        document.addEventListener("pointerdown", () => {
-            if (this.touchingGroundCounter < 80) {
-                return
-            }
 
-            // if (this.controller?.catterpillar.isTalking) {
-            //     return
-            // }
+        this.onPointerDown = this.skipStory.bind(this)
+        document.addEventListener("pointerdown", this.onPointerDown)
+    }
 
 
-            if (this.storyIndex == 5 || this.storyIndex == 6) {
-                return
-            }
+    skipStory() {
+        if (this.touchingGroundCounter < 80) {
+            return
+        }
+
+        if (this.storyIndex == 5 || this.storyIndex == 6) {
+            return
+        }
             
-            this.moveToNextStoryLine()
-        })
-
-        
+        this.moveToNextStoryLine()
     }
 
     async checkCondition() {
@@ -74,12 +72,10 @@ class IntroStory extends Story {
     }
 
     loop() {
-        // console.log(this.touchingGroundCounter)
         if (this.controller.catterpillar.isOnSolidGround) {
             this.touchingGroundCounter++
         }
         
-        // console.log("Touching ground counter:", this.touchingGroundCounter)
         if (this.touchingGroundCounter > 80 && !this.hasIntroducedItself) {
             this.hasIntroducedItself = true
             this.moveToNextStoryLine()
@@ -114,6 +110,13 @@ class IntroStory extends Story {
         this.storyLineTimeout = setTimeout(() => {
             this.moveToNextStoryLine() 
         }, 12000)
+    }
+
+    destroy(): void {
+        super.destroy()
+        clearTimeout(this.storyLineTimeout)
+        this.controller.catterpillar.speechBubble?.destroy()
+        document.removeEventListener("pointerdown", this.onPointerDown)
     }
 }
 
