@@ -295,7 +295,8 @@ const Action = defineStore("action", {
         deselectAction() {
             if (this.isSelected && this.activeAction === "Food") {
                 if (this.storyStore.getActiveStory("eat") ) {
-                    this.storyStore.killStory("eat")
+                    // this.storyStore.killStory("eat")
+                    // This story should still run in the background to monitor food consumption
                 }
             } else if (this.isSelected && this.activeAction === "Words of affirmation") {
                 if (this.storyStore.getActiveStory("wof") ) {

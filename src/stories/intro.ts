@@ -10,13 +10,14 @@ class IntroStory extends Story {
     isTalking = false
     onPointerDown: () => void
     cooldown = 360 * 24 * 365 * 100 * 1000 // 100 years
+    watchers: Array<() => void> = []
     storyLines = [
         `Hi! My name is: ${this.identityStore.current?.name}!`,
         "I am a wurmpje, a little caterpillar-like creature.",
         "Tap anywhere to continue my story.",
-        "I can move around, eat leaves, and grow bigger over time.",
+        "I can move around, eat leafs, and grow bigger over time.",
         "Click on the leaf icon at the bottom of the screen to make it orange.",
-        "Now tap on the screen to drop some leaves.",
+        "Now tap on the screen to drop some leafs.",
         "Yummy!!!",
         "If you'll take good care of me, I will grow as tall as you one day!",
     ]
@@ -24,16 +25,26 @@ class IntroStory extends Story {
     start() {
         console.info("Intro story started", this.identityStore)
 
+        this.actionStore.activeAction = "Food"
+        this.actionStore.loadAvailableFood(this.identityStore.current.id)
+
+        // If available food is 0, the user already knows about how it works
+        if (this.actionStore.availableActions === 0) {
+            this.storyStore.killStory("eat")
+            this.destroy()
+            return
+        }
+
         // Watch for selecting the food action
-        watch(() => this.actionStore.isSelected, (isSelected) => {
+        this.watchers.push(watch(() => this.actionStore.isSelected, (isSelected) => {
             if (isSelected && this.actionStore.activeAction == "Food") {
                 this.storyIndex = 5
                 this.moveToNextStoryLine()
             }
-        })
+        }))
 
         // Watch for the first food to be dropped
-        watch(() => this.actionStore.availableActions, (newFood, oldFood) => {
+        this.watchers.push(watch(() => this.actionStore.availableActions, (newFood, oldFood) => {
             if (this.storyIndex != 6) {
                 return
             }
@@ -41,7 +52,16 @@ class IntroStory extends Story {
             if (newFood < oldFood) {
                 this.moveToNextStoryLine()
             }
-        })
+        }))
+
+        // Prevent user from switching action before story is complete
+        this.watchers.push(watch(() => this.actionStore.activeAction, (newAction, oldAction) => {
+            console.log("Active action changed:", newAction, oldAction)
+            if (this.storyIndex >= 7) {
+                return
+            }
+            this.actionStore.activeAction = "Food"
+        }))
 
         this.onPointerDown = this.skipStory.bind(this)
         document.addEventListener("pointerdown", this.onPointerDown)
@@ -117,6 +137,9 @@ class IntroStory extends Story {
         clearTimeout(this.storyLineTimeout)
         this.controller.catterpillar.speechBubble?.destroy()
         document.removeEventListener("pointerdown", this.onPointerDown)
+
+        // Remove all watchers
+        this.watchers.forEach(unwatch => unwatch())
     }
 }
 
