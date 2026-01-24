@@ -191,8 +191,14 @@ export default defineComponent({
     font-family: var(--default-font);
 
     p {
-        margin: 40px 0;
+        margin: 40px 0 16px;
         line-height: 1.3;
+        + p {
+            margin-top: 0;
+        }
+        &:nth-last-child(1) {
+            margin-bottom: 16px;
+        }
     }
 }
 

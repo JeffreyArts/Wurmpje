@@ -284,7 +284,7 @@ export default defineComponent ({
 
             // Check for minimum length
             if (partner.length < 6) {
-                this.errorMessage = "This wurmpje is not long enough to make love."
+                this.errorMessage = "This wurmpje is not long enough."
                 this.hasError = true
                 return
             }

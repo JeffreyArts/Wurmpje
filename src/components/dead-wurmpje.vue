@@ -48,7 +48,8 @@
         </footer>
 
 
-        <select-identity-modal :is-open="showSelectIdentityModal" @close="showSelectIdentityModal = false" />
+        <select-identity-modal :is-open="showSelectIdentityModal" @close="showSelectIdentityModal = false" @open-breeding-modal="openBreedingModal" />
+        <breeding-modal :is-open="showBreedingModal" @close="showBreedingModal = false" :parent="breedingParent" />
     </div>
 </template>
 
@@ -64,6 +65,7 @@ import WurmpjeThumbnail from "@/components/wurmpje-thumbnail.vue";
 import { type DBIdentity } from "@/stores/identity";
 import type { MatterController } from "@/tamagotchi/controller";
 import selectIdentityModal from "@/modals/select-identity.vue";
+import breedingModal from "@/modals/breeding.vue";
 
 export default defineComponent ({ 
     props: {
@@ -80,11 +82,14 @@ export default defineComponent ({
     components: {
         jaoIcon,
         WurmpjeThumbnail,
-        selectIdentityModal
+        selectIdentityModal,
+        breedingModal
     },
     data() {
         return {
-            showSelectIdentityModal: false
+            showSelectIdentityModal: false,
+            showBreedingModal: false,
+            breedingParent: undefined as DBIdentity  | undefined 
         }
     },
     setup() {
@@ -159,6 +164,14 @@ export default defineComponent ({
         , 1000)
     },
     methods: {
+        openBreedingModal(identity: DBIdentity) {
+            if (!identity) {
+                return
+            }
+            this.showSelectIdentityModal = false
+            this.showBreedingModal = true
+            this.breedingParent = identity
+        },
        parseThumbnail(controller: MatterController) {
             controller.catterpillar.autoBlink = false
             controller.catterpillar.emote("hmm")

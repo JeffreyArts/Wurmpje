@@ -1,10 +1,10 @@
 <template>
-    <Modal class="select-identity-modal" :is-open="isOpen" :auto-close="false" @close-immediate="closeModalImmediate" @close="closeModal" @submit="submit()">
+    <Modal class="select-identity-modal" :is-open="isOpen" :hide-submit="!hasOptions" @close-immediate="closeModalImmediate" @close="closeModal" @submit="submit()">
         <template #title>
             <h2>Pick Wurmpje</h2>
         </template>
         <section class="select-identity-container">
-            <div class="selected-identity-container">
+            <div class="selected-identity-container" v-if="hasOptions">
                 <jao-icon name="chevron-left" class="prev-action" size="small" active-color="#333" inactive-color="transparent" @click="selectPreviousIdentity"/>
                 <div class="wurmpje-window">
                     <div class="wurmpje-window-animation-helper">
@@ -71,6 +71,15 @@
                     </tbody>
                 </table>
             </div>
+
+            <div v-if="!hasOptions">
+                <p>You don't have any (alive) wurmpjes to pick from.</p>
+                <p v-if="mommies.length > 0 && daddies.length === 0">Note that you can not pick random mommies, go find them a man first.</p>
+                <p v-if="daddies.length > 0 && mommies.length === 0">Note that you can not pick random daddies, go find them a woman first.</p>
+                <p v-if="!potentialMatch">Go scan, and look for a daddy.</p>
+                <p v-if="potentialMatch">But maybe you can make one 😏.</p>
+                <p v-if="potentialMatch"><button class="button" @click="openTheBreedingModal">Let's make one</button></p>
+            </div>
         </section>
         <template #submit-text>
             Pick
@@ -114,7 +123,21 @@ export default defineComponent ({
         }
     },
     computed: {
-       
+       hasOptions() {
+            if (!this.allIdentityOptions) {
+                return false
+            }
+           return this.allIdentityOptions.length > 0
+       },
+       mommies() {
+           return this.allAliveIdentities.filter(wurmpje => wurmpje.gender === 1 && !wurmpje.death)
+       },
+       daddies() {
+           return this.allAliveIdentities.filter(wurmpje => wurmpje.gender === 0 && !wurmpje.death)
+       },
+       potentialMatch() {
+            return this.checkForPartner(0)
+       }
     },
     watch: {
        
@@ -122,8 +145,10 @@ export default defineComponent ({
     data() {
         return {
             allIdentityOptions: [] as DBIdentity[],
+            allAliveIdentities: [] as DBIdentity[],
             selectedIdentity: undefined as currentIdentity | undefined,
             newIdentity: undefined as currentIdentity | undefined,
+            openBreedingModal: false,
             currentIndex: 0,
             parents: {
                 mother: null as IdentityField | null,
@@ -137,8 +162,8 @@ export default defineComponent ({
         }
 
 
-        const allAliveIdentities = await this.identityStore.getAllAliveIdentitiesFromDatabase()
-        this.allIdentityOptions = allAliveIdentities.filter(identity => identity.origin !== "parent")
+        this.allAliveIdentities = await this.identityStore.getAllAliveIdentitiesFromDatabase()
+        this.allIdentityOptions = this.allAliveIdentities.filter(identity => identity.origin !== "parent")
         this.currentIndex = 0
         if (this.identityStore.current && !this.identityStore.current.death) {
             // get index of current identity
@@ -146,21 +171,61 @@ export default defineComponent ({
         }
         
         this.updateSelectedIdentity()
-        console.log("allIdentityOptions", this.allIdentityOptions)
     },
     methods: {
         updateSelectedIdentity() {
             const selectedIdentity = this.allIdentityOptions[this.currentIndex]
             this.selectedIdentity = this.parseIdentity(selectedIdentity)
-            console.log("selectedIdentity", this.selectedIdentity.origin)
             this.updateFamilytree()
+        },
+        openTheBreedingModal() {
+            this.$emit("open-breeding-modal", this.checkForPartner(0))
+            this.closeModalImmediate()
+        },
+        
+        isCoolingDown(identity: DBIdentity) {
+            if (!identity?.cooldown) {
+                return false
+            }
+            const now = Date.now()
+            return identity.cooldown > now
+        },
+
+        checkForPartner(index) {
+            const partner = this.allAliveIdentities[index]
+            if (!partner) {
+                return null
+            }
+
+            let matchingPartner = this.allAliveIdentities.find((identity) => {
+                
+                if (partner.gender === identity.gender) {
+                    return
+                }
+                
+                if (identity.length < 6) {
+                    return
+                }
+                
+                // Check for age
+                if (this.isCoolingDown(identity)) {
+                    return
+                }
+
+                return identity
+            })
+            
+            if (!matchingPartner) {
+                return this.checkForPartner(index + 1)
+            }
+            
+            return matchingPartner
         },
         updateFamilytree() {
             if (this.selectedIdentity.origin) {
                 this.parents.mother = null
                 this.parents.father = null
                 this.selectedIdentity.origin.split(",").forEach(async (str) => {
-                    console.log("Parsing origin string:", str)
                     if (str.startsWith("mom:")) {
                         const motherId = str.replace("mom:", "")
                         const motherIdentity = await this.identityStore.findIdentityInDatabase("id", parseInt(motherId))

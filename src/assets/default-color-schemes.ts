@@ -105,7 +105,7 @@ export default [
     { "colors": ["#dfefca","#add0ee"], name:"bloempia" },
     { "colors": ["#032f98","#add0ee"], name:"knuffelberus" },
     { "colors": ["#add0ee","#032f98"], name:"hartendivus" },
-    { "colors": ["#d1c4e9","#032f98"], name:"liefje" },
+    { "colors": ["#d1c4e9","#032f98"], name:"livius" },
     { "colors": ["#032f98","#f45c27"], name:"zonestralus" },
     { "colors": ["#dfefca","#f45c27"], name:"schattebautius" },
     { "colors": ["#add0ee","#f45c27"], name:"schatieus" },
