@@ -100,6 +100,17 @@ const Action = defineStore("action", {
                 wurmpje.love += value
             }
 
+            // Set max values for stats
+            if (wurmpje.hunger > 100) {
+                wurmpje.hunger = 100
+            }
+            if (wurmpje.joy > 100) {
+                wurmpje.joy = 100
+            }
+            if (wurmpje.love > 100) {
+                wurmpje.love = 100
+            }
+
             // Update new wurmpje state
             const identityTx = this.db.transaction("identities", "readwrite")
             const identityStore = identityTx.objectStore("identities")
