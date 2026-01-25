@@ -60,7 +60,7 @@ class Identity {
         const offset = readBits(4)
         const gender = readBits(1)
         const length = readBits(4) + 3
-        const thickness = readBits(5) + 8
+        const thickness = readBits(5) 
 
         return {
             id: this.generateId(),
@@ -70,7 +70,7 @@ class Identity {
             offset,
             gender,
             length,
-            thickness,
+            thickness
         }
     }
 
@@ -125,9 +125,9 @@ class Identity {
             }
         }
 
-        if (encodedString.length !== 50) {
-            throw new Error("Invalid Base45 length")
-        }
+        // if (encodedString.length !== 50) {
+        //     throw new Error("Invalid Base45 length")
+        // }
 
         return encodedString
     }
@@ -176,8 +176,8 @@ class Identity {
         this.push(bits, identity.colorSchemeIndex, 10)
         this.push(bits, identity.offset, 4)
         this.push(bits, identity.gender, 1)
-        this.push(bits, identity.length, 5)
-        this.push(bits, identity.thickness, 6)
+        this.push(bits, identity.length - 3, 5)      // 3–24
+        this.push(bits, identity.thickness - 8, 5)   // 8–40
 
         const bytes = new Uint8Array(Math.ceil(bits.length / 8))
         let byte = 0
@@ -234,10 +234,10 @@ class Identity {
         const gender = r.value; cursor = r.cursor
 
         r = this.unPush(bits, cursor, 5)
-        const length = r.value; cursor = r.cursor
+        const length = r.value + 3; cursor = r.cursor
 
-        r = this.unPush(bits, cursor, 6)
-        const thickness = r.value
+        r = this.unPush(bits, cursor, 5)
+        const thickness = r.value + 8
 
         return { id, name, textureIndex, colorSchemeIndex, offset, gender, length, thickness }
     }
@@ -247,46 +247,42 @@ class Identity {
     private base45Encode(bytes: Uint8Array): string {
         const chars = Identity.BASE45_CHARS
         let result = ""
-
-        for (let i = 0; i < bytes.length; i += 2) {
+        let i = 0
+        while (i < bytes.length) {
             if (i + 1 < bytes.length) {
                 const x = (bytes[i] << 8) | bytes[i + 1]
                 result += chars[x % 45]
                 result += chars[Math.floor(x / 45) % 45]
-                result += chars[Math.floor(x / (45 * 45))]
+                result += chars[Math.floor(x / (45*45))]
+                i += 2
             } else {
                 const x = bytes[i]
                 result += chars[x % 45]
                 result += chars[Math.floor(x / 45)]
+                i += 1
             }
         }
-
         return result
     }
 
     private base45Decode(str: string): Uint8Array {
         const chars = Identity.BASE45_CHARS
         const bytes: number[] = []
-
         let i = 0
         while (i < str.length) {
-            const remaining = str.length - i
-
-            if (remaining >= 3) {
+            if (i + 2 < str.length) {
                 const c = chars.indexOf(str[i++])
                 const d = chars.indexOf(str[i++])
                 const e = chars.indexOf(str[i++])
-                const x = c + d * 45 + e * 45 * 45
+                const x = c + d*45 + e*45*45
                 bytes.push((x >> 8) & 0xff, x & 0xff)
-            } else if (remaining === 2) {
+            } else if (i + 1 < str.length) {
                 const c = chars.indexOf(str[i++])
                 const d = chars.indexOf(str[i++])
-                bytes.push((c + d * 45) & 0xff)
-            } else {
-                throw new Error("Invalid Base45 data")
+                const x = c + d*45
+                bytes.push(x & 0xff)
             }
         }
-
         return new Uint8Array(bytes)
     }
 }

@@ -172,7 +172,10 @@ export default defineComponent ({
             this.showBreedingModal = true
             this.breedingParent = identity
         },
-       parseThumbnail(controller: MatterController) {
+        openSelectIdentityModal() {
+            this.$emit("open-select-identity-modal")
+        },
+        parseThumbnail(controller: MatterController) {
             controller.catterpillar.autoBlink = false
             controller.catterpillar.emote("hmm")
             controller.ref.removepointerDownEvent("grabCatterpillar")

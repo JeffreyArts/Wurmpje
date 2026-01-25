@@ -76,7 +76,7 @@
                 <p>You don't have any (alive) wurmpjes to pick from.</p>
                 <p v-if="mommies.length > 0 && daddies.length === 0">Note that you can not pick random mommies, go find them a man first.</p>
                 <p v-if="daddies.length > 0 && mommies.length === 0">Note that you can not pick random daddies, go find them a woman first.</p>
-                <p v-if="!potentialMatch">Go scan, and look for a daddy.</p>
+                <p v-if="!potentialMatch">Try to some QR codes and see if you can find a wurmpje in one of them.</p>
                 <p v-if="potentialMatch">But maybe you can make one 😏.</p>
                 <p v-if="potentialMatch"><button class="button" @click="openTheBreedingModal">Let's make one</button></p>
             </div>
@@ -222,6 +222,10 @@ export default defineComponent ({
             return matchingPartner
         },
         updateFamilytree() {
+            if (!this.selectedIdentity) {
+                return
+            }
+            
             if (this.selectedIdentity.origin) {
                 this.parents.mother = null
                 this.parents.father = null
@@ -326,6 +330,10 @@ export default defineComponent ({
             
         },
         parseIdentity(identity: DBIdentity): currentIdentity {
+            if (!identity) {
+                return undefined
+            }
+
             return {
                 id: identity.id,
                 name: identity.name,

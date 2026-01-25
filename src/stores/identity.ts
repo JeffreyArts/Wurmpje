@@ -318,6 +318,29 @@ const identity = defineStore("identity", {
 
             return Promise.all(promises)
         },
+        convertDBIdentityToCurrentIdentity(identity: DBIdentity): currentIdentity {
+            return {
+                id: identity.id,
+                name: identity.name,
+                gender: identity.gender,
+                primaryColor: ColorScheme[identity.colorSchemeIndex].colors[0],
+                secondaryColor: ColorScheme[identity.colorSchemeIndex].colors[1],
+                offset: identity.offset,
+                texture: Textures[identity.textureIndex],
+                origin: identity.origin,
+                created: identity.created,
+                age: this.calculateAgeInDays(identity.created, identity.death),
+                death: identity.death,
+                cooldown: identity.cooldown,
+                textureIndex: identity.textureIndex,
+                colorSchemeIndex: identity.colorSchemeIndex,
+                length: identity.length,
+                thickness: identity.thickness,
+                hunger: identity.hunger,
+                joy: identity.joy,
+                love: identity.love,
+            }   
+        },
         async selectIdentity(id: number) {
             let identity: DBIdentity | undefined
             try {
