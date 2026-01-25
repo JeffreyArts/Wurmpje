@@ -154,8 +154,7 @@ class EatStory extends Story {
                 opacity: 0,
                 duration: 1,
                 onComplete: () => {
-                    this.draw.objects = this.draw.objects.filter(o => o.id.toString() !== food.composite.id.toString())
-                    Matter.Composite.remove(this.controller.ref.world, food.composite)
+                    food.destroy()
                 } 
             })
     
