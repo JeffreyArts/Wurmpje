@@ -5,7 +5,7 @@ import type { DBIdentity } from "@/stores/identity"
 import useStoryStore from "@/stores/story"
 import useDatabaseStore from "@/stores/database"
 
-export type actionStates = "food" | "joy" | "love" | "hungerLoss" | "wof" | "wof-score" | "petting" | "ball" | "catapult-score" | "catapult"
+export type actionStates = "food" | "joy" | "love" | "hungerLoss" | "wof" | "wof-score" | "missed-you-presence" | "petting" | "ball" | "catapult-score" | "catapult"
 export type actionTypes = "Food" | "Words of affirmation" | "Catapult"
 export type DBAction =  {
     id: number;                 

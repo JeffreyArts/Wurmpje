@@ -268,6 +268,7 @@ export default defineComponent ({
                 this.storyStore.setActiveStory("wall-slam")
                 this.storyStore.setActiveStory("petting")
                 this.storyStore.setActiveStory("daily-hunger-update")
+                this.storyStore.setActiveStory("missed-you")
                 
                 await this.storyStore.updateConditionalStories()
                 

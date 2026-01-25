@@ -12,6 +12,7 @@ import wallSlamStory from "@/stories/wall-slam"
 import ballStory from "@/stories/ball"
 import plankjeTestStory from "@/stories/plankje-test"
 import dailyHungerUpdateStory from "@/stories/daily-hunger-update"
+import missedYouStory from "@/stories/missed-you"
 
 import { type IdentityField } from "@/models/identity"
 import useDatabaseStore from "@/stores/database"
@@ -73,6 +74,7 @@ const story = defineStore("story", {
                 this.addStory("petting", pettingStory) 
                 this.addStory("plankje-test", plankjeTestStory) 
                 this.addStory("daily-hunger-update", dailyHungerUpdateStory) 
+                this.addStory("missed-you", missedYouStory) 
 
                 // Info
                 console.info("Story database initialized")
