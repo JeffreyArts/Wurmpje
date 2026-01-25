@@ -53,6 +53,7 @@ class EatStory extends Story {
 
         this.movementCooldown = 120
         await this.actionStore.add(this.identityStore.current.id, "food", 10)
+        if (this.isDestroyed) { return }
         await this.actionStore.loadAvailableFood(this.identityStore.current.id)
         
         // Food can be destroyed in de meantime, so check that first

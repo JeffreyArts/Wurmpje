@@ -154,7 +154,7 @@ class WordsOfAffirmationStory extends Story {
         if (!this.isReady) {
             return
         }
-        console.log("Words of Affirmation story loop", this.startTime)
+
         if (this.noNewWords) {
             return
         }
@@ -206,23 +206,22 @@ class WordsOfAffirmationStory extends Story {
 
         await this.score.showFinalScore()
 
-        this.leaderboard = new Leaderboard("wof-score", this.score.value, this.endStory.bind(this), { fadeInBackground: false } )
+        this.leaderboard = new Leaderboard("wof-score", this.score.value, this.endStory, { fadeInBackground: false } )
         const bg = document.querySelector(".wof-background") as HTMLElement
         bg.style.opacity = "0"
 
     }
 
-    async endStory() {        
+    endStory = async () => {        
         gsap.to(".wof-scorefix-score", { opacity: 0, duration: .8, delay: 0 })
         gsap.to(".wof-score-display", { opacity: 0, duration: .8, delay: 0.2 })
         gsap.to(".wof-scorefix-title", { opacity: 0, duration: .8, delay: 0.4 , onComplete: () => {
-            this.destroy()
             this.identityStore.current.love = Math.min(this.identityStore.current.love + loveValue, 100)
+            this.storyStore.killStory("wof")
         } })
         
-        this.score.destroy()
-        this.leaderboard.destroy()
-        this.storyStore.killStory("wof")
+        
+        // this.storyStore.killStory("wof")
         const loveValue = Math.floor(this.score.value/100)
         await this.actionStore.add(this.identityStore.current.id, "love", loveValue )
         
@@ -352,7 +351,7 @@ class WordsOfAffirmationStory extends Story {
         return { x, y }
     }
 
-    removeWord(wordEl: SVGElement) {
+    removeWord = (wordEl: SVGElement) => {
         const wordIndex = this.wordScores.findIndex(wordScore => wordScore.svgEl === wordEl)
         gsap.killTweensOf(wordEl)
         if (wordIndex !== -1) {
@@ -363,43 +362,29 @@ class WordsOfAffirmationStory extends Story {
         }
     }
 
-    fadeOutWord(wordEl: SVGElement) {
+    fadeOutWord = (wordEl: SVGElement) => {
         const onComplete = () => {
-            if (wordEl.parentNode) {
-                wordEl.parentNode.removeChild(wordEl)
-            }
             this.removeWord(wordEl)
             this.addNewWord()
-        } 
+        }
 
         if (!wordEl.classList.contains("__isAffirmative")) {
             const rects = shuffle(wordEl.querySelectorAll("rect[v='1']"))
             const singleDuration = 2        
-    
+
             const tweens: Promise<void>[] = []
             for (let i = 0; i < rects.length; i++) {
                 const delay = i * singleDuration * 0.005
                 tweens.push(new Promise<void>((resolve) => {
-                    gsap.to(rects[i], { fill: "transparent", duration: singleDuration, delay, onComplete: () => {
-                        resolve()
-                    } })
+                    gsap.to(rects[i], { fill: "transparent", duration: singleDuration, delay, onComplete: resolve })
                 }))
             }
-            Promise.all(tweens).then(() => {
-                onComplete()
-            })
-
-            // gsap.to(rects, { fill: "transparent", duration: 1, onComplete, stagger: {
-            //     // wrap advanced options in an object
-            //     each: 0.05,
-            //     from: "center",
-            //     grid: "auto",
-            //     ease: "power2.inOut",
-            // }})
+            Promise.all(tweens).then(onComplete)
+        } else {
+            gsap.to(wordEl, { opacity: 0, scale: 0.5, delay: 0.5, duration: this.fadeOutDuration, ease: "linear", onComplete })
         }
-
-        gsap.to(wordEl, { opacity: 0, delay: .5, duration: this.fadeOutDuration, ease: "linear", scale: 0.5, onComplete })
     }
+
     
     createText(string: string) {
         const textEl = Icon(string, "medium")
@@ -407,39 +392,63 @@ class WordsOfAffirmationStory extends Story {
         container.appendChild(textEl)
         textEl.classList.add("wof-word")
         textEl.setAttribute("data-word", string)
-        textEl.addEventListener("click", this.clickHandler.bind(this))
+        textEl.addEventListener("click", this.clickHandler)
 
         return textEl
     }
 
-    clickHandler(e: PointerEvent) {  
-
-        if (this.noNewWords) {
-            return
-        }
+    clickHandler = (e: PointerEvent) => {  
+        if (this.noNewWords) return
+    
 
         if (e.currentTarget) {
             const clickedWordEl = e.currentTarget as SVGElement
             const clickedWord = clickedWordEl.getAttribute("data-word")
             const wordData = this.wordScores.find(wordScore => wordScore.word === clickedWord)
-            if (wordData) {
-                const multiplier = gsap.getProperty(clickedWordEl, "scale") as number
-                const wordScore = wordData.score * 20 - 10
-                this.score.value +=  Math.round(wordScore * multiplier)
-                
-                // remove word from screen and add new word at same position
-                gsap.killTweensOf(clickedWordEl)
-                let color = "currentColor"
-                if (wordScore > 0) {
-                    color = "#ff9900"
-                }
+            if (!wordData) return
+
+            const multiplier = gsap.getProperty(clickedWordEl, "scale") as number
+            const wordScore = wordData.score * 20 - 10
+            this.score.value += Math.round(wordScore * multiplier)
+
+            gsap.killTweensOf(clickedWordEl)
+
+            const onComplete = () => {
                 this.removeWord(clickedWordEl)
-                gsap.to(clickedWordEl, { opacity: 0, duration: 0.5, color, ease: "power2.out", onComplete: () => {
-                    this.addNewWord()
-                } })
+                this.addNewWord()
+            }
+
+            // Fade out, dan pas verwijderen
+            if (wordScore > 0) {
+
+                gsap.to(clickedWordEl, { 
+                    opacity: 0, 
+                    duration: 0.5, 
+                    color: "#ff9900", 
+                    ease: "power2.out", 
+                    scale: 0.5,
+                    onComplete
+                })
+            } else {
+
+                const rects = shuffle(clickedWordEl.querySelectorAll("rect[v='1']"))
+                const singleDuration = 1.5      
+
+                const tweens: Promise<void>[] = []
+                for (let i = 0; i < rects.length; i++) {
+                    const delay = i * singleDuration * 0.005
+                    gsap.killTweensOf(rects[i])
+                    tweens.push(new Promise<void>((resolve) => {
+                        gsap.to(rects[i], { fill: "transparent", stroke: "#ff9900", strokeWidth: 2, duration: singleDuration, delay, onComplete: resolve })
+                    }))
+                }
+                Promise.all(tweens).then(() => {
+                    gsap.to(clickedWordEl, { opacity: 0, duration: 1.5, onComplete })
+                })
             }
         }
     }
+
 
     createWordsContainer() {
         const container = document.createElement("div")

@@ -274,8 +274,10 @@ export default defineComponent ({
                 await this.storyStore.setActiveStory("daily-hunger-update")
                 await this.storyStore.setActiveStory("missed-you")
 
-                console.info("================================")
-                console.info("")
+                setTimeout(() => {
+                    console.info("================================")
+                    console.info("")
+                })
                 
                 
                 // Add conditial story
