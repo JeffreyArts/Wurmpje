@@ -10,25 +10,31 @@ class WallSlamStory extends Story {
     defaultState = "happy" as Emote
     defaultStateTimeout = undefined as ReturnType<typeof setTimeout> | undefined
     isHurt = false
+    isDestroyed = false
     
     start() {
-        console.info("Wall Slam story started", this.identityStore)
+        console.info("🦩 Wall Slam story started")
         
         this.identity = this.identityStore.current
-        
-        Matter.Events.on(this.controller.ref.engine, "collisionStart",this.#collisionEventListener.bind(this))
         this.defaultState = this.controller.catterpillar.defaultState
         
+        setTimeout(() => {
+            Matter.Events.on(this.controller.ref.engine, "collisionStart",this.#collisionEventListener)
+        })
     }
 
-
     loop() {
+        if (this.isDestroyed) {
+            return
+        }
         this.catterpillar = this.controller.catterpillar
     }
     
+    #collisionEventListener() {
+        this.#checkForCollion.bind(this)
+    }
     
-    #collisionEventListener(event: Matter.IEventCollision<Matter.Engine>) {
-        
+    #checkForCollion(event: Matter.IEventCollision<Matter.Engine>) { 
         event.pairs.forEach((pair) => {
             // Check of dit pair je head bevat
             const head = this.catterpillar.head.body
@@ -69,8 +75,14 @@ class WallSlamStory extends Story {
     }
 
     destroy = () => {
+        console.info("📕 Wall Slam story finished")
+
+        this.isDestroyed = true
+        this.identity = undefined
+        Matter.Events.off(this.controller.ref.engine, "collisionStart",this.#collisionEventListener)
+
+        // Process the default story destroy
         super.destroy()
-        Matter.Events.off(this.controller.ref.engine, "collisionStart", this.#collisionEventListener)
     }
 }
 

@@ -119,7 +119,13 @@ export default defineComponent ({
             }
             
             this.controller.ref.removepointerMoveEvent("lookAtMouse")
-            setTimeout(() => this.controller.catterpillar.contractSpine(0.75, .4), 10)
+            setTimeout(async () => {
+                try {
+                    await this.controller.catterpillar.contractSpine(0.75, .4)
+                } catch (e) {
+                    // console.error("Error contracting spine:", e)
+                }
+            }, 10)
 
             const canvas = target.querySelector("#two-js") as HTMLCanvasElement;
             this.$emit("ready", this.controller)

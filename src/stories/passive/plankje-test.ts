@@ -11,14 +11,16 @@ class PlankjeTestStory extends Story {
     catterpillar = undefined as Catterpillar | undefined
     plank = undefined as PlankModel | undefined
     disableDragging = false
+    
     isGrabbed = false
-    plankIsMovable = true
+    isMovable = true
+
     xOffset = 0
     yOffset = 0
     dbStory = undefined as DBStory | undefined
     
     async start() {
-        console.info("Plankje test story started", this.identityStore)
+        console.info("🦩 Plankje test story started")
 
         this.controller.ref.addpointerDownEvent(this.#grabPlank.bind(this), "grabPlank")
         this.controller.ref.addpointerUpEvent(this.#releasePlank.bind(this), "releasePlank")
@@ -33,7 +35,7 @@ class PlankjeTestStory extends Story {
     }
 
     #grabPlank(pos) {
-        if (!this.plankIsMovable) {
+        if (!this.isMovable) {
             return
         }
 
@@ -124,29 +126,24 @@ class PlankjeTestStory extends Story {
             }
         }
     }
-
-    removePlank(plank: PlankModel) {
-        if (!plank) {
-            return
-        }
-        
-        // Remove from draw controller
-        this.controller.draw.removeObjectById(plank.body.id)
-        
-        // Remove from Matter world
-        Matter.World.remove(this.controller.ref.world, plank.body)
-
-        // Remove ball
-        this.plank = undefined
-    }
-
     
     destroy() {
-        super.destroy()
+        console.info("📕 Plankje test story finished")
+
+        this.catterpillar = undefined
+
+        if (this.plank) {
+            this.plank.destroy()
+            this.plank = undefined
+        }
 
         this.controller.ref.removepointerDownEvent("grabPlank")
         this.controller.ref.removepointerUpEvent("releasePlank")
         this.controller.ref.removepointerMoveEvent("dragPlank")
+
+
+        // Process the default story destroy
+        super.destroy()
     }
 }
 

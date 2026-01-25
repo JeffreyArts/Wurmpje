@@ -9,6 +9,7 @@ export class Plank {
     width: number
     height: number
     color: string = "orange"
+
     isMovable: boolean = false
     isDestroyed: boolean = false
 
@@ -56,6 +57,10 @@ export class Plank {
         requestAnimationFrame(this.#loop.bind(this))
     }
 
+    destroy() {
+        Matter.World.remove(this.world, this.body)
+        this.isDestroyed = true
+    }
 }
 
 export default Plank

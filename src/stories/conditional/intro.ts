@@ -23,7 +23,7 @@ class IntroStory extends Story {
     ]
     storyLineTimeout = undefined as undefined | ReturnType<typeof setTimeout>
     start() {
-        console.info("Intro story started", this.identityStore)
+        console.info("📖 Intro story started")
 
         this.actionStore.activeAction = "Food"
         this.actionStore.loadAvailableFood(this.identityStore.current.id)
@@ -133,13 +133,18 @@ class IntroStory extends Story {
     }
 
     destroy(): void {
-        super.destroy()
+        console.info("📕 Intro story finished")
+
+        
         clearTimeout(this.storyLineTimeout)
         this.controller.catterpillar.speechBubble?.destroy()
         document.removeEventListener("pointerdown", this.onPointerDown)
-
+        
         // Remove all watchers
         this.watchers.forEach(unwatch => unwatch())
+
+        // Process the default story destroy
+        super.destroy()
     }
 }
 

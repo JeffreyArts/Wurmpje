@@ -17,6 +17,28 @@ class PettingStory extends Story {
     xPos = 0
     prevXPos = 0
 
+    async start() {
+        console.info("🦩 Petting story started")
+        
+        this.identity = this.identityStore.current
+        
+        this.controller.ref.addpointerDownEvent(this.createPetBrush.bind(this), "petting-story-create-brush")
+        this.controller.ref.addpointerMoveEvent(this.updatePetBrushPosition.bind(this), "petting-story-move-brush")
+        this.controller.ref.addpointerUpEvent(this.removePetBrush.bind(this), "petting-story-remove-brush")
+        
+        const maxLoveArray = await this.actionStore.loadLastActionsFromDB(this.identity.id, "petting", this.maxLove)
+        Matter.Events.on(this.controller.ref.engine, "collisionActive",this.#collisionEventListener.bind(this))   
+        
+        // remove all values that are older than 24 hours
+        const newMaxLoveArray = maxLoveArray.filter(action => {
+            const twentyFourHours = 24 * 60 * 60 * 1000
+            return (Date.now() - action.created) < twentyFourHours
+        })
+
+        this.maxLove = this.maxLove - newMaxLoveArray.length
+    }
+
+
     #collisionEventListener(event: Matter.IEventCollision<Matter.Engine>) {
         event.pairs.forEach(pair => {
             let bodyPart: Matter.Body | undefined
@@ -60,30 +82,6 @@ class PettingStory extends Story {
             Matter.Vector.mult(normalized, strength)
         )
     }
-
-
-    async start() {
-        console.info("Petting story started", this.identityStore)
-        
-        this.identity = this.identityStore.current
-        
-        this.controller.ref.addpointerDownEvent(this.createPetBrush.bind(this), "petting-story-create-brush")
-        this.controller.ref.addpointerMoveEvent(this.updatePetBrushPosition.bind(this), "petting-story-move-brush")
-        this.controller.ref.addpointerUpEvent(this.removePetBrush.bind(this), "petting-story-remove-brush")
-        Matter.Events.on(this.controller.ref.engine, "collisionActive",this.#collisionEventListener.bind(this))   
-        
-
-        const maxLoveArray = await this.actionStore.loadLastActionsFromDB(this.identity.id, "petting", this.maxLove)
-
-        // remove all values that are older than 24 hours
-        const newMaxLoveArray = maxLoveArray.filter(action => {
-            const twentyFourHours = 24 * 60 * 60 * 1000
-            return (Date.now() - action.created) < twentyFourHours
-        })
-
-        this.maxLove = this.maxLove - newMaxLoveArray.length
-    }
-
 
     loop() {
         this.catterpillar = this.controller.catterpillar
@@ -151,12 +149,24 @@ class PettingStory extends Story {
     }
 
     destroy = () => {
-        super.destroy()
+        console.info("📕 Petting story finished")
+
+        
         Matter.Events.off(this.controller.ref.engine, "collisionActive", this.#collisionEventListener)
+        if (this.brush) {
+            Matter.World.remove(this.controller.ref.world, this.brush)
+        }
+
+        this.brush = undefined
+        this.identity = undefined
+        this.catterpillar = undefined
 
         this.controller.ref.removepointerDownEvent("petting-story-create-brush")
         this.controller.ref.removepointerMoveEvent("petting-story-move-brush")
         this.controller.ref.removepointerUpEvent("petting-story-remove-brush")
+
+        // Process the default story destroy
+        super.destroy()
     }
 }
 

@@ -13,22 +13,22 @@ class BallStory extends Story {
     maxBalls = 1
     ball = undefined as BallModel | undefined
     balls: BallModel[] = []
-    disableDragging = false
     mousePin = undefined as Matter.Constraint | undefined
+    disableDragging = false
     isGrabbed = false
     isLookingAtBall = false
     dbStory = undefined as DBStory | undefined
     storyIndex = 0
     ballIsFlying = false
     ballIsOutOfBounds = false
+
     ballIsFlyingTimeout = undefined as NodeJS.Timeout | undefined
     resetMoveTowardsPointTimeout = undefined as NodeJS.Timeout | undefined
     releaseBallTimeout = undefined as NodeJS.Timeout | undefined
-    
     resettingEyesTimeout = undefined as NodeJS.Timeout | undefined
 
     async start() {
-        console.info("Ball story started", this.identityStore)
+        console.info("Ball story started")
 
         this.controller.ref.addpointerDownEvent(this.#grabBall.bind(this), "grabBall")
         this.controller.ref.addpointerUpEvent(this.#releaseBall.bind(this), "releaseBall")
@@ -477,11 +477,37 @@ class BallStory extends Story {
     }
     
     destroy() {
-        super.destroy()
+        console.info("📕 Ball story finished")
 
+
+        this.balls.forEach(ball => {
+            ball.destroy()
+            ball = undefined
+        })
+        
+        this.balls = []
+        if (this.ball) {
+            this.ball.destroy()
+        }
+        this.ball = undefined
+
+        if (this.mousePin) {
+            Matter.Composite.remove(this.ball?.composite, this.mousePin)
+            this.mousePin = undefined
+        }
+
+        if (this.ballIsFlyingTimeout) { clearTimeout(this.ballIsFlyingTimeout) }
+        if (this.resetMoveTowardsPointTimeout) { clearTimeout(this.resetMoveTowardsPointTimeout) }
+        if (this.releaseBallTimeout) { clearTimeout(this.releaseBallTimeout) }
+        if (this.resettingEyesTimeout) { clearTimeout(this.resettingEyesTimeout) }
+        
+        
         this.controller.ref.removepointerDownEvent("grabBall")
         this.controller.ref.removepointerUpEvent("releaseBall")
         this.controller.ref.removepointerMoveEvent("dragBall")
+
+        // Process the default story destroy
+        super.destroy()
     }
 }
 

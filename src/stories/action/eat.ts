@@ -188,13 +188,15 @@ class EatStory extends Story {
     }
 
     destroy() {
-        super.destroy()
         this.controller.ref.removeClickEvent( "addFood")
         this.controller.switchClickEvent("none")
         this.activeFood.forEach(food => {
             food.destroy()
         })
         this.activeFood = []
+
+        // Process the default story destroy
+        super.destroy()
     }
 }
 

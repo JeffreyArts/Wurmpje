@@ -633,7 +633,9 @@ class WordsOfAffirmationStory extends Story {
 
 
     destroy(): void {
-        super.destroy()
+        console.info("📕 Words of Affirmation story finished")
+
+        
         this.elements.forEach(el => {
             if (el.parentNode) {
                 el.parentNode.removeChild(el)
@@ -650,6 +652,9 @@ class WordsOfAffirmationStory extends Story {
         this.elements = []
 
         this.controller.disableDragging = false
+
+        // Process the default story destroy
+        super.destroy()
     }
 }
 

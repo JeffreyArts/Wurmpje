@@ -437,8 +437,8 @@ export class Catterpillar {
         return new Promise((resolve, reject) => {
             
             if (this.contraction) {
-                console.warn("Catterpillar is already in a contracting state")
-                return reject()
+                // console.warn()
+                return reject(new Error("Catterpillar is already in a contracting state"))
             }
 
             // Calculate new length

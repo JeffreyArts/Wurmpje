@@ -28,10 +28,8 @@ class Story {
             return
         }
 
-        setTimeout(() => {
-            this.start()
-            this.#loop()
-        })
+        this.start()
+        this.#loop()
     }
 
     #loop() {
@@ -58,6 +56,10 @@ class Story {
 
     destroy() {
         this.isDestroyed = true
+        this.controller = undefined
+        this.identityStore = undefined
+        this.actionStore = undefined
+        this.storyStore = undefined
     }
 }
 

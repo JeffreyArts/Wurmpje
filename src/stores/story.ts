@@ -3,16 +3,18 @@ import { MatterController } from "@/tamagotchi/controller"
 import { type IDBPDatabase } from "idb"
 
 import type Story from "@/stories/_base"
-import introStory from "@/stories/intro"
-import eatStory from "@/stories/eat"
-import catapultStory from "@/stories/catapult"
-import wofStory from "@/stories/word-of-affirmation"
-import pettingStory from "@/stories/petting"
-import wallSlamStory from "@/stories/wall-slam"
-import ballStory from "@/stories/ball"
-import plankjeTestStory from "@/stories/plankje-test"
-import dailyHungerUpdateStory from "@/stories/daily-hunger-update"
-import missedYouStory from "@/stories/missed-you"
+import introStory from "@/stories/conditional/intro"
+import ballStory from "@/stories/conditional/ball"
+
+import eatStory from "@/stories/action/eat"
+import catapultStory from "@/stories/action/catapult"
+import wofStory from "@/stories/action/word-of-affirmation"
+
+import pettingStory from "@/stories/passive/petting"
+import wallSlamStory from "@/stories/passive/wall-slam"
+import plankjeTestStory from "@/stories/passive/plankje-test"
+import dailyHungerUpdateStory from "@/stories/passive/daily-hunger-update"
+import missedYouStory from "@/stories/passive/missed-you"
 
 import { type IdentityField } from "@/models/identity"
 import useDatabaseStore from "@/stores/database"
@@ -89,6 +91,8 @@ const story = defineStore("story", {
         async updateConditionalStories() {
             this.conditionalStories = []
             const promises = [] as Array<() => Promise<void>>
+            console.info("")
+            console.info("=== Checking conditions for conditional stories ===")
             this.all.forEach(async story => {
                 promises.push(async () => {
                     if (!this.controller) {
@@ -104,8 +108,11 @@ const story = defineStore("story", {
                     tempInstance.destroy()
                 })
             })
-
+            
             await Promise.all(promises.map(p => p()))
+
+            console.info("===================================================")
+            console.info("")
 
             // Sort this.conditionalStories by priority high to low
             this.conditionalStories.sort((a, b) => {
@@ -115,7 +122,15 @@ const story = defineStore("story", {
                 return bPriority - aPriority
             })
 
-            console.warn("Updated conditional stories:", this.conditionalStories)
+            console.info("=== Available conditional stories ===")
+            if (this.conditionalStories.length === 0) {
+                console.info("- None")
+            }
+            this.conditionalStories.forEach(story => {
+                console.info(`- ${story.name} (priority: ${story.priority})`)
+            })
+            console.info("=====================================")
+            console.info("")
         },
 
         async getLatestDatabaseEntry(name: string) {

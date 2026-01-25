@@ -264,13 +264,19 @@ export default defineComponent ({
                 this.toggleDevMode()
                 
                 this.loadAction(this.actionStore.activeAction)
-                
-                this.storyStore.setActiveStory("wall-slam")
-                this.storyStore.setActiveStory("petting")
-                this.storyStore.setActiveStory("daily-hunger-update")
-                this.storyStore.setActiveStory("missed-you")
-                
+
                 await this.storyStore.updateConditionalStories()
+                
+                console.info("=== 🦩 Starting passive stories ===")
+                
+                await this.storyStore.setActiveStory("wall-slam")
+                await this.storyStore.setActiveStory("petting")
+                await this.storyStore.setActiveStory("daily-hunger-update")
+                await this.storyStore.setActiveStory("missed-you")
+
+                console.info("================================")
+                console.info("")
+                
                 
                 // Add conditial story
                 const conditionalStory = this.storyStore.conditionalStories[0]

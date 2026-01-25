@@ -1,31 +1,23 @@
 import gsap from "gsap"
 import Story from "@/stories/_base"
-import Catterpillar, { type Emote } from "@/models/catterpillar"
-import type { currentIdentity } from "@/stores/identity"
 
 
 class DailyHungerUpdateStory extends Story {
     type = "passive" as const
-    identity = undefined as currentIdentity | undefined
-    catterpillar = undefined as Catterpillar | undefined
-    defaultState = "happy" as Emote
-    defaultStateTimeout = undefined as ReturnType<typeof setTimeout> | undefined
-    isHurt = false
     
-    start() {
-        console.info("Daily Hunger Update story started", this.identityStore)
-        
-        this.identity = this.identityStore.current
+    async start() {
+        console.info("🦩 Daily Hunger Update story started")
 
-        this.updateHunger()
+        await this.updateHunger()
+
+        this.storyStore.killStory("daily-hunger-update")
     }
 
     async updateHunger() {
         let amountOfHoursWithoutFood = 0
-
-        const lastActions = await this.actionStore.loadLastActionsFromDB(this.identity.id, "hungerLoss", 1)
+        const lastActions = await this.actionStore.loadLastActionsFromDB( this.identityStore.current.id, "hungerLoss", 1)
         const lastAction = lastActions[0]
-        const wurmpje = await this.actionStore.loadWurmpjeById(this.identity.id)
+        const wurmpje = await this.actionStore.loadWurmpjeById( this.identityStore.current.id)
 
         if (!wurmpje) {
             console.error(new Error("Wurmpje not found"))
@@ -61,15 +53,18 @@ class DailyHungerUpdateStory extends Story {
         }
 
         if (this.actionStore.db) {
-            this.actionStore.add(this.identity.id,"food", -hungerSubtraction)
-            this.actionStore.add(this.identity.id,"hungerLoss", hungerSubtraction)
-            this.identityStore.updateIdentityInDatabase(this.identity.id, { hunger: wurmpje.hunger })
+            await this.actionStore.add( this.identityStore.current.id,"food", -hungerSubtraction)
+            await this.actionStore.add( this.identityStore.current.id,"hungerLoss", hungerSubtraction)
+            await this.identityStore.updateIdentityInDatabase(this.identityStore.current.id, { hunger: wurmpje.hunger })
         }
         
     }
     
 
     destroy = () => {
+        console.info("📕 Daily Hunger Update story finished")
+
+        // Process the default story destroy
         super.destroy()
     }
 }

@@ -1,31 +1,23 @@
 import gsap from "gsap"
 import Story from "@/stories/_base"
-import type { currentIdentity } from "@/stores/identity"
 
 class MissedYouStory extends Story {
     type = "passive" as const
-    identity = undefined as currentIdentity | undefined
     howBad = 0
 
     async start() {
-        console.info("📖 Missed You story started", this.identityStore)
-        
-        this.identity = this.identityStore.current
+        console.info("🦩 Missed You story started")
 
         await this.checkAbsence()
         this.processHowBad()
-        
-        setTimeout(() => {
-            this.storyStore.killStory("missed-you")
-        }, 10000)
     }
 
     async checkAbsence() {
         let amountOfHoursWithoutPresence = 0
 
-        const lastActions = await this.actionStore.loadLastActionsFromDB(this.identity.id, "missed-you-presence", 1)
+        const lastActions = await this.actionStore.loadLastActionsFromDB(this.identityStore.current.id, "missed-you-presence", 1)
         const lastAction = lastActions[0]
-        const wurmpje = await this.actionStore.loadWurmpjeById(this.identity.id)
+        const wurmpje = await this.actionStore.loadWurmpjeById(this.identityStore.current.id)
 
         if (!wurmpje) {
             console.error(new Error("Wurmpje not found"))
@@ -43,7 +35,6 @@ class MissedYouStory extends Story {
                 amountOfHoursWithoutPresence = (now - created) / (1000 * 60 * 60)
             }
         }
-        console.log("Amount of hours without presence:", amountOfHoursWithoutPresence   )
 
         let loveSubtraction = 0
         this.howBad = 0
@@ -69,24 +60,26 @@ class MissedYouStory extends Story {
         
         if (this.actionStore.db) {
             // Add missed-you-presence action
-            await this.actionStore.add(this.identity.id, "missed-you-presence", Date.now())
+            await this.actionStore.add(this.identityStore.current.id, "missed-you-presence", Date.now())
             // No need to add love action if no love was lost
             if (loveSubtraction == 0) {
                 return
             }
-            await this.actionStore.add(this.identity.id,"love", -loveSubtraction)
-            await this.identityStore.updateIdentityInDatabase(this.identity.id, { love: wurmpje.love })
+            await this.actionStore.add(this.identityStore.current.id,"love", -loveSubtraction)
+            await this.identityStore.updateIdentityInDatabase(this.identityStore.current.id, { love: wurmpje.love })
         }
         
     }
     
     processHowBad() {
         const catterpillar = this.controller.catterpillar
-        console.log("Missed You how bad:", this.howBad, catterpillar)
+
         if (!catterpillar) {
             return
         }
+
         if (this.howBad == 0) {
+            this.storyStore.killStory("missed-you")
             return
         }
         const texts: string[] = []
@@ -118,16 +111,24 @@ class MissedYouStory extends Story {
 
         catterpillar.emote("sad")
         catterpillar.say(texts[Math.floor(Math.random() * texts.length)])
+
+        setTimeout(() => {
+            this.storyStore.killStory("missed-you")
+        }, 10000)
     }
     
     destroy = () => {
-        super.destroy()
+        console.info("📕 Missed You story finished")
+
         this.controller.catterpillar.emote(this.controller.catterpillar.defaultState)
         if (this.controller.catterpillar.speechBubble) {
             this.controller.catterpillar.speechBubble.destroy()
         }
+
         this.controller = undefined
-        console.info("📕 Missed You story finished", this.identityStore)
+
+        // Process the default story destroy
+        super.destroy()
     }
 }
 
