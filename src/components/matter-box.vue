@@ -207,7 +207,7 @@ export default defineComponent ({
             if (this.identity.age <= 1) {
                 startPosition.y = -200
             }
-
+            this.loadActiveActionFromLocalStorage()
             this.start()
         },
         unmounted() {
@@ -221,6 +221,15 @@ export default defineComponent ({
             }
         },
         methods: {
+            loadActiveActionFromLocalStorage() {
+                const storedAction = localStorage.getItem("activeAction")
+                if (storedAction) {
+                    const actionTypesArray: actionTypes[] = ["Food", "Words of affirmation", "Catapult"]
+                    if (actionTypesArray.includes(storedAction as actionTypes)) {
+                        this.actionStore.activeAction = storedAction as actionTypes
+                    }
+                }
+            },
             async start() {
                 await this.storyStore.initialised
                 if (this.identity?.death) {
@@ -298,6 +307,7 @@ export default defineComponent ({
                 const index = this.actionStore.possibleActions.indexOf(this.actionStore.activeAction)
                 const nextIndex = (index + 1) % this.actionStore.possibleActions.length
                 this.actionStore.activeAction = this.actionStore.possibleActions[nextIndex]
+                localStorage.setItem("activeAction", this.actionStore.activeAction)
                 this.loadAction(this.actionStore.activeAction)
             },
             prevAction() {
@@ -311,6 +321,7 @@ export default defineComponent ({
                 const index = this.actionStore.possibleActions.indexOf(this.actionStore.activeAction)
                 const prevIndex = index - 1 < 0 ? this.actionStore.possibleActions.length -1 : index - 1
                 this.actionStore.activeAction = this.actionStore.possibleActions[prevIndex]
+                localStorage.setItem("activeAction", this.actionStore.activeAction)
                 this.loadAction(this.actionStore.activeAction)
             },
             toggleDevMode() {
