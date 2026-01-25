@@ -57,7 +57,7 @@ class EatStory extends Story {
         
         // Food can be destroyed in de meantime, so check that first
         if (this.isDestroyed) { return }
-        this.draw.addFood(food)
+        this.controller.draw.addFood(food)
         this.activeFood.push(food)
 
 
@@ -188,6 +188,9 @@ class EatStory extends Story {
     }
 
     destroy() {
+        console.info("📕 Eat story finished")
+        
+
         this.controller.ref.removeClickEvent( "addFood")
         this.controller.switchClickEvent("none")
         this.activeFood.forEach(food => {
@@ -195,6 +198,7 @@ class EatStory extends Story {
         })
         this.activeFood = []
 
+        
         // Process the default story destroy
         super.destroy()
     }

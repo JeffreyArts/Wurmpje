@@ -130,9 +130,10 @@ class WordsOfAffirmationStory extends Story {
     newWordTimeout = null as ReturnType<typeof setTimeout> | null
     leaderboard = undefined as Leaderboard | undefined
     score = new Score("wof-score", 666 )
+    isReady = false
 
     async start() {   
-        console.info("Words of affirmation story started", this.identityStore)
+        console.info("🐛 Words of affirmation story started", this)
 
         this.createBackground()
         this.createWordsContainer()
@@ -146,9 +147,14 @@ class WordsOfAffirmationStory extends Story {
 
         await this.actionStore.add(this.identityStore.current.id, "wof", 1) // register a try, value is irrelevant
         await this.actionStore.loadAvailableWOFtries(this.identityStore.current.id)
+        this.isReady = true
     }
 
-    loop() {
+    loop = () => {
+        if (!this.isReady) {
+            return
+        }
+        console.log("Words of Affirmation story loop", this.startTime)
         if (this.noNewWords) {
             return
         }
@@ -516,123 +522,15 @@ class WordsOfAffirmationStory extends Story {
         this.elements.push(timerEl)
     }
 
-    createScoreDisplay() {
+    createScoreDisplay = () => {
         this.score.createDisplay()
         setTimeout(() => {
             gsap.set(".score-display", { color: "#fff" })
         })
     }
 
-    // createScorefix() {
-    //     const bad = [ "Pathetic", "Weak", "Disappointing", "Bad", "Mediocre", "Awful"]
-    //     const good = [ "Okay", "Decent", "Nice", "Good"]
-    //     const great = [ "Amazing", "Incredible", "Brilliant", "Fantastic", "Wonderful", "Outstanding", "Spectacular", "Remarkable", "Exceptional", "Magnificent", "Phenomenal", "Great"]
-    //     const prefixes = [ "Pretty", "You are", "That was"]
 
-    //     const maxScore = this.timer * this.maxWords 
-    //     let randomAffirmative = ""
-        
-    //     if (this.gameScore < (maxScore * 0.4)) {
-    //         randomAffirmative = bad[Math.floor(Math.random() * bad.length)]
-    //     } else if (this.gameScore < (maxScore * 0.8)) {
-    //         randomAffirmative = good[Math.floor(Math.random() * good.length)]
-    //     } else {
-    //         randomAffirmative = great[Math.floor(Math.random() * great.length)] + "!"
-    //     }
-
-        
-    //     const scorefixEl = document.createElement("div")
-    //     scorefixEl.classList.add("wof-scorefix")
-    //     document.body.appendChild(scorefixEl)
-
-    //     // Create title
-    //     const titleEl = document.createElement("h1")
-    //     titleEl.classList.add("wof-scorefix-title")
-    //     const prefix = prefixes[Math.floor(Math.random() * prefixes.length)]
-    //     titleEl.innerHTML = `${prefix}<br />${randomAffirmative}`
-    //     scorefixEl.appendChild(titleEl)
-
-    //     // Create score
-    //     const scoreEl = document.createElement("strong")
-    //     scoreEl.classList.add("wof-scorefix-score")
-    //     scoreEl.innerText = "Points"
-    //     scorefixEl.appendChild(scoreEl)
-
-    //     this.elements.push(scorefixEl)
-    //     gsap.fromTo(scorefixEl, { opacity: 0 }, { opacity: 1, duration: 1 })
-    // }
-
-    // async createLeaderboard() {
-
-    //     const leaderboardEl = document.createElement("div")
-    //     leaderboardEl.classList.add("wof-leaderboard")
-    //     document.body.appendChild(leaderboardEl)
-    //     this.elements.push(leaderboardEl)
-
-    //     // Create table 
-    //     const tableEl = document.createElement("table")
-    //     tableEl.setAttribute("cellspacing", "0")
-    //     tableEl.setAttribute("cellpadding", "0")
-
-    //     // Create table header
-    //     const theadEl = document.createElement("thead")
-    //     const headerRowEl = document.createElement("tr")
-    //     const dateHeaderEl = document.createElement("th")
-    //     dateHeaderEl.innerText = "Date"
-    //     const scoreHeaderEl = document.createElement("th")
-    //     scoreHeaderEl.innerText = "Score"
-    //     headerRowEl.appendChild(dateHeaderEl)
-    //     headerRowEl.appendChild(scoreHeaderEl)
-    //     theadEl.appendChild(headerRowEl)
-    //     tableEl.appendChild(theadEl)
-
-    //     // Load latest 5 scores
-    //     const tbodyEl = document.createElement("tbody")
-        
-    //     let scores = await this.actionStore.loadLastActionsFromDB(1, "wof-score", 5, (a, b) => b.value - a.value)
-    //     if (!Array.isArray(scores)) { 
-    //         scores = [scores]
-    //     }
-
-    //     scores.forEach(score => {
-    //         const rowEl = document.createElement("tr")
-    //         const dateEl = document.createElement("td")
-    //         const scoreValueEl = document.createElement("td")
-    //         const date = new Date(score.created)
-
-    //         // if date is less than 10 seconds ago, set currentScore to true
-    //         const currentScore = (Date.now() - score.created) < 10000
-    //         if (currentScore) {
-    //             rowEl.classList.add("__isCurrentScore")
-    //         }
-            
-    //         // Show date as DD-MM-YYY
-    //         dateEl.innerHTML = `<span class="date">${date.getDate().toString().padStart(2, "0")}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getFullYear().toString().padStart(4, "0")}</span>`
-
-    //         // If score is a week old, show time as well
-    //         const oneWeek = 7 * 24 * 60 * 60 * 1000
-    //         if (Date.now() - score.created < oneWeek) {
-                
-    //             // Show time as HH:MM
-    //             dateEl.innerHTML += `<span class="time">${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}</span>`
-    //         }
-            
-    //         scoreValueEl.innerText = score.value.toString()
-    //         rowEl.appendChild(dateEl)
-    //         rowEl.appendChild(scoreValueEl)
-    //         tbodyEl.appendChild(rowEl)
-    //     })
-        
-
-    //     if (scores.length > 0) {
-    //         tableEl.appendChild(tbodyEl)
-    //     }
-
-    //     leaderboardEl.appendChild(tableEl)
-    // }
-
-
-    destroy(): void {
+    destroy = () => {
         console.info("📕 Words of Affirmation story finished")
 
         
@@ -650,8 +548,13 @@ class WordsOfAffirmationStory extends Story {
 
         this.wordScores = []
         this.elements = []
+        
+        if (this.controller) {
+            this.controller.disableDragging = false
+        }
 
-        this.controller.disableDragging = false
+        if (this.score) { this.score.destroy() }
+        if (this.leaderboard) { this.leaderboard.destroy() }
 
         // Process the default story destroy
         super.destroy()

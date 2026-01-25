@@ -34,12 +34,12 @@ class CatapultStory extends Story {
     launchPositions = [] as Array<number>
     
     async start() {
-        console.info("Catapult story started", this.identityStore)
+        console.info("🐛 Catapult story started")
         
-        this.catterpillar = this.controller.catterpillar
+        this.controller.catterpillar = this.controller.catterpillar
 
-        if (this.catterpillar.speechBubble) {
-            this.catterpillar.speechBubble.destroy()
+        if (this.controller.catterpillar.speechBubble) {
+            this.controller.catterpillar.speechBubble.destroy()
         }
 
         this.dbStory = await this.storyStore.getLatestDatabaseEntry("catapult")
@@ -125,7 +125,7 @@ class CatapultStory extends Story {
             this.generateLauncherLoop()
             this.launcherLoop()
 
-            this.score.value = Math.round((this.ball.x - this.catterpillar.x) / 10)
+            this.score.value = Math.round((this.ball.x - this.controller.catterpillar.x) / 10)
             this.startPhase4()
         }
     }
@@ -153,26 +153,26 @@ class CatapultStory extends Story {
         }
         this.phase1 = "inProgress"
 
-        if (!this.catterpillar) {
+        if (!this.controller.catterpillar) {
             reject(new Error("Catterpillar not defined"))
         }
+        const catterpillar = this.controller.catterpillar
+        catterpillar.emote("happy")
         
-        this.catterpillar.emote("happy")
-        
-        if (this.catterpillar.isMoving) {
+        if (catterpillar.isMoving) {
             return
         }
 
-        if (this.catterpillar.head.x < this.catterpillar.length * this.catterpillar.thickness) {
+        if (catterpillar.head.x < catterpillar.length * catterpillar.thickness) {
             this.phase1 = "done"
             return
         } 
 
         try {
-            if (this.catterpillar.isPointingLeft()) {
-                await this.catterpillar.move()    
+            if (catterpillar.isPointingLeft()) {
+                await catterpillar.move()    
             } else {
-                await this.catterpillar.turnAround()
+                await catterpillar.turnAround()
             }
         } catch {
             // Try again next loop
@@ -180,7 +180,7 @@ class CatapultStory extends Story {
             return
         }
             
-        if (this.catterpillar.head.x < this.catterpillar.length * this.catterpillar.thickness) {
+        if (catterpillar.head.x < catterpillar.length * catterpillar.thickness) {
             this.phase1 = "done"
         } else {
             this.phase1 = undefined
@@ -195,14 +195,14 @@ class CatapultStory extends Story {
         }
         this.phase2 = "inProgress"
 
-        if (!this.catterpillar) {
+        if (!this.controller.catterpillar) {
             reject(new Error("Catterpillar not defined"))
         }
 
-        this.catterpillar.leftEye.lookRight(4,2)
-        this.catterpillar.rightEye.lookRight(4,2)
+        this.controller.catterpillar.leftEye.lookRight(4,2)
+        this.controller.catterpillar.rightEye.lookRight(4,2)
         try {
-            await this.catterpillar.standUp()
+            await this.controller.catterpillar.standUp()
         } catch {
             // Try again next loop
             this.phase2 = undefined
@@ -223,7 +223,7 @@ class CatapultStory extends Story {
         }
 
         this.phase3 = "inProgress"
-        document.addEventListener("pointerdown", this.pointerDownEvent.bind(this))
+        document.addEventListener("pointerdown", this.pointerDownEvent)
     }
 
 
@@ -239,17 +239,16 @@ class CatapultStory extends Story {
         this.phase4 = "inProgress"
 
         this.score.showFinalScore()
-        this.leaderboard = new Leaderboard("catapult-score", Math.floor(this.score.value), this.restartStory.bind(this) )
+        this.leaderboard = new Leaderboard("catapult-score", Math.floor(this.score.value), this.restartStory )
 
         const rightWall = this.controller.ref.world.bodies.find(body => body.label.includes("wall,right"))
         if (rightWall) {
             rightWall.collisionFilter = collisionWall
         }
-
     }
 
 
-    async restartStory() {
+    restartStory = async () => {
 
         const render = this.controller.ref.renderer
         const width  = render.options.width
@@ -292,44 +291,43 @@ class CatapultStory extends Story {
         gsap.to(this.identityStore.current, { joy: this.identityStore.current.joy + joy, duration: 1 })
 
         // Remove story from action store
+        this.actionStore.availableActions -= 1
+        this.storyStore.killStory("catapult")
         this.leaderboard.destroy()
         this.score.destroy()
-        this.storyStore.killStory("catapult")
-        this.actionStore.availableActions -= 1
-        this.destroy()
     }
 
-    async pointerDownEvent() {
+    pointerDownEvent = async () => {
         if (this.phase3 !== "inProgress") {
             return
         }  
 
         this.score.createDisplay()
-        new Powerbar(this.pointerUpEvent.bind(this))
+        new Powerbar(this.pointerUpEvent)
         
         // Start pulling back the ball
-        this.catterpillar.leftEye.pinch(.4)
-        this.catterpillar.rightEye.pinch(.4)
-        this.catterpillar.emote("hmm")
-        // await this.catterpillar.releaseSpine(.1)
-        await this.catterpillar.standUp(-70, 1)
+        this.controller.catterpillar.leftEye.pinch(.4)
+        this.controller.catterpillar.rightEye.pinch(.4)
+        this.controller.catterpillar.emote("hmm")
+        // await this.controller.catterpillar.releaseSpine(.1)
+        await this.controller.catterpillar.standUp(-70, 1)
     }
             
-    async pointerUpEvent(force: number) {
+    pointerUpEvent = async (force: number) => {
         if (this.phase3 !== "inProgress") {
             return
         }   
 
         // Start pulling back the ball
-        this.catterpillar.leftEye.open(.4)
-        this.catterpillar.rightEye.open(.4)
-        await this.catterpillar.standUp(0, .05)
+        this.controller.catterpillar.leftEye.open(.4)
+        this.controller.catterpillar.rightEye.open(.4)
+        await this.controller.catterpillar.standUp(0, .05)
         this.launchBall(force)
 
-        this.catterpillar.emote("happy")
-        await this.catterpillar.releaseStance()
+        this.controller.catterpillar.emote("happy")
+        await this.controller.catterpillar.releaseStance()
         setTimeout(() => {
-            this.catterpillar.turnAround()
+            this.controller.catterpillar.turnAround()
         }, 2000)
     }
 
@@ -434,22 +432,22 @@ class CatapultStory extends Story {
     }
 
     async createBall() {
-        const x = this.catterpillar.head.x + this.catterpillar.thickness
-        const y = this.catterpillar.head.y
+        const x = this.controller.catterpillar.head.x + this.controller.catterpillar.thickness
+        const y = this.controller.catterpillar.head.y
 
         this.ball = new BallModel({
             x: x ,
             y: y,
-            size: this.catterpillar.thickness,
+            size: this.controller.catterpillar.thickness,
             color: "aquamarine"
         }, this.controller.ref.world)
 
         this.ballConstraint = Matter.Constraint.create({
-            bodyA: this.catterpillar.head.body,
-            pointA: { x: this.catterpillar.thickness / 2, y: 0 },
+            bodyA: this.controller.catterpillar.head.body,
+            pointA: { x: this.controller.catterpillar.thickness / 2, y: 0 },
             bodyB: this.ball.composite.bodies[0],
             pointB: { x: 0, y: 0 },
-            length: this.catterpillar.thickness,
+            length: this.controller.catterpillar.thickness,
             stiffness: 0.9,
         })
 
@@ -464,22 +462,24 @@ class CatapultStory extends Story {
         }
 
         // Every time ball collides with the floor, we can show the score
-        Matter.Events.on(this.controller.ref.engine, "collisionStart", (event) => {
-            event.pairs.forEach((pair) => {
-                if (!this.ball) {
-                    return
-                }
-                const ballBody = this.ball.composite.bodies[0]
-                if ((pair.bodyA === ballBody && pair.bodyB === this.extraFloor) ||
-                    (pair.bodyB === ballBody && pair.bodyA === this.extraFloor)) {
-                    ballBody.frictionAir += 0.00024
-                }
-            })
-        })
+        Matter.Events.on(this.controller.ref.engine, "collisionStart", this.decreaseBallSpeed)
 
         Matter.World.add(this.controller.ref.world, this.ballConstraint)
         
         this.controller.draw.addBall(this.ball)
+    }
+    
+    decreaseBallSpeed = (event: Matter.IEventCollision<Matter.Engine>) => {
+        event.pairs.forEach((pair) => {
+            if (!this.ball) {
+                return
+            }
+            const ballBody = this.ball.composite.bodies[0]
+            if ((pair.bodyA === ballBody && pair.bodyB === this.extraFloor) ||
+                    (pair.bodyB === ballBody && pair.bodyA === this.extraFloor)) {
+                ballBody.frictionAir += 0.00024
+            }
+        })
     }
 
     createExtraFloor() {
@@ -501,20 +501,23 @@ class CatapultStory extends Story {
         Matter.World.add(this.controller.ref.world, this.extraFloor)
     }
     
-    destroy() {
-        super.destroy()
+    destroy = () => {
+        console.info("📕 Catapult story finished")
+
         if (this.ballConstraint) {
             Matter.World.remove(this.controller.ref.world, this.ballConstraint)
         }
-
+        
         if (this.extraFloor) {
             Matter.World.remove(this.controller.ref.world, this.extraFloor)
         }
-
+        
         if (this.ball) {
             this.ball.destroy()
             // this.controller.draw.removeObjectById(this.ball.composite.id)
         }
+        // Process the default story destroy
+        super.destroy()
     }
 }
 

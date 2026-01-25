@@ -27,7 +27,7 @@ class PettingStory extends Story {
         this.controller.ref.addpointerUpEvent(this.removePetBrush.bind(this), "petting-story-remove-brush")
         
         const maxLoveArray = await this.actionStore.loadLastActionsFromDB(this.identity.id, "petting", this.maxLove)
-        Matter.Events.on(this.controller.ref.engine, "collisionActive",this.#collisionEventListener.bind(this))   
+        Matter.Events.on(this.controller.ref.engine, "collisionActive",this.#collisionEventListener)   
         
         // remove all values that are older than 24 hours
         const newMaxLoveArray = maxLoveArray.filter(action => {
@@ -39,7 +39,7 @@ class PettingStory extends Story {
     }
 
 
-    #collisionEventListener(event: Matter.IEventCollision<Matter.Engine>) {
+    #collisionEventListener = (event: Matter.IEventCollision<Matter.Engine>) => {
         event.pairs.forEach(pair => {
             let bodyPart: Matter.Body | undefined
             let brush: Matter.Body | undefined

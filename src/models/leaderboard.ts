@@ -31,16 +31,18 @@ class Leaderboard {
 
     }
 
-    fadeOut() {
+    fadeOut = () => {
         if (!this.isLoaded) return
 
         gsap.to(".leaderboard tr", { opacity: 0, duration: .8, stagger: 0.1 })            
         gsap.to(".leaderboard-bg", { opacity: 0, duration: 1, delay: 1, ease: "power3.in", onComplete: () => {
-            this.onClose()
-
+            if (this.onClose) {
+                this.onClose()
+            }
+        
             const bg = this.elements.find(el => el.classList.contains("leaderboard-bg"))
             if (bg && bg.parentNode) {
-                bg.removeEventListener("click", this.fadeOut.bind(this))
+                bg.removeEventListener("click", this.fadeOut)
             }
             this.destroy()
         } })
@@ -61,7 +63,7 @@ class Leaderboard {
         bg.classList.add("leaderboard-bg")
         document.body.appendChild(bg)
         this.elements.push(bg)
-        bg.addEventListener("click", this.fadeOut.bind(this))
+        bg.addEventListener("click", this.fadeOut)
 
         if (!fadeIn) return
         bg.style.opacity = "0"

@@ -95,9 +95,9 @@ export class MatterSetup {
         window.addEventListener("pointermove", this.#onPointerMove.bind(this))
         window.addEventListener("resize", this.#onResize.bind(this))
     }
-    #animate() {
+    #animate = () => {
         Matter.Engine.update(this.engine, 1000 / 60) // update engine met 60 fps
-        requestAnimationFrame(this.#animate.bind(this))
+        requestAnimationFrame(this.#animate)
     }
 
     

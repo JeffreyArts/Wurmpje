@@ -28,8 +28,11 @@ class Story {
             return
         }
 
-        this.start()
-        this.#loop()
+        console.log("🦩 Initializing BASEstory:", this)
+        setTimeout(() => {
+            this.start()
+            this.#loop()
+        })
     }
 
     #loop() {
