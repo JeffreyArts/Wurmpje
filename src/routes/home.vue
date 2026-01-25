@@ -114,7 +114,7 @@ export default defineComponent ({
                 return
             }
 
-            this.identity.current = undefined
+            // this.identity.current = undefined
                         
             const existingIdentity = await this.identity.findIdentityInDatabase("id", parentIdentity.id);
             let storedInDB = undefined;
