@@ -191,7 +191,8 @@ export default defineComponent ({
         async mounted() {
             
             // let startPosition = { x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - this.config.offsetBottom - catterpillarOptions.identity.thickness }
-            const offsetBottom = 128
+            const footer = document.querySelector(".matterbox-footer") as HTMLElement
+            const offsetBottom = footer.clientHeight + 16
             const startPosition = { 
                 x: window.innerWidth / 2,
                 y: window.innerHeight - offsetBottom - this.identity.thickness 

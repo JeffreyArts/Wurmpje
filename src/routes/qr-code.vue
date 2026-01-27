@@ -245,6 +245,7 @@ export default defineComponent({
     flex-flow: column;
     align-items: center;
     gap: 16px;
+    color: var(--contrast-color);
 
     svg {
         max-width: clamp(64px,20vw, 10vh);
