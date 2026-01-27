@@ -1,15 +1,7 @@
 <template>
     <div class="helper">
-        <article class="helper-container" v-if="wurmpje">
-            <span class="wurmpje-name">{{ wurmpje.name }}</span>
-            <div class="thumbnail-wrapper">
-                <wurmpjeThumbnail type="curved" class="wurmpje" :identityField="wurmpje" :redrawKey="redrawKey"/>
-                <i class="catterpillar-gender" :class="wurmpje.gender === 0 ? '__isMale' : '__isFemale'">
-                    <jao-icon :name="wurmpje.gender === 0 ? 'male' : 'female'" size="large" active-color="currentColor" inactive-color="transparent"/>
-                </i>
-            </div>
-            <div class="qr-container" v-html="svg"></div>
-        </article>
+        <wurmpje-card class="helper-container" v-if="wurmpje" :identity="wurmpje" :displayAs="displayAs" :show-scan-button="false" />
+
         <div class="helper-form">
             <form class="form" v-if="wurmpje">
                 
@@ -22,9 +14,31 @@
                     <table>
                         <thead>
                             <tr>
-                                <th><label for="wurmpje-offset-input">Offset</label></th>
                                 <th><label for="wurmpje-textureIndex-input">Texture</label></th>
                                 <th><label for="wurmpje-colorSchemeIndex-input">Colorscheme</label></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <select name="wurmpje-textureIndex" id="wurmpje-textureIndex-input" v-model="wurmpje.textureIndex" @change="updateWurmpje()">
+                                        <option v-for="(texture, index) in textures" :key="index" :value="index">{{ index }} - {{ texture.name }}</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select name="wurmpje-colorSchemeIndex" id="wurmpje-colorSchemeIndex-input" v-model="wurmpje.colorSchemeIndex" @change="updateWurmpje()">
+                                        <option v-for="(colorScheme, index) in colorSchemes" :key="index" :value="index">{{ index }} - {{ colorScheme.name }}</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th><label for="wurmpje-offset-input">Offset</label></th>
                                 <th><label for="wurmpje-length-input">Length</label></th>
                                 <th><label for="wurmpje-thickness-input">Thickness</label></th>
                             </tr>
@@ -33,12 +47,6 @@
                             <tr>
                                 <td>
                                     <input id="wurmpje-offset-input" type="number" min="0" max="15" v-model="wurmpje.offset" @input="updateWurmpje()"/>
-                                </td>
-                                <td>
-                                    <input id="wurmpje-textureIndex-input" type="number" min="0" :max="textures.length-1" v-model="wurmpje.textureIndex" @input="updateWurmpje()"/>
-                                </td>
-                                <td>
-                                    <input id="wurmpje-colorSchemeIndex-input" type="number" min="0" :max="colorSchemes.length-1" v-model="wurmpje.colorSchemeIndex" @input="updateWurmpje()"/>
                                 </td>
                                 <td>
                                     <input id="wurmpje-length-input" type="number" min="3" max="18" v-model="wurmpje.length" @input="updateWurmpje()"/>
@@ -90,16 +98,16 @@
 import { defineComponent } from "vue"
 import useIdentityStore from "@/stores/identity"
 import Identity, {type IdentityField } from "@/models/identity";
-import wurmpjeThumbnail from "@/components/wurmpje-thumbnail.vue";
 import Textures from "@/assets/default-textures"
 import ColorSchemes from "@/assets/default-color-schemes"
 import qrcode from "qrcode"
 import JaoIcon from "@/components/jao-icon.vue";
+import wurmpjeCard from "@/components/wurmpje-card.vue";
 
 export default defineComponent ({ 
     name: "helperPage",
     components: { 
-        wurmpjeThumbnail,
+        wurmpjeCard,
         JaoIcon
     },
     props: [],
@@ -121,8 +129,6 @@ export default defineComponent ({
             wurmpje: null as IdentityField | null,
             textures: Textures,
             colorSchemes: ColorSchemes,
-            redrawKey: 0,
-            svg: "",
             displayAs: "parent" as "parent" | "newborn"
         }
     },
@@ -158,39 +164,7 @@ export default defineComponent ({
 
             this.updateWurmpje(false)
         },
-        getQRstring(){
-            let prefix = ""
-            if (this.displayAs === "parent") {
-                prefix = window.origin + "/?parent="
-            } else {
-                prefix = ""
-            }
-            const identity = new Identity()
-            const identityString = identity.encode({
-                id: this.wurmpje!.id,
-                name: this.wurmpje!.name,
-                textureIndex: this.wurmpje!.textureIndex,
-                colorSchemeIndex: this.wurmpje!.colorSchemeIndex,
-                offset: this.wurmpje!.offset,
-                gender: this.wurmpje!.gender,
-                length: this.wurmpje!.length,
-                thickness: this.wurmpje!.thickness
-            })
-            
-            return prefix + encodeURIComponent(identityString)
-        },
-        generateQR() {
-            const qrString = this.getQRstring()
-            qrcode.toString( qrString, {type: "svg", margin: 0}, (err, svgString) => {
-                if (err) {
-                    console.error("Failed to generate QR code:", err)
-                    return
-                }
-                this.svg = svgString
-            } )
-        },
         updateWurmpje(ignoreName: boolean = false) {
-
             if (!this.identity || !this.wurmpje) {
                 return
             }   
@@ -204,15 +178,12 @@ export default defineComponent ({
                 return
             }
             
-            this.generateQR()
-            this.redrawKey ++;
             this.wurmpje.id = identity.generateId()
             
             if (ignoreName) {
                 return
             }
             this.wurmpje.name = this.identity.getLatinName(this.wurmpje.colorSchemeIndex,this.wurmpje.textureIndex)
-            this.generateQR()
         }
     },
 })
@@ -220,58 +191,7 @@ export default defineComponent ({
 </script>
 
 <style>
-.helper {
-    padding-top: 64px;
-    .wurmpje {
-        aspect-ratio: 2 / 1;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
 
-
-    .helper-container {
-        background-color: #fff;
-        margin: auto;
-        padding: 16px;
-        max-width: 320px;
-        box-shadow: 0 0 16px rgba(0,0,0,0.2);
-        border-radius: 8px;
-        display: flex;
-        flex-flow: column;
-        gap: 16px;
-    }
-
-    #canvas-container {
-        overflow: hidden;
-        aspect-ratio: 2/1;
-    }
-
-    .wurmpje-name {
-        display: flex;
-        justify-content: center;
-        font-family: var(--accent-font);
-        font-size: 32px;
-        height: 80px;
-        align-items: center;
-        text-align: center;
-    }
-
-    .wurmpje-name-length {
-        opacity: 0.64;
-        font-size: 12px;
-        font-family: var(--default-font);
-        &.__isTooLong {
-            color: red;
-        }
-    }
-
-    .qr-container {
-        svg {
-            padding: 16px 64px;
-        }
-    }
-}
 
 .helper-form .form{
     margin: auto;
@@ -308,14 +228,24 @@ export default defineComponent ({
     }
 }
 
-.thumbnail-wrapper {
-    position: relative;
-    .catterpillar-gender {
-        position: absolute;
-        right: 8px;
-        top: 8px;
-        /* translate: -50% -50%; */
-        width: 32px;
+
+.helper {
+    padding-top: 64px;
+    .wurmpje {
+        aspect-ratio: 2 / 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .wurmpje-name-length {
+        opacity: 0.64;
+        font-size: 12px;
+        font-family: var(--default-font);
+        &.__isTooLong {
+            color: red;
+        }
     }
 }
+
 </style>
