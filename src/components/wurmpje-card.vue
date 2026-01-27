@@ -100,7 +100,7 @@ export default defineComponent ({
             if (this.displayAs === "parent") {
                 prefix = window.origin + "/?parent="
             } else {
-                prefix = ""
+                prefix = window.origin + "/?newborn="
             }
             const identity = new Identity()
             const identityString = identity.encode({

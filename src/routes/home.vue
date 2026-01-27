@@ -52,11 +52,21 @@ export default defineComponent ({
                 await this.checkForParentInUrl()
             },
             immediate: true
+        },
+        "$route.query.newborn": {
+            async handler() {
+                if (!this.identity.isInitialized) {
+                    await this.identity.initialised
+                }
+                await this.checkForNewbornInUrl()
+            },
+            immediate: true
         }
     },
     data() {
         return {
             invalidParentId: false,
+            invalidNewbornId: false,
             showBreedingModal: false,
             breedingIdentity: null as IdentityField | null
         }
@@ -71,11 +81,12 @@ export default defineComponent ({
         ]
     },
     async mounted() {
+        
         if (!this.identity.isInitialized) {
             await this.identity.initialised
         }
 
-        if (!this.identity.current && !this.$route.query.parent) {
+        if (!this.identity.current && !this.$route.query.parent && !this.$route.query.newborn) {
             console.warn("No identity found, redirecting to setup page.")
             this.$router.push({ name: "setup" })
             return
@@ -146,6 +157,60 @@ export default defineComponent ({
             this.showBreedingModal = true
             this.breedingIdentity = breedingIdentity
             return breedingIdentity
+        },
+        async checkForNewbornInUrl() {
+            const queryString = this.$route.query.newborn as string | undefined
+            const identity = new Identity()
+            if (!queryString) {
+                return
+            }
+            this.$route.query.newborn = undefined
+            try {
+                identity.validateIdentityString(queryString)
+            } catch (e) {
+                console.warn("Invalid newborn identity in URL:", e)
+                this.$router.push({ name: "home" })
+                return
+            }
+            
+            
+            const newbornIdentity = identity.decode(queryString)
+
+            // Invalid parent ID error
+            if (!newbornIdentity || !newbornIdentity.name) {
+                console.warn("Invalid newborn identity:", newbornIdentity)
+                this.$router.push({ name: "home" })
+                return
+            }
+                        
+            const existingIdentity = await this.identity.findIdentityInDatabase("id", newbornIdentity.id);
+            let storedInDB = undefined;
+            // Add identity to database if it doesn't exist
+            if (!existingIdentity) {
+                try {
+                    storedInDB = await this.identity.saveIdentityToDatabase(newbornIdentity, {
+                        origin: location.href,
+                        selectable: false,
+                        cooldownDays: 0
+                    })
+                } catch (e) {
+                    console.warn("Invalid newborn identity:", e)
+                    this.$router.push({ name: "home" })
+                    return
+                }
+            }
+
+            // select the newborn identity
+            if (storedInDB) {
+                this.identity.current = storedInDB
+            } else if (existingIdentity && !Array.isArray(existingIdentity)) {
+                this.identity.current = this.identity.convertDBIdentityToCurrentIdentity(existingIdentity)
+            }
+            if (this.identity.current?.id) {
+                this.identity.selectIdentity(this.identity.current.id)
+            }
+
+            this.$router.push({ name: "home" })
         },
         removeQueryFromUrl() {
             this.showBreedingModal = false
