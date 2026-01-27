@@ -401,6 +401,13 @@ export default defineComponent({
                         this.updateTextMessage(this.failureLines[Math.floor(Math.random() * this.failureLines.length)])
                     }, 640)
 
+                    gsap.to(".story-line-message", {
+                        duration: .6,
+                        color: "#000",
+                        delay: .64,
+                        ease: "power1.inOut",
+                    })
+
                     gsap.to(".scan-page-view-finder-actions", {
                         duration: 1,
                         height: 64,
@@ -563,12 +570,18 @@ export default defineComponent({
             const identity = new Identity()
             let identityObject
             
+            if (scannedData.includes("?newborn=")) {
+                // forward to qrData page
+                const url = new URL(scannedData)
+                scannedData = url.searchParams.get("newborn")
+            } 
+
             try {
                 identityObject = await identity.decode(decodeURIComponent(scannedData))
             } catch (e) {
                 identityObject = await identity.deriveIdentityFromHash(scannedData)
             }
-            //  = await identity.decode(scannedData)
+            
 
             if (!identityObject) {
                 return null
@@ -683,12 +696,12 @@ export default defineComponent({
     /* translate: -50% 0; */
     margin-bottom: 32px;
     display: inline-block;
-    color: var(--accent-color);
     text-align: center;
     width: 100%;
     font-size: clamp(16px, 4vw, 24px);
     line-height: 1.4;
     font-family: var(--accent-font);
+    color: var(--accent-color);
     z-index: 2;
 }
 
