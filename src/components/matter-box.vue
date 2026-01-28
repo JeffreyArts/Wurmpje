@@ -288,6 +288,11 @@ export default defineComponent ({
                 }
             },
             showSelectIdentityModalClick() {
+
+                if (this.actionStore.isSelected && this.actionStore.activeAction != "Food") {
+                    return
+                }
+
                 this.actionStore.deselectAction()
 
                 // kill all active stories
