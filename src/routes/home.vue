@@ -230,4 +230,21 @@ export default defineComponent ({
     height: 100vh;
 }
 
+.home {
+    * {
+        pointer-events: none;
+    }
+
+    button,
+    a,
+    input,
+    select,
+    textarea,
+    .qr, 
+    .actions-container svg,
+    .action-container,
+    .catterpillar-switch {
+        pointer-events: auto;
+    }
+}
 </style>

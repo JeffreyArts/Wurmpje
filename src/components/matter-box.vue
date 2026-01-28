@@ -437,6 +437,8 @@ export default defineComponent ({
 
 #catterpillar {
     height: 100vh;
+    height: 100svh;
+    position: relative;
     /* pointer-events: none;  NIET DENKEN DAT JE DEZE MOET TOEVOEGEN, FOKT HET OP VOOR MOBIEL*/
 }
 
