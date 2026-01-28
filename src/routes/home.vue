@@ -86,6 +86,8 @@ export default defineComponent ({
             await this.identity.initialised
         }
 
+        this.$el.querySelector(".matter-box").style.height = document.getElementById("app").clientHeight + "px"
+
         if (!this.identity.current && !this.$route.query.parent && !this.$route.query.newborn) {
             console.warn("No identity found, redirecting to setup page.")
             this.$router.push({ name: "setup" })
