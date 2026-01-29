@@ -282,6 +282,12 @@ export default defineComponent ({
             this.hasError = false
             this.errorMessage = ""
 
+            if (!partner) {
+                this.errorMessage = `No ${this.oppositeSex} found for ${this.parentIdentity.name}`
+                this.hasError = true
+                return
+            }
+
             // Check for minimum length
             if (partner.length < 6) {
                 this.errorMessage = "This wurmpje is not long enough."
