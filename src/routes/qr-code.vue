@@ -171,7 +171,9 @@ export default defineComponent({
     display: flex;
     align-items: center;
     justify-content: center;
+    
     svg {
+        width: 100%;
         height: 100%;
     }
 }
