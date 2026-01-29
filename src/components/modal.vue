@@ -163,6 +163,7 @@ export default defineComponent({
     justify-content: center;
     align-items: center;
     z-index: 2000;
+    pointer-events: none;
 
     &.__isHidden {
         pointer-events: none;

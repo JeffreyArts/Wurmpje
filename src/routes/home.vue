@@ -236,6 +236,9 @@ export default defineComponent ({
 }
 
 .home {
+    max-height: 100svh;
+    touch-action: none;
+
     * {
         pointer-events: none;
     }
