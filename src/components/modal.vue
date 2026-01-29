@@ -168,6 +168,9 @@ export default defineComponent({
     &.__isHidden {
         pointer-events: none;
         opacity: 0;
+        .modal-submit {
+            display: none;
+        }
     }
 
     &.__isVisible {

@@ -61,6 +61,10 @@
     /* translate: -50% -50%; */
     padding: 16px;
     color: #fff;
+    
+    rect {
+        pointer-events: none;
+    }
 
     rect[v="0"] {
         fill: transparent;

@@ -286,7 +286,7 @@ class CatapultStory extends Story {
         this.ball.destroy()
 
         // Update joy
-        const joy = Math.min(Math.floor(this.score.value / 1000), 10)
+        const joy = Math.max(5, Math.min(Math.floor(this.score.value / 500), 10))
         await this.actionStore.add(this.identityStore.current.id, "joy", joy)
         gsap.to(this.identityStore.current, { joy: this.identityStore.current.joy + joy, duration: 1 })
 
