@@ -85,8 +85,11 @@ export default defineComponent ({
         if (!this.identity.isInitialized) {
             await this.identity.initialised
         }
-
-        this.$el.querySelector(".matter-box").style.height = document.getElementById("app").clientHeight + "px"
+        
+        const matterBox = this.$el.querySelector(".matter-box")
+        if (matterBox) {
+            matterBox.style.height = document.getElementById("app").clientHeight + "px"
+        }
 
         if (!this.identity.current && !this.$route.query.parent && !this.$route.query.newborn) {
             console.warn("No identity found, redirecting to setup page.")
