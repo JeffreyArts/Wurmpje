@@ -24,7 +24,7 @@ dist-ssr
 *.sw?
 
 package-lock.json
-
+*.ai
 .env.*
 .env
 gsap-bonus.tgz
