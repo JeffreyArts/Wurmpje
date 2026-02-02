@@ -284,17 +284,27 @@ export class Catterpillar {
         const mixColors = ["#00ff99", "#ff00cc", "#ffff00", "#00ffff", "#ff6600", "#ff0066"]
 
         if (offset % 4 == 0) {
-            c1 = c1.tint(offset/4 / 16)
-            c2 = c2.tint(offset/4 / 16)
-        }
-        if (offset % 3 == 0) {
-            c1 = c1.mix(Chroma(mixColors[offset/3]), .2)
-            c2 = c2.mix(Chroma(mixColors[offset/3]), .2)
+            c1 = c1.tint(offset/4 / 32)
+            c2 = c2.tint(offset/4 / 32)
         }
 
-        if (offset % 5 == 1) {
-            c1 = c1.brighten(.1/(offset/10))
-            c2 = c2.brighten(.1/(offset/10))
+        if (offset % 3 == 0) {
+            c1 = c1.mix(Chroma(mixColors[offset/3]), .04)
+            c2 = c2.mix(Chroma(mixColors[offset/3]), .04)
+        }
+
+        if (offset == 1) {
+            c1 = c1.brighten(.1)
+            c2 = c2.brighten(.1)
+        } else if (offset == 5) {
+            c1 = c1.brighten(.08)
+            c2 = c2.brighten(.08)
+        } else if (offset == 10) {
+            c1 = c1.brighten(.12)
+            c2 = c2.brighten(.08)
+        } else if (offset == 15) {
+            c1 = c1.brighten(0.1)
+            c2 = c2.brighten(0.04)
         }
 
         this.primaryColor = c1.hex()
