@@ -159,9 +159,12 @@ class CovidstarPaintingStory extends Story {
     async createPainting() {
         const size = 128
 
-        const leftSide = this.catterpillar.head.x - this.catterpillar.thickness * 2 - 64
-        const rightSide = this.controller.ref.renderer.canvas.clientWidth - this.catterpillar.butt.x - 64
-        const x = Math.random() < .5 ? Math.random() * leftSide + 32 : (Math.random() * rightSide) + this.catterpillar.butt.x + 32
+        // const leftSide = this.catterpillar.head.x - this.catterpillar.thickness * 2 - 64
+        // const rightSide = this.controller.ref.renderer.canvas.clientWidth - this.catterpillar.butt.x - 64
+        // const x = Math.random() < .5 ? Math.random() * leftSide + 32 : (Math.random() * rightSide) + this.catterpillar.butt.x + 32
+        // const y = window.innerHeight - this.controller.config.offsetBottom - size *2
+        const x = document.body.clientWidth - 144
+        const y = 128
 
         //get current date as DD-MM-YYYY
         const currentDate = new Date() 
@@ -169,13 +172,12 @@ class CovidstarPaintingStory extends Story {
         const mm = String(currentDate.getMonth() + 1).padStart(2, "0") //January is 0!
         const yyyy = currentDate.getFullYear()
         const dateString = `${dd}-${mm}-${yyyy}`
-        // this.painting.image = `${import.meta.env.VITE_PAYLOAD_REST_ENDPOINT}/covid-star/image/${dateString}`
+        
         this.painting = new PaintingModel({
-            x: x ,
-            y: window.innerHeight - this.controller.config.offsetBottom - size *2,
+            x: x,
+            y: y,
             width: size,
             height: size + 20, // The 20px is for the text underneath the painting
-            // image: this.painting.image,
         }, this.controller.ref.world)
         
         
