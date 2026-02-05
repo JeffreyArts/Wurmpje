@@ -66,6 +66,8 @@ export class MatterSetup {
         // run the engine
         // Matter.Runner.run(this.runner, this.engine)
         
+        this.engine.constraintIterations = 16
+
         // Manually handle initial resize
         setTimeout(() => { 
             // Fire resize event

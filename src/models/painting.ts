@@ -39,7 +39,7 @@ export class Painting {
             this.width,
             this.height,
             {
-                mass: 40,
+                mass: 16,
                 label: "canvas",
                 collisionFilter: collisionItem,
                 render: { fillStyle: "orange" }
