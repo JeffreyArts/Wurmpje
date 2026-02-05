@@ -3,6 +3,7 @@ import type FoodModel from "@/models/food"
 import type SpeechBubble from "@/models/speech-bubble"
 import type BallModel from "@/models/ball"
 import type PlankModel from "@/models/plank"
+import type PaintingModel from "@/models/painting"
 
 import Chroma from "chroma-js"
 import Two from "two.js"
@@ -71,6 +72,7 @@ export const availableBodyPartTextures = [
 type TwoGroup = InstanceType<typeof Two.Group>
 type TwoCircle = InstanceType<typeof Two.Circle>
 type TwoPath = InstanceType<typeof Two.Path>
+type TwoTexture = InstanceType<typeof Two.Texture>
 
 interface FoodObjectModel {
     type: "food";
@@ -91,6 +93,13 @@ interface PlankObjectModel {
     id: number;
     model: PlankModel;
     two: { squares: TwoGroup };
+}
+
+interface PaintingObjectModel {
+    type: "painting";
+    id: number;
+    model: PaintingModel;
+    two: { image: TwoGroup, rope: TwoGroup };
 }
 
 interface EyeObjectModel {
@@ -129,7 +138,7 @@ interface SpeechBubbleObjectModel {
 export class Draw {
     two: Two
     layers: TwoGroup[] = []
-    objects: Array<FoodObjectModel | BallObjectModel | PlankObjectModel | CatterpillarObjectModel | SpeechBubbleObjectModel> = []
+    objects: Array<FoodObjectModel | BallObjectModel | PlankObjectModel | PaintingObjectModel | CatterpillarObjectModel | SpeechBubbleObjectModel> = []
     renderer?: Matter.Render | undefined
 
     constructor(two: Two, renderer?: Matter.Render) {
@@ -178,6 +187,8 @@ export class Draw {
                     this.#removeSpeechBubble(obj)
                     this.objects = this.objects.filter(o => o.id !== obj.id)
                 }
+            } else if (obj.type == "painting") {
+                this.drawPainting(obj)
             }
         })
         
@@ -463,6 +474,47 @@ export class Draw {
         this.drawBall(obj)
     }
 
+    addPainting = async (painting: PaintingModel, layerIndex = 10) => {
+        const layer = this.layers[layerIndex]
+
+        // Maak Two.Image
+        const img = new Two.Image( painting.image, 0, 0, painting.width, painting.height)
+        const image = new Two.Group(img)
+        
+        // Maak het touw
+        const rope = new Two.Group()
+        const ropes = painting.composite.composites.filter(c => c.label === "rope")
+        ropes.forEach(ropeComposite => {
+            ropeComposite.bodies.forEach(body => {
+                const circle = new Two.Rectangle(body.position.x, body.position.y, 6, 6)
+                circle.fill = "#000"
+                circle.noStroke()
+                rope.add(circle)
+            })
+        })
+
+        // Voeg toe aan layer
+        layer.add(rope)
+        layer.add(image)
+
+        // Maak het painting object
+        const obj: PaintingObjectModel = {
+            type: "painting",
+            id: painting.composite.id,
+            model: painting,
+            two: {
+                image,
+                rope
+            }
+        }
+
+        this.objects.push(obj)
+
+        // Teken de painting (optioneel, afhankelijk van implementatie)
+        this.drawPainting(obj)
+    }
+
+
     addPlank = (plank: PlankModel, layerIndex = 10) => {
         const layer = this.layers[layerIndex]
         const squares = new Two.Group()
@@ -739,6 +791,36 @@ export class Draw {
             const y = plank.model.y + 2
             square.position.set(x, y)
         })
+    }
+
+    drawPainting = (painting: PaintingObjectModel) => {
+        
+        if (!painting.model || painting.model.isDestroyed) {
+            return false
+        }
+
+        // Draw rope links
+        if (painting.two.rope) {
+            let ropeIndex = 0
+            
+            const ropes = painting.model.composite.composites.filter(c => c.label === "rope")
+            ropes.forEach(ropeComposite => {
+                ropeComposite.bodies.forEach(body => {
+                    const circle = painting.two.rope.children[ropeIndex]
+                    if (circle) {
+                        circle.position.set(body.position.x, body.position.y)
+                    }
+                    ropeIndex++
+                })
+            })
+        }
+        
+        // Draw painting
+        painting.two.image.position.set(painting.model.x, painting.model.y)
+        painting.two.image.rotation = painting.model.rotation
+
+        return true
+
     }
 
     drawSpeechBubble = (speechBubble: SpeechBubbleObjectModel) => {
