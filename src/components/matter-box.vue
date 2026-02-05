@@ -261,8 +261,12 @@ export default defineComponent ({
                     }, 1600)
                 }
                 
-                this.toggleDevMode()
-                this.toggleDevMode()
+                // Check queryparam for ?dev 
+                if (window.location.search.includes("dev")) {
+                    this.toggleDevMode()
+                }
+                // this.toggleDevMode()
+                // this.toggleDevMode()
                 
                 this.loadAction(this.actionStore.activeAction)
 
@@ -424,7 +428,7 @@ export default defineComponent ({
 </script>
 
 
-<style scoped> 
+<style> 
 #catterpillar-container {
     position: relative;
     width: 100%;
@@ -733,5 +737,9 @@ export default defineComponent ({
         height: 13px;
         translate: 0 5px;
     }
+}
+
+#matter {
+    opacity: 0;
 }
 </style>

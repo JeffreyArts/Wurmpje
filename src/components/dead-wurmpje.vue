@@ -349,6 +349,7 @@ export default defineComponent ({
     text-decoration: none;
 
     &.__isSelectOther {
+        pointer-events: all;
         right: 16px;
         svg {
             rotate: 90deg;
