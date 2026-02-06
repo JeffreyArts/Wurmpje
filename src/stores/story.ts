@@ -5,6 +5,7 @@ import { type IDBPDatabase } from "idb"
 import type Story from "@/stories/_base"
 import introStory from "@/stories/conditional/intro"
 import ballStory from "@/stories/conditional/ball"
+import covidstarPaintingStory from "@/stories/conditional/covidstar-painting"
 
 import eatStory from "@/stories/action/eat"
 import catapultStory from "@/stories/action/catapult"
@@ -65,11 +66,11 @@ const story = defineStore("story", {
                 // Conditional stories
                 this.addStory("intro", introStory)
                 this.addStory("ball", ballStory) 
-                this.addStory("catapult", catapultStory) 
-
+                
                 // Action related stories
                 this.addStory("eat", eatStory)
                 this.addStory("wof", wofStory)
+                this.addStory("catapult", catapultStory) 
                 
                 // Passive stories, always active
                 this.addStory("wall-slam", wallSlamStory) 
@@ -77,6 +78,7 @@ const story = defineStore("story", {
                 this.addStory("plankje-test", plankjeTestStory) 
                 this.addStory("daily-hunger-update", dailyHungerUpdateStory) 
                 this.addStory("missed-you", missedYouStory) 
+                this.addStory("covidstar-painting", covidstarPaintingStory) 
 
                 // Info
                 console.info("Story database initialized")
