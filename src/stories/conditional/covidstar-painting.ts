@@ -157,13 +157,13 @@ class CovidstarPaintingStory extends Story {
     }   
 
     async createPainting() {
-        const size = 128
+        const size = 96
 
         // const leftSide = this.catterpillar.head.x - this.catterpillar.thickness * 2 - 64
         // const rightSide = this.controller.ref.renderer.canvas.clientWidth - this.catterpillar.butt.x - 64
         // const x = Math.random() < .5 ? Math.random() * leftSide + 32 : (Math.random() * rightSide) + this.catterpillar.butt.x + 32
         // const y = window.innerHeight - this.controller.config.offsetBottom - size *2
-        const x = document.body.clientWidth - 144
+        const x = document.body.clientWidth - 128
         const y = 128
 
         //get current date as DD-MM-YYYY
@@ -177,13 +177,13 @@ class CovidstarPaintingStory extends Story {
             x: x,
             y: y,
             width: size,
-            height: size + 20, // The 20px is for the text underneath the painting
+            height: size + 16, // The 16px is for the text underneath the painting
         }, this.controller.ref.world)
         
         
         const canvas = document.createElement("canvas")
         canvas.width = size
-        canvas.height = size + 20
+        canvas.height = size + 16
         const ctx = canvas.getContext("2d")
         // Load painting
         try {
@@ -198,7 +198,7 @@ class CovidstarPaintingStory extends Story {
                 const imageBitmap = await createImageBitmap(await imageResponse.blob())
                 ctx.drawImage(imageBitmap, 0, 0, size, size)   
                 // Add date text
-                ctx.font = "16px \"FixedSys\", sans-serif"
+                ctx.font = "14px \"FixedSys\", sans-serif"
                 ctx.fillStyle = "black"
                 ctx.textAlign = "center"
                 ctx.fillText(dateString, size / 2, size + 10)
