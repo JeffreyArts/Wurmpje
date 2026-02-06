@@ -30,7 +30,7 @@ class IntroStory extends Story {
 
         // If available food is 0, the user already knows about how it works
         if (this.actionStore.availableActions === 0) {
-            this.storyStore.killStory("eat")
+            // this.storyStore.killStory("eat")
             this.destroy()
             return
         }

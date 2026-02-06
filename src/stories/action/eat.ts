@@ -166,7 +166,7 @@ class EatStory extends Story {
             })
 
 
-            if (this.actionStore.availableActions <= 0) {
+            if (this.activeFood.length <= 0) {
                 this.storyStore.killStory("eat")
             }
         }

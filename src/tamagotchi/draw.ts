@@ -738,7 +738,6 @@ export class Draw {
     drawFood = (food: FoodObjectModel) => {
         // console.log("Draw food", food)
         if (!food.model || food.model.isDestroyed) {
-            this.#removeFood(food)
             return false
         }
         
