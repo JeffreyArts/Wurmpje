@@ -1,15 +1,11 @@
 import Matter from "matter-js"
 import Story from "@/stories/_base"
-import type Catterpillar from "@/models/catterpillar"
-import type { Emote } from "@/models/catterpillar"
 import PaintingModel from "@/models/painting"
 import { type DBStory } from "@/stores/story"
 
 class CovidstarPaintingStory extends Story {
-    type = "conditional" as const
-    priority = "high" as const
+    type = "passive" as const
     cooldown = 4 * 7 * 24 * 60 * 60 * 1000 // 4 weeks
-    catterpillar = undefined as Catterpillar | undefined
     movementCooldown = 0
     painting = undefined as PaintingModel | undefined
     mousePin = undefined as Matter.Constraint | undefined
@@ -31,7 +27,6 @@ class CovidstarPaintingStory extends Story {
         this.controller.ref.addpointerDownEvent(this.#grabPainting.bind(this), "grabPainting")
         this.controller.ref.addpointerUpEvent(this.#releasePainting.bind(this), "releasePainting")
         this.controller.ref.addpointerMoveEvent(this.#dragPainting.bind(this), "dragPainting")
-        this.catterpillar = this.controller.catterpillar
 
         this.dbStory = await this.storyStore.getLatestDatabaseEntry("covidstar-painting")
         this.paintingIsOutOfBounds = !!this.dbStory?.details?.outOfBounds || false
@@ -53,25 +48,6 @@ class CovidstarPaintingStory extends Story {
         
         const ageInMs = Date.now() - this.dbStory.created
         return ageInMs / (1000 * 60 * 60)
-    }
-
-    async checkCondition() {
-        return true
-        // Check if story is already completed
-        const prevStory = await this.storyStore.getLatestDatabaseEntry("covidstar-painting")
-
-        // Check if cooldown is set 
-        const isCompleted = prevStory && prevStory.cooldown && (Date.now() - prevStory.created) < prevStory.cooldown
-
-        if (isCompleted) {
-            return false
-        }
-
-        // if (this.identityStore.current.age < 3) {
-        //     return false
-        // }
-
-        return true
     }
 
     #createMousePin(pinPos: { x: number, y: number }) {
@@ -163,7 +139,7 @@ class CovidstarPaintingStory extends Story {
         // const rightSide = this.controller.ref.renderer.canvas.clientWidth - this.catterpillar.butt.x - 64
         // const x = Math.random() < .5 ? Math.random() * leftSide + 32 : (Math.random() * rightSide) + this.catterpillar.butt.x + 32
         // const y = window.innerHeight - this.controller.config.offsetBottom - size *2
-        const x = document.body.clientWidth - 128
+        const x = document.body.clientWidth - 80
         const y = 128
 
         //get current date as DD-MM-YYYY
@@ -227,7 +203,7 @@ class CovidstarPaintingStory extends Story {
     }
 
     loop() {
-        this.catterpillar = this.catterpillar
+        
     }
 
     removePainting(painting?: PaintingModel) {

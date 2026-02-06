@@ -278,6 +278,7 @@ export default defineComponent ({
                 await this.storyStore.setActiveStory("petting")
                 await this.storyStore.setActiveStory("daily-hunger-update")
                 await this.storyStore.setActiveStory("missed-you")
+                await this.storyStore.setActiveStory("covidstar-painting")
 
                 setTimeout(() => {
                     console.info("================================")

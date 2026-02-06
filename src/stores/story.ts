@@ -66,7 +66,6 @@ const story = defineStore("story", {
                 // Conditional stories
                 this.addStory("intro", introStory)
                 this.addStory("ball", ballStory) 
-                this.addStory("covidstar-painting", covidstarPaintingStory) 
                 
                 // Action related stories
                 this.addStory("eat", eatStory)
@@ -79,6 +78,7 @@ const story = defineStore("story", {
                 this.addStory("plankje-test", plankjeTestStory) 
                 this.addStory("daily-hunger-update", dailyHungerUpdateStory) 
                 this.addStory("missed-you", missedYouStory) 
+                this.addStory("covidstar-painting", covidstarPaintingStory) 
 
                 // Info
                 console.info("Story database initialized")
