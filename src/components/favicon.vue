@@ -109,7 +109,7 @@ export default defineComponent ({
 
             const meta = document.createElement('meta');
             meta.name = "apple-mobile-web-app-title";
-            meta.content = this.identity ? this.identity.name : "Wurmpje";
+            meta.content = "Wurmpje";
             document.head.appendChild(meta);
         },
         async createFavicon() {
@@ -141,7 +141,7 @@ export default defineComponent ({
             // 3. Creeer meta tag voor apple-mobile-web-app-title
             const meta = document.createElement('meta');
             meta.name = "apple-mobile-web-app-title";
-            meta.content = this.identity ? this.identity.name : "Wurmpje";
+            meta.content = "Wurmpje";
 
             
             // 4. Verwijder eventueel bestaande apple-touch-icon links en apple-mobile-web-app-title meta tags
