@@ -97,16 +97,17 @@ export default defineComponent ({
     computed: {
         nameP1(): string {
             let name = ""
+            
             if (this.identity?.name.length > 16) {
                 // Split the name into two parts
                 const firstHalf = Math.ceil(this.identity.name.length / 2)
                 const parts = this.identity.name.split(" ")
                 let iLength = 0
                 for (let i = 0; i < parts.length; i++) {
-                    iLength += parts[i].length
                     if (iLength < firstHalf) {
                         name += `${parts[i]} `
                     }
+                    iLength += parts[i].length
                 }
             }
             return name
