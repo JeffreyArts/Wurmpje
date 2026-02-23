@@ -123,7 +123,7 @@ class WordsOfAffirmationStory extends Story {
     hurtfulWords = hurtfulWords
     fadeOutDuration = 6
     maxWords = 3
-    timer = 60
+    timer = 30
     prevTime = 0
     startTime = 0
     noNewWords = false
