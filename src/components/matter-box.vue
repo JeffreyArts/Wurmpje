@@ -192,16 +192,17 @@ export default defineComponent ({
             
             // let startPosition = { x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - this.config.offsetBottom - catterpillarOptions.identity.thickness }
             const footer = document.querySelector(".matterbox-footer") as HTMLElement
-            const offsetBottom = footer.clientHeight + 16
+            const offsetBottom = 8
+            // const offsetBottom = footer.clientHeight + 16
             const startPosition = { 
                 x: window.innerWidth / 2,
-                y: window.innerHeight - offsetBottom - this.identity.thickness 
+                y: window.innerHeight - offsetBottom
             }
             
             this.controller = new MatterController( this.$refs["catterpillar"] as HTMLElement, {
                 identity: this.identity,
                 catterpillarPos: startPosition,
-                offsetBottom: 128
+                offsetBottom: 8
             })
             
             // Change startPosition if the catterpillar is new, so it falls from the sky
@@ -433,7 +434,13 @@ export default defineComponent ({
 #catterpillar-container {
     position: relative;
     width: 100%;
-    
+    display: grid;
+    height: 100vh;
+    height: 100dvh;
+    grid-template-rows: calc(100vh - 128px) 128px;
+    grid-template-rows: calc(100dvh - 128px) 128px;
+
+/*     
     > div {
         width: 100%;
         height: 100%;
@@ -442,12 +449,10 @@ export default defineComponent ({
         top: 0;
         right: 0;
         bottom: 0;
-    }
+    } */
 }
 
 #catterpillar {
-    height: 100vh;
-    height: 100svh;
     position: relative;
     /* pointer-events: none;  NIET DENKEN DAT JE DEZE MOET TOEVOEGEN, FOKT HET OP VOOR MOBIEL*/
 }
@@ -569,17 +574,13 @@ export default defineComponent ({
 
 
 .matterbox-footer {
-    position: fixed;
-    bottom: 0px;
-    left: 0;
-    right: 0;
-    height: 128px;   
     padding: 0px 16px 8px;
     display: grid;
     grid-template-columns: 96px auto;
     gap: 16px;
     max-width: 640px;
     margin: auto;
+    width: 100%;
     
     a {
         color: currentColor;

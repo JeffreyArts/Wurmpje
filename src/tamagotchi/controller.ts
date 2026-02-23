@@ -105,7 +105,7 @@ export class MatterController {
 
     #resizeCanvas() {
         this.ref.renderer.options.width = this.ref.renderer.element.parentElement.clientWidth
-        this.ref.renderer.options.height = this.ref.renderer.element.parentElement.clientHeight
+        this.ref.renderer.options.height = this.ref.renderer.element.clientHeight
 
         this.ref.two.width = this.ref.renderer.options.width
         this.ref.two.height = this.ref.renderer.options.height

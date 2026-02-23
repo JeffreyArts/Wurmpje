@@ -891,7 +891,8 @@ export class Catterpillar {
             this.speechBubble = new SpeechBubble(this.world,{
                 x: this.head.x,
                 y: this.head.y - this.thickness,
-                text: text
+                text: text,
+                parentElement: document.getElementById("catterpillar")
             })
 
             return this.speechBubble.updateText(text, 80).then(() => {
