@@ -129,7 +129,7 @@ class WordsOfAffirmationStory extends Story {
     noNewWords = false
     newWordTimeout = null as ReturnType<typeof setTimeout> | null
     leaderboard = undefined as Leaderboard | undefined
-    score = new Score("wof-score", 666 )
+    score = new Score("wof-score", 200 )
     isReady = false
 
     async start() {   
@@ -222,7 +222,7 @@ class WordsOfAffirmationStory extends Story {
         
         
         // this.storyStore.killStory("wof")
-        const loveValue = Math.floor(this.score.value/100)
+        const loveValue = Math.floor(this.score.value/100 * 4)
         await this.actionStore.add(this.identityStore.current.id, "love", loveValue )
         
     }
