@@ -533,13 +533,15 @@ export class Draw {
     }
 
     addEye = ( eye: Eye, layerIndex = 10 ) => {
+        if (!eye.pupil) {
+            return
+        }
         const layer = this.layers[layerIndex]
 
         // 1. Maak eyelid path
         const anchors = eye.lid.map(p => new Two.Anchor(p.x, p.y))
         const eyelid = new Two.Path(anchors, true, true)
         eyelid.fill = "#fff"
-        
         // 2. Maak pupil
         const pupil = new Two.Circle(
             eye.pupil.x,
