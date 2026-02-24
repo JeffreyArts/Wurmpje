@@ -435,8 +435,7 @@ export default defineComponent ({
     position: relative;
     width: 100%;
     display: grid;
-    height: 100vh;
-    height: 100dvh;
+    height: 100%;
     grid-template-rows: calc(100vh - 128px) 128px;
     grid-template-rows: calc(100dvh - 128px) 128px;
 

@@ -236,12 +236,8 @@ export default defineComponent ({
 }
 
 .home {
-    max-height: 100svh;
+    height: 100%;
     touch-action: none;
-
-    * {
-        pointer-events: none;
-    }
 
     button,
     a,
