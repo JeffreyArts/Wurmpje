@@ -124,7 +124,8 @@ class CovidstarPaintingStory extends Story {
             return
         }
 
-        const maxY = this.controller.ref.renderer.canvas.clientHeight - this.controller.config.offsetBottom
+        const offsetBottom = this.controller.config.offsetBottom || 0
+        const maxY = this.controller.ref.renderer.canvas.clientHeight - offsetBottom
         
         // Move constraint 
         if (this.mousePin && pos.y < maxY) {
@@ -166,6 +167,8 @@ class CovidstarPaintingStory extends Story {
             const imageResponse = await fetch(`${import.meta.env.VITE_PAYLOAD_REST_ENDPOINT}/covid-star/image/${dateString}`, { 
                 method: "GET",
             }) 
+            if (!ctx) return
+            
             if (imageResponse.ok) {
                 // Draw white background
                 ctx.fillStyle = "#fff"

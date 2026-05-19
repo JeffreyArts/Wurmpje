@@ -26,7 +26,7 @@ class EatStory extends Story {
 
     async addFood(position: { x: number, y: number }) {
 
-        if (this.isDestroyed) {
+        if (this.isDestroyed || !this.controller || !this.catterpillar) {
             return
         }
 
@@ -38,8 +38,10 @@ class EatStory extends Story {
         if (this.actionStore.availableActions <= 0) {
             return
         }
+        const offsetBottom = this.controller.config.offsetBottom || 0
+        const height = this.controller.ref.renderer.options.height || 100
         
-        if (position.y > this.controller.ref.renderer.options.height - this.controller.config.offsetBottom) {
+        if (position.y > height - offsetBottom) {
             return
         }
         
@@ -83,6 +85,8 @@ class EatStory extends Story {
         
         // Loop through foods and consume if close to head
         foods.forEach(food => {
+            if (!this.catterpillar) return
+
             const distance = Math.hypot(head.position.x - food.x, head.position.y - food.y)
             if (distance < this.catterpillar.thickness) {
                 // Eat the food
@@ -135,7 +139,8 @@ class EatStory extends Story {
     
     consumeFood(food: FoodModel) {
         const foodBody = food.composite.bodies[0]
-        
+        if (!this.catterpillar) return
+            
         this.catterpillar.mouth.chew(5)
         
         // Move food into catterpillar mouth with a setVelocity and rotation

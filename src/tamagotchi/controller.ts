@@ -93,11 +93,17 @@ export class MatterController {
         requestAnimationFrame(this.#loop.bind(this))
     }
     #loop() {
-        if (this.catterpillar.x < 0 || this.catterpillar.x > this.ref.renderer.options.width  ||
-            this.catterpillar.y > this.ref.renderer.options.height ) {
+        const width = this.ref.renderer.options.width
+        const height = this.ref.renderer.options.height
+        if (!width || !height) {
+            requestAnimationFrame(this.#loop.bind(this))
+            return
+        }
+        if (this.catterpillar.x < 0 || this.catterpillar.x > width  ||
+            this.catterpillar.y > height ) {
             // Re-center Catterpillar
             this.catterpillar.destroy()
-            this.createCatterpillar({ x: this.ref.renderer.options.width / 2, y: this.ref.renderer.options.height - 200 }, { identity: this.identity })  
+            this.createCatterpillar({ x: width / 2, y: height - 200 }, { identity: this.identity })  
         }
 
         requestAnimationFrame(this.#loop.bind(this))
@@ -113,9 +119,9 @@ export class MatterController {
     }
 
     #createWalls() {
-        const offsetBottom = this.config.offsetBottom 
-        const width = this.ref.renderer.options.width
-        const height = this.ref.renderer.options.height
+        const offsetBottom = this.config.offsetBottom || 0
+        const width = this.ref.renderer.options.width || 100
+        const height = this.ref.renderer.options.height || 100
         const wallThickness = 100
 
         // Top wall
@@ -200,19 +206,22 @@ export class MatterController {
 
         let x = mouse.x
         let y = mouse.y
+
+        const width = this.ref.renderer.options.width || 100
+        const height = this.ref.renderer.options.height || 100
         
         if (mouse.x < 0) {
             x = 0
         }
-        if (mouse.x > this.ref.renderer.options.width) {
-            x = this.ref.renderer.options.width
+        if (mouse.x > width) {
+            x = width
         }
 
         if (mouse.y < 0) {
             y = 0
         }
-        if (mouse.y > this.ref.renderer.options.height) {
-            y = this.ref.renderer.options.height
+        if (mouse.y > height) {
+            y = height
         }
         if (this.mousePin) {
             this.mousePin.pointB = { x, y } 

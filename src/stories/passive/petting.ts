@@ -62,6 +62,8 @@ class PettingStory extends Story {
         bodyPart: Matter.Body,
         baseForce = 0.0002
     ) {
+        if (!this.catterpillar || !this.brush?.circleRadius) return
+            
         const direction = Matter.Vector.sub(point, bodyPart.position)
         const distance = Matter.Vector.magnitude(direction)
         if (distance === 0) return
@@ -100,6 +102,7 @@ class PettingStory extends Story {
         this.xPos = this.brush.position.x
         bodyParts.forEach(bodyPart => {
             if (this.prevXPos === this.xPos) return
+            
             this.#bodyPartMoveTowardsPoint(this.brush.position, bodyPart.body, .0012)
         })
             
@@ -124,6 +127,8 @@ class PettingStory extends Story {
         const bodyParts = this.catterpillar.bodyParts
         let nearBodyPart = false
         bodyParts.forEach(bodyPart => {
+            if (!this.catterpillar) return
+            
             const distance = Matter.Vector.magnitude(
                 Matter.Vector.sub(bodyPart.body.position, position)
             )

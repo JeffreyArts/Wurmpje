@@ -96,7 +96,7 @@ export class Eye  {
         requestAnimationFrame(this.followObject.bind(this))
     }
 
-    lookAt(target: { x: number, y: number }, duration?: number) {
+    lookAt(target?: { x: number, y: number }, duration?: number) {
         if (!target) {
             return
         }

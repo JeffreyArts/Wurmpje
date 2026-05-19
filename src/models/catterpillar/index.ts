@@ -797,7 +797,8 @@ export class Catterpillar {
         })
     }
 
-    moveTowards = (pos: { x: number, y: number }) => { 
+    moveTowards = (pos?: { x: number, y: number }) => { 
+        if (!pos) return
         this.moveTowardsPoint = pos
         this.#moveTowards()
     }
