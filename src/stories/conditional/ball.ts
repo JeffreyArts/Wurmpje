@@ -136,7 +136,7 @@ class BallStory extends Story {
         return pinConstraint
     }
 
-    #grabBall(pos) {
+    #grabBall(pos: { x: number, y: number }) {
         if (this.disableDragging) {
             return
         }
@@ -170,7 +170,7 @@ class BallStory extends Story {
         }, 500)
     }
 
-    #dragBall(pos) {
+    #dragBall(pos: { x: number, y: number }) {
         if (this.disableDragging) {
             return
         }

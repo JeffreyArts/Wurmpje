@@ -84,7 +84,7 @@ class CovidstarPaintingStory extends Story {
         return pinConstraint
     }
 
-    #grabPainting(pos) {
+    #grabPainting(pos: { x: number, y: number }) {
         if (this.disableDragging) {
             return
         }
@@ -119,7 +119,7 @@ class CovidstarPaintingStory extends Story {
         this.isGrabbed = false
     }
 
-    #dragPainting(pos) {
+    #dragPainting(pos: { x: number, y: number }) {
         if (this.disableDragging) {
             return
         }
