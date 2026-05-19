@@ -21,7 +21,7 @@ class PlankjeTestStory extends Story {
     
     async start() {
         console.info("🦩 Plankje test story started")
-
+        if (!this.controller) return
         this.controller.ref.addpointerDownEvent(this.#grabPlank.bind(this), "grabPlank")
         this.controller.ref.addpointerUpEvent(this.#releasePlank.bind(this), "releasePlank")
         this.controller.ref.addpointerMoveEvent(this.#dragPlank.bind(this), "dragPlank")
@@ -34,13 +34,13 @@ class PlankjeTestStory extends Story {
 
     }
 
-    #grabPlank(pos) {
-        if (!this.isMovable) {
+    #grabPlank(pos: { x: number, y: number }) {
+        if (!this.isMovable || !this.plank) {
             return
         }
 
         this.isGrabbed = false
-
+        
         const width = Math.floor(this.plank.width / 16) * 16
         if (pos.x > this.plank.x - width / 2 - 8 &&
             pos.x < this.plank.x + width / 2 + 8 &&
@@ -62,28 +62,28 @@ class PlankjeTestStory extends Story {
         this.isGrabbed = false
     }
 
-    #dragPlank(pos) {
-        if (this.disableDragging || !this.isGrabbed) {
+    #dragPlank(pos: { x: number, y: number }) {
+        if (this.disableDragging || !this.isGrabbed || !this.controller || !this.plank) {
             return
         }
-        const maxY = this.controller.ref.renderer.canvas.clientHeight - this.controller.config.offsetBottom
+        const offsetBottom = this.controller.config.offsetBottom || 0
+        const maxY = this.controller.ref.renderer.canvas.clientHeight - offsetBottom
         
         // Move plank
         const x = pos.x + this.xOffset
         const y = Math.min(pos.y + this.yOffset, maxY)
         Matter.Body.setPosition(this.plank.body, Matter.Vector.create(x, y))
-         
-        // this.plank.x = pos.x
-        // this.plank.y = Math.min(pos.y, maxY)
     }   
 
     async createPlank() {
+        if (!this.controller) return
         let width = Math.min(this.controller.ref.renderer.canvas.clientWidth / 3 * 2, 320)
         // Round to nearest 16 (downwards)
         width = Math.floor(width / 16) * 16
 
+        const offsetBottom = this.controller.config.offsetBottom || 0
         // Determine y position for plank
-        const y = this.controller.ref.renderer.canvas.clientHeight - this.controller.config.offsetBottom * 3
+        const y = this.controller.ref.renderer.canvas.clientHeight - offsetBottom * 3
         const x = width/2
         
         this.plank = new PlankModel({
@@ -137,10 +137,11 @@ class PlankjeTestStory extends Story {
             this.plank = undefined
         }
 
-        this.controller.ref.removepointerDownEvent("grabPlank")
-        this.controller.ref.removepointerUpEvent("releasePlank")
-        this.controller.ref.removepointerMoveEvent("dragPlank")
-
+        if (this.controller) {
+            this.controller.ref.removepointerDownEvent("grabPlank")
+            this.controller.ref.removepointerUpEvent("releasePlank")
+            this.controller.ref.removepointerMoveEvent("dragPlank")
+        }
 
         // Process the default story destroy
         super.destroy()
