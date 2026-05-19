@@ -188,7 +188,10 @@ export class Draw {
                     this.objects = this.objects.filter(o => o.id !== obj.id)
                 }
             } else if (obj.type == "painting") {
-                this.drawPainting(obj)
+                if (!this.drawPainting(obj)) {
+                    this.#removePainting(obj)
+                    this.objects = this.objects.filter(o => o.id !== obj.id)
+                }
             }
         })
         
@@ -533,13 +536,15 @@ export class Draw {
     }
 
     addEye = ( eye: Eye, layerIndex = 10 ) => {
+        if (!eye.pupil) {
+            return
+        }
         const layer = this.layers[layerIndex]
 
         // 1. Maak eyelid path
         const anchors = eye.lid.map(p => new Two.Anchor(p.x, p.y))
         const eyelid = new Two.Path(anchors, true, true)
         eyelid.fill = "#fff"
-        
         // 2. Maak pupil
         const pupil = new Two.Circle(
             eye.pupil.x,
@@ -795,6 +800,7 @@ export class Draw {
     drawPainting = (painting: PaintingObjectModel) => {
         
         if (!painting.model || painting.model.isDestroyed) {
+            this.#removePainting(painting)
             return false
         }
 
@@ -819,7 +825,6 @@ export class Draw {
         painting.two.image.rotation = painting.model.rotation
 
         return true
-
     }
 
     drawSpeechBubble = (speechBubble: SpeechBubbleObjectModel) => {
@@ -930,7 +935,6 @@ export class Draw {
     }
 
     #removeFood(foodObj: FoodObjectModel) {
-        console.log("Removing food", foodObj)
         if (!foodObj) return 
         if (foodObj.type != "food") { console.error("Invalid objectModel for #removeFood"); return }
 
@@ -978,8 +982,28 @@ export class Draw {
             speechBubble.model.destroy()
             speechBubble.model = null
         }
-
     }
+
+    #removePainting(painting: PaintingObjectModel) {
+        if (!painting) return
+        if (painting.type != "painting") { console.error("Invalid objectModel for #removePainting"); return }
+
+        if (painting.two.image) {
+            painting.two.image.remove()
+        }
+        
+        if (painting.two.rope) {
+            painting.two.rope.remove()
+        }
+        
+        if (painting.model) {
+            painting.model.destroy()
+            painting.model = null
+        }
+
+        this.two.update()
+    }
+
 
     removeObjectById = (id: number) => {
         const obj = this.objects.find(o => o.id === id)
@@ -998,6 +1022,11 @@ export class Draw {
         
         if (obj.type == "speechBubble") {
             this.#removeSpeechBubble(obj)
+            return
+        }
+        
+        if (obj.type == "painting") {
+            this.#removePainting(obj)
             return
         }
         

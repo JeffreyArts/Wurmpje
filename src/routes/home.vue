@@ -236,23 +236,6 @@ export default defineComponent ({
 }
 
 .home {
-    max-height: 100svh;
-    touch-action: none;
-
-    * {
-        pointer-events: none;
-    }
-
-    button,
-    a,
-    input,
-    select,
-    textarea,
-    .qr, 
-    .actions-container svg,
-    .action-container,
-    .catterpillar-switch {
-        pointer-events: auto;
-    }
+    height: 100%;
 }
 </style>
