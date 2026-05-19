@@ -22,10 +22,10 @@ class BallStory extends Story {
     ballIsFlying = false
     ballIsOutOfBounds = false
 
-    ballIsFlyingTimeout = undefined as NodeJS.Timeout | undefined
-    resetMoveTowardsPointTimeout = undefined as NodeJS.Timeout | undefined
-    releaseBallTimeout = undefined as NodeJS.Timeout | undefined
-    resettingEyesTimeout = undefined as NodeJS.Timeout | undefined
+    ballIsFlyingTimeout = undefined as ReturnType<typeof setTimeout> | undefined
+    resetMoveTowardsPointTimeout = undefined as ReturnType<typeof setTimeout> | undefined
+    releaseBallTimeout = undefined as ReturnType<typeof setTimeout> | undefined
+    resettingEyesTimeout = undefined as ReturnType<typeof setTimeout> | undefined
 
     async start() {
         console.info("Ball story started")

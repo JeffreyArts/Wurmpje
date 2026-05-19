@@ -150,7 +150,7 @@ export default defineComponent({
                 "Scanning from a screen? Try decreasing the brightness",
             ] as Array<string>,
             postponeIndex: 0,
-            postponeTimeout: null as NodeJS.Timeout | null,
+            postponeTimeout: null as ReturnType<typeof setTimeout> | null,
             updateTextMessageTween: null as gsap.core.Tween | null,
             newIdentity: null as IdentityField | null,
         }

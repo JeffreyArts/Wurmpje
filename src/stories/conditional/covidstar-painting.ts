@@ -16,10 +16,10 @@ class CovidstarPaintingStory extends Story {
     storyIndex = 0
 
     paintingIsOutOfBounds = false
-    paintingIsFlyingTimeout = undefined as NodeJS.Timeout | undefined
-    resetMoveTowardsPointTimeout = undefined as NodeJS.Timeout | undefined
-    releasePaintingTimeout = undefined as NodeJS.Timeout | undefined
-    resettingEyesTimeout = undefined as NodeJS.Timeout | undefined
+    paintingIsFlyingTimeout = undefined as ReturnType<typeof setTimeout> | undefined
+    resetMoveTowardsPointTimeout = undefined as ReturnType<typeof setTimeout> | undefined
+    releasePaintingTimeout = undefined as ReturnType<typeof setTimeout> | undefined
+    resettingEyesTimeout = undefined as ReturnType<typeof setTimeout> | undefined
 
     async start() {
         console.info("Covidstar painting story started")

@@ -157,7 +157,7 @@ export default defineComponent ({
             selectedParent2Index: 0,
             disableDecreaseChevron: true,
             disableIncreaseChevron: false,
-            parent1Timeout: 0 as number | NodeJS.Timeout,
+            parent1Timeout: 0 as number | ReturnType<typeof setTimeout>,
             hasError: false,
             errorMessage: "",
             potentialPartnersSeen: 0

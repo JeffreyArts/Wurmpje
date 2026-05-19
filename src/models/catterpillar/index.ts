@@ -35,7 +35,7 @@ export class Catterpillar {
     primaryColor: string = "#00ff00"
     secondaryColor: string = "#007700"
     texture: { top?: string, "360"?: string, bottom?: string, vert?: string, stroke?: boolean } = {}
-    blinkTimeout: NodeJS.Timeout | number = 0
+    blinkTimeout: ReturnType<typeof setTimeout> | number = 0
     autoBlink: boolean = true
     defaultState: Emote = "happy"
     moveTowardsPoint: { x: number, y: number } | null = null
@@ -52,8 +52,8 @@ export class Catterpillar {
     speechBubble: undefined | SpeechBubble
 
     scared:{
-        timeout?: NodeJS.Timeout | number,
-        timeoutAction?: NodeJS.Timeout | number,
+        timeout?: ReturnType<typeof setTimeout> | number,
+        timeoutAction?: ReturnType<typeof setTimeout> | number,
     } = {}
 
     constructor(options: {

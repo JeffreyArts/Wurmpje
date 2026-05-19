@@ -11,7 +11,7 @@ export class Ball {
     rotation: number = 0
 
     isMoving: boolean = false
-    isMovingTimeout: NodeJS.Timeout | number = 0
+    isMovingTimeout: ReturnType<typeof setTimeout> | number = 0
     isDestroyed: boolean = false
 
     constructor(options: {
@@ -60,7 +60,7 @@ export class Ball {
             Math.abs(this.y - targetBody.position.y) > 0.1) {
             this.isMoving = true
             if (this.isMovingTimeout) {
-                clearTimeout(this.isMovingTimeout as NodeJS.Timeout)
+                clearTimeout(this.isMovingTimeout)
             }
             this.isMovingTimeout = setTimeout(() => {
                 this.isMoving = false
